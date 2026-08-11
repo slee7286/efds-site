@@ -1,0 +1,1 @@
+export default function PartnersPage() { return <main><section className="container page-intro"><div className="eyebrow">Partners</div><h1 className="display">Bring a real<br />question.</h1><p>We work with organisations who want to meet a thoughtful student community and make the conversation useful in both directions.</p></section></main>; }

@@ -1,0 +1,3 @@
+import { getPublicCommittee } from "@/lib/db/public";
+
+export default async function CommitteePage() { const committee = await getPublicCommittee(); return <main><section className="container page-intro"><div className="eyebrow">The committee</div><h1 className="display">People behind<br />the platform.</h1><p>EFDS is run by students who care about making the society useful, welcoming and worth returning to.</p></section><section className="section-tight"><div className="container pathway-grid">{committee.map((person) => <article className="surface pathway" key={person.name}><span className="pathway-index">{person.academicYear || "EFDS"}</span><h3>{person.name}</h3><p>{person.role}</p></article>)}</div></section></main>; }
