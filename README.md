@@ -46,7 +46,7 @@ Copy-Item .env.example .env.local
 npm.cmd run dev
 ```
 
-Visit `http://localhost:3000`. Without Supabase variables, public pages and preview shells render with safe demo data. Run checks with:
+Visit `http://localhost:4587`. Without Supabase variables, public pages and preview shells render with safe demo data. If `.env.local` already exists, set `NEXT_PUBLIC_SITE_URL=http://localhost:4587` there as well so local authentication callbacks use the correct port. Run checks with:
 
 ```powershell
 npm.cmd run lint
@@ -60,7 +60,7 @@ npm.cmd run build
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_URL=http://localhost:4587
 ALLOWED_AUTH_EMAIL_DOMAINS=ic.ac.uk,imperial.ac.uk
 SUPABASE_SERVICE_ROLE_KEY=
 AI_PROVIDER=mock

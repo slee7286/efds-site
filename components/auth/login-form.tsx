@@ -33,7 +33,7 @@ export function LoginForm() {
   return <div>
     <button className="microsoft-button" disabled={pending} onClick={signInWithMicrosoft}><span className="ms-icon"><i /><i /><i /><i /></span>{pending ? "Connecting…" : "Continue with Microsoft"}</button>
     <div className="auth-divider">or</div>
-    {!external ? <button className="auth-submit" onClick={() => setExternal(true)}>Approved external user? Sign in with email →</button> : <form onSubmit={requestMagicLink}><label className="auth-label" htmlFor="external-email">Approved email address</label><input className="auth-input" id="external-email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /><button className="auth-submit" disabled={pending} type="submit">Send secure magic link →</button></form>}
+    {!external ? <button className="auth-submit" onClick={() => setExternal(true)}>Approved email user? Sign in with email →</button> : <form onSubmit={requestMagicLink}><label className="auth-label" htmlFor="external-email">Approved email address</label><input className="auth-input" id="external-email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /><button className="auth-submit" disabled={pending} type="submit">Send secure magic link →</button></form>}
     {message && <p className="auth-footnote" role="status">{message}</p>}
   </div>;
 }

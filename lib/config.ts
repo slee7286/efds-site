@@ -1,5 +1,5 @@
 const configuredDomains = process.env.ALLOWED_AUTH_EMAIL_DOMAINS ?? "ic.ac.uk,imperial.ac.uk";
-const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? (process.env.NODE_ENV === "production" ? "" : "http://localhost:3000");
+const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? (process.env.NODE_ENV === "production" ? "" : "http://localhost:4587");
 
 export const config = {
   siteUrl: configuredSiteUrl,
