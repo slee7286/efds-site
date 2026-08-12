@@ -1,17 +1,20 @@
 import { NextResponse } from "next/server";
 import { config, isSupabaseConfigured } from "@/lib/config";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { evaluateUserAccess, upsertImperialProfile } from "@/lib/auth/server";
+import { evaluateUserAccess, provisionAuthenticatedProfile } from "@/lib/auth/server";
+import { safeInternalPath } from "@/lib/auth/redirect";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
+  if (!config.siteUrl) return new NextResponse("NEXT_PUBLIC_SITE_URL is required", { status: 500 });
   if (!code || !isSupabaseConfigured) return NextResponse.redirect(new URL("/login?error=auth_unconfigured", config.siteUrl));
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error.message)}`, config.siteUrl));
   const { data: { user } } = await supabase.auth.getUser();
-  if (user?.email) await upsertImperialProfile(user);
+  await provisionAuthenticatedProfile(user);
   const { allowed } = await evaluateUserAccess(user);
-  return NextResponse.redirect(new URL(allowed ? "/dashboard" : "/access-denied", config.siteUrl));
+  const destination = allowed ? safeInternalPath(url.searchParams.get("next")) ?? "/dashboard" : "/access-denied";
+  return NextResponse.redirect(new URL(destination, config.siteUrl));
 }

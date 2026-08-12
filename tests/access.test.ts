@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isActiveException, isAllowedImperialEmail, normalizeEmail, resolveAccess } from "../lib/auth/access";
 import { canAccessAdmin, canAccessCommittee, canUseScope, scopeForRole } from "../lib/auth/roles";
+import { safeInternalPath } from "../lib/auth/redirect";
 
 const domains = ["ic.ac.uk", "imperial.ac.uk"];
 
@@ -9,6 +10,8 @@ describe("EFDS access policy", () => {
     expect(normalizeEmail(" Student@IC.AC.UK ")).toBe("student@ic.ac.uk");
     expect(isAllowedImperialEmail("Student@IC.AC.UK", domains)).toBe(true);
     expect(isAllowedImperialEmail("person@imperial.ac.uk", domains)).toBe(true);
+    expect(isAllowedImperialEmail("person@fakeic.ac.uk", domains)).toBe(false);
+    expect(isAllowedImperialEmail("person@ic.ac.uk.attacker.com", domains)).toBe(false);
   });
 
   it("denies external accounts without an exception", () => {
@@ -38,5 +41,12 @@ describe("role and agent boundaries", () => {
     expect(canUseScope("member", "committee")).toBe(false);
     expect(canUseScope("member", "admin")).toBe(false);
     expect(canUseScope("viewer", "member")).toBe(false);
+  });
+
+  it("only accepts safe internal callback destinations", () => {
+    expect(safeInternalPath("/dashboard/jobs")).toBe("/dashboard/jobs");
+    expect(safeInternalPath("https://attacker.example")).toBeNull();
+    expect(safeInternalPath("//attacker.example")).toBeNull();
+    expect(safeInternalPath("/dashboard\\\\attacker")).toBeNull();
   });
 });

@@ -12,7 +12,7 @@ export function SiteFooter() {
           <p>A student-led society for people who want to understand the systems behind the numbers.</p>
         </div>
         <div className="footer-links">
-          <Link href="/about">About</Link><Link href="/events">Events</Link><Link href="/careers">Careers</Link><Link href="/login">Member login</Link>
+          <Link href="/about">About</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/contact">Contact</Link><Link href="/security">Security</Link><Link href="/events">Events</Link><Link href="/careers">Careers</Link><Link href="/login">Member login</Link>
         </div>
       </div>
     </footer>

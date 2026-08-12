@@ -9,6 +9,7 @@ const memberItems = [
 const adminItems = [["Overview", "/admin", Gauge], ["Knowledge review", "/admin/knowledge", BookOpen], ["Committee", "/admin/committee", UserRound], ["Actions", "/admin/actions", CalendarDays], ["Integrations", "/admin/integrations", Settings]] as const;
 
 export function AppSidebar({ role = "member" }: { role?: AccessRole }) {
+  const visibleMemberItems = memberItems.filter(([, href]) => href !== "/dashboard/knowledge" || role === "committee" || role === "admin");
   return (
     <aside className="app-sidebar">
       <Link className="brand" href="/">
@@ -17,7 +18,7 @@ export function AppSidebar({ role = "member" }: { role?: AccessRole }) {
       </Link>
       <div className="sidebar-label">Workspace</div>
       <nav className="sidebar-nav" aria-label="Private navigation">
-        {memberItems.map(([label, href, Icon]) => <Link key={href} className={href === "/dashboard" ? "active" : ""} href={href}><Icon size={15} />{label}</Link>)}
+        {visibleMemberItems.map(([label, href, Icon]) => <Link key={href} className={href === "/dashboard" ? "active" : ""} href={href}><Icon size={15} />{label}</Link>)}
       </nav>
       {(role === "admin" || role === "committee") && <>
         <div className="sidebar-label">Operations</div>

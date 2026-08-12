@@ -3,17 +3,21 @@ export type MemberType = "imperial" | "external" | "alumni" | "departmental_repr
 export type AgentScope = "public" | "member" | "committee" | "admin";
 
 export interface AccessProfile {
+  id: string;
   authUserId: string;
   email: string;
   fullName: string | null;
   accessRole: AccessRole;
   memberType: MemberType;
+  officerId: string | null;
   active: boolean;
+  lastLoginAt: string | null;
 }
 
 export interface AccessException {
   email: string;
   accessRole: AccessRole;
+  memberType?: MemberType | null;
   active: boolean;
   expiresAt?: string | null;
 }

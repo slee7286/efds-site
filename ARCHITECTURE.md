@@ -65,20 +65,43 @@ normalize → domain policy → exception policy → application profile
                        viewer < member < committee < admin
 ```
 
-The current backend has no application profile or access-exception tables. The website includes the typed contract and safe query placeholders but does not create a second migration system. Add these models to the EFDS knowledge-base SQLAlchemy/Alembic owner before production auth.
+Migration `0004_auth_profiles_and_rls` now adds the application profile and external exception tables to the backend owner. The website consumes them through Supabase/RLS and does not create a second migration system.
 
 Suggested backend-owned additions:
 
 - `profiles`: `auth_user_id`, normalized email, name, access role, member type, officer reference, active state, timestamps and metadata.
-- `auth_access_exceptions`: normalized unique email, access role, reason, active state, expiry, creator, timestamps and metadata.
+- `auth_access_exceptions`: normalized unique email, access role, optional member type, reason, active state, expiry, creator, timestamps and metadata.
 
 RLS should use active profile/role checks. An authenticated Supabase session alone is not private-site authorization.
+
+## Data access matrix
+
+`—` means no direct browser access. `Own` means a user may read only their own profile. `Read` is role-gated by RLS. `Manage` is admin-only. `Backend` means the direct PostgreSQL ingestion/maintenance connection remains the writer and bypasses API roles as an intentionally trusted backend connection.
+
+| Dataset | Public | Member | Committee | Admin | Backend |
+| --- | --- | --- | --- | --- | --- |
+| `profiles` | — | Own | Own | Read/manage | Read/write |
+| `auth_access_exceptions` | narrow eligibility RPC only | — | — | Manage | Read/write |
+| `officers` | — | — | Read | Read | Read/write |
+| `knowledge_articles` | — | — | Read | Read | Read/write |
+| `knowledge_article_changes` | — | — | — | Read | Read/write |
+| `knowledge_requirements`, `knowledge_timing_rules` | — | — | Read | Read | Read/write |
+| `knowledge_processes`, `knowledge_process_steps` | — | — | Read | Read | Read/write |
+| `knowledge_resources`, `knowledge_contacts` | — | — | Read | Read | Read/write |
+| topics, roles and article mappings | — | — | Read | Read | Read/write |
+| extraction and ingestion runs | — | — | — | Read | Read/write |
+| documents, meetings, decisions, actions | — | — | Read | Read | Read/write |
+| Slack channels/messages | — | — | — | Read | Read/write |
+
+The public site currently uses placeholder/public application data for events and committee content; no raw internal table is public. A future publication model or view must be added before internal records are made public.
 
 ## Route map
 
 ```text
 /                         public home
-/about /events /careers   public content
+/about /privacy /terms   public information and policy
+/contact /security      public contact and security information
+/events /careers        public content
 /research /resources     public content
 /chat                     public agent, public scope only
 /login                    Microsoft-first login + approved OTP entry
@@ -124,6 +147,17 @@ Scope is resolved before retrieval and before model-provider selection. The prov
 - Raw source paths and private source documents are not sent to public pages.
 - Mutations require Zod validation, authorization and later audit semantics.
 
+## Bootstrap and production flow
+
+After applying the migration locally or through the controlled backend release process:
+
+```powershell
+alembic upgrade head
+python scripts/grant_access.py person@imperial.ac.uk --role admin
+```
+
+The grant command requires an existing profile, so the person must first complete Microsoft login successfully. It is idempotent and can optionally link an existing officer with `--officer-id UUID`.
+
 ## Known V1 gaps
 
-The production backend additions for `profiles` and `auth_access_exceptions` are not created here because the knowledge-base repository remains the schema owner. The demo provider is local and does not implement RAG. Jobs are UI/types only. Public publication, realtime, Slack, Microsoft Graph, meeting ingestion, job scraping and sponsorship operations remain future modules.
+The migration has not been executed against the live Supabase database. The demo provider is local and does not implement RAG. Jobs are UI/types only. Public publication, realtime, Slack, Microsoft Graph, meeting ingestion, job scraping and sponsorship operations remain future modules.

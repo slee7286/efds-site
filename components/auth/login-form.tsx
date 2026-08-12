@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
+import { getMicrosoftOAuthOptions, MICROSOFT_AUTH_PROVIDER } from "@/lib/auth/microsoft";
 
 export function LoginForm() {
   const [external, setExternal] = useState(false);
@@ -12,16 +13,21 @@ export function LoginForm() {
   async function signInWithMicrosoft() {
     setPending(true); setMessage("");
     const supabase = createBrowserSupabaseClient();
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "azure", options: { scopes: "openid profile email", redirectTo: `${window.location.origin}/auth/callback` } });
+    const { error } = await supabase.auth.signInWithOAuth({ provider: MICROSOFT_AUTH_PROVIDER, options: getMicrosoftOAuthOptions(window.location.origin) });
     if (error) setMessage(error.message);
     setPending(false);
   }
 
   async function requestMagicLink(event: React.FormEvent) {
     event.preventDefault(); setPending(true); setMessage("");
-    const supabase = createBrowserSupabaseClient();
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}/auth/callback` } });
-    setMessage(error ? error.message : "If this email has an active EFDS exception, a sign-in link is on its way."); setPending(false);
+    try {
+      const response = await fetch("/api/auth/external", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
+      const data = await response.json();
+      setMessage(data.message ?? "If this email is approved for EFDS external access, a sign-in link is on its way.");
+    } catch {
+      setMessage("We could not start the secure sign-in flow. Please try again.");
+    }
+    setPending(false);
   }
 
   return <div>

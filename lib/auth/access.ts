@@ -5,7 +5,10 @@ export function normalizeEmail(email: string) {
 }
 
 export function emailDomain(email: string) {
-  return normalizeEmail(email).split("@")[1] ?? "";
+  const normalized = normalizeEmail(email);
+  const at = normalized.lastIndexOf("@");
+  if (at <= 0 || at !== normalized.indexOf("@")) return "";
+  return normalized.slice(at + 1);
 }
 
 export function isAllowedImperialEmail(email: string, allowedDomains: string[]) {
