@@ -158,6 +158,69 @@ python scripts/grant_access.py person@imperial.ac.uk --role admin
 
 The grant command requires an existing profile, so the person must first complete Microsoft login successfully. It is idempotent and can optionally link an existing officer with `--officer-id UUID`.
 
+## Knowledge Operations V1
+
+The website treats ICU source rows as authoritative and derived EFDS
+knowledge as reviewable interpretations. The admin route family
+`/admin/knowledge` is an operations console over the backend-owned tables:
+overview counts, unified review queue/detail, stale source-change queue,
+article/source inspection, requirements, timing, processes, resources,
+contacts and role-specific views.
+
+The query boundary is `lib/db/knowledge-ops.ts`; review mutations are isolated
+in `lib/actions/knowledge-review.ts`. Both perform server-side authentication
+and role checks. The action calls the backend-owned
+`review_knowledge_transaction` RPC, which performs the authorization
+re-check, row lock, `review_version` conflict check, allowlisted interpretation
+update, and append-only event insert in one PostgreSQL transaction. Rejected
+and stale rows are never deleted.
+
+Visibility is separate from review: `internal` is the default, and an admin
+must explicitly select `committee`, `member`, or `public`. The member view is
+limited to approved/current `member` or `public` rows. `/resources` reads only
+the backend's public publication view, so unauthenticated users cannot read
+internal ICU content. No service-role key is used by the website.
+
+## Slack Institutional Memory V1
+
+The website is a read-only admin browser for the backend-owned Slack source
+archive. It does not call Slack Web API and does not read `SLACK_BOT_TOKEN`.
+The admin-only route family is `/admin/slack`, with dashboard, channel list,
+channel conversation, message provenance/change history, and PostgreSQL-backed
+text search. Supabase queries remain centralized in `lib/db/slack.ts` and use
+the normal authenticated client plus the existing admin role/RLS boundary; no
+service-role client is used.
+
+The backend explicitly allowlists channels before archiving. The website shows
+the discovered channel metadata and whether each channel is enabled, but
+channel enablement and sync remain backend CLI operations. Public and member
+routes have no Slack archive surface.
+
+## OneDrive Filesystem Institutional Memory V1
+
+The admin-only `/admin/documents` route family browses the backend-owned local
+OneDrive source archive. It provides live counts, area/status/extraction/
+duplicate filters, relative-path search, current extracted text, immutable
+version history, source change history, and exact duplicate links. Queries are
+centralized in `lib/db/documents.ts` and use the authenticated Supabase client;
+the website never reads the local filesystem and never receives an absolute
+source root or filesystem credential.
+
+The backend keeps `source_root + normalized_relative_path` as logical source
+identity and `document_id + content_hash` as version identity. Missing,
+unavailable, unsupported, and stale source states are displayed rather than
+silently hidden. Public/member routes have no raw filesystem archive surface.
+
 ## Known V1 gaps
 
-The migration has not been executed against the live Supabase database. The demo provider is local and does not implement RAG. Jobs are UI/types only. Public publication, realtime, Slack, Microsoft Graph, meeting ingestion, job scraping and sponsorship operations remain future modules.
+Migrations `0005_knowledge_review_publication` and
+`0006_transactional_knowledge_review` require controlled backend application;
+the website does not create or run migrations. The demo provider remains local,
+and no full RAG,
+realtime, Slack extraction, Microsoft Graph, filesystem cloud sync, meeting ingestion, job scraping or
+sponsorship operations are included.
+The RPC/editing boundary is deliberately source-safe: requirement taxonomy,
+timing semantics, process metadata/steps, and existing process-resource links
+can be edited, while ICU article text, evidence, source hashes, extraction
+metadata, and crawler data remain immutable. A stale browser tab is sent to a
+reload/cancel conflict state rather than silently overwriting a newer review.

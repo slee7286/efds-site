@@ -30,11 +30,17 @@ The application-side callback is `https://<EFDS-site-origin>/auth/callback`. The
 
 ## Requested scopes
 
-The explicit EFDS OAuth configuration is centralized in `lib/auth/microsoft.ts` and is passed to `signInWithOAuth` from `components/auth/login-form.tsx`:
+The EFDS OAuth configuration is centralized in `lib/auth/microsoft.ts` and is passed to `signInWithOAuth` from `components/auth/login-form.tsx`. Supabase Auth's Azure provider supplies the required `openid` scope itself, so EFDS passes only the additional identity scopes:
 
 ```ts
 provider: "azure"
-scopes: "openid profile email"
+scopes: "profile email"
+```
+
+The resulting Azure authorization request is:
+
+```text
+scope=openid profile email
 ```
 
 | Scope | Type | Purpose | Required? | Data exposed |
@@ -47,7 +53,7 @@ scopes: "openid profile email"
 
 OpenID Connect identity scopes and Microsoft Graph permissions are distinct categories. EFDS requests identity claims, not a Microsoft Graph API permission. The `profile` claim does not give EFDS a Graph API client or directory-query capability.
 
-The installed Supabase JavaScript client passes the supplied `options.scopes` value through to Supabase Auth; it does not add `offline_access` or `User.Read`. The Azure provider implementation inspected for Supabase Auth starts with its required `openid` provider default and combines the caller's scopes. It does not add `offline_access` or Microsoft Graph data permissions. Consequently, the effective permission intent remains `openid`, `profile`, and `email`; an implementation-level duplicate of `openid` is not an additional permission.
+The installed Supabase JavaScript client passes the supplied `options.scopes` value through to Supabase Auth; it does not add `openid`, `offline_access`, or `User.Read`. The Azure provider implementation inspected for Supabase Auth starts with its required `openid` provider default and combines the caller's additional scopes. EFDS therefore passes `profile email`, yielding the effective request `openid profile email` with no duplicate. It does not add `offline_access` or Microsoft Graph data permissions.
 
 Microsoft documents that the “Maintain access to data you have given it access to” wording can appear on consent pages even for flows that do not provide a refresh token. EFDS does not explicitly request `offline_access`, and the EFDS code does not use a Microsoft provider refresh token or call a Microsoft resource after login. Supabase session persistence uses the Supabase Auth session, not an EFDS request for Microsoft Graph access. The final production authorization URL should nevertheless be checked once in the configured Supabase project as an operational verification.
 

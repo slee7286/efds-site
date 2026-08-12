@@ -8,17 +8,23 @@ import {
 import { getExternalMagicLinkOptions } from "../lib/auth/external";
 
 describe("Microsoft authentication request", () => {
-  it("uses the Azure provider and only the minimum identity scopes", () => {
+  it("leaves Supabase's required openid scope to the Azure provider", () => {
     expect(MICROSOFT_AUTH_PROVIDER).toBe("azure");
-    expect(MICROSOFT_AUTH_SCOPES).toBe("openid profile email");
-    expect(MICROSOFT_AUTH_SCOPES.split(" ")).toEqual(["openid", "profile", "email"]);
+    expect(MICROSOFT_AUTH_SCOPES).toBe("profile email");
+    expect(MICROSOFT_AUTH_SCOPES.split(" ")).toEqual(["profile", "email"]);
   });
 
-  it("does not request Microsoft Graph data permissions", () => {
+  it("produces the desired effective OIDC scopes with Supabase's Azure default", () => {
+    const effectiveScopes = ["openid", ...MICROSOFT_AUTH_SCOPES.split(" ")];
+    expect(effectiveScopes).toEqual(["openid", "profile", "email"]);
+    expect(new Set(effectiveScopes).size).toBe(effectiveScopes.length);
+  });
+
+  it("does not request Microsoft Graph or refresh-token permissions", () => {
     const scopes = MICROSOFT_AUTH_SCOPES.split(" ");
     expect(scopes).not.toContain("offline_access");
     expect(scopes).not.toContain("User.Read");
-    expect(scopes.every((scope) => ["openid", "profile", "email"].includes(scope))).toBe(true);
+    expect(scopes.every((scope) => ["profile", "email"].includes(scope))).toBe(true);
   });
 
   it("constructs a same-origin callback URL without accepting a path or query", () => {

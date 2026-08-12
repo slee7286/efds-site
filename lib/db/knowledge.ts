@@ -35,9 +35,9 @@ export async function getKnowledgeSummary(): Promise<KnowledgeSummary> {
   }
   const articles = await listKnowledgeArticles();
   return {
-    articleCount: articles.length || 78,
-    highRelevanceCount: articles.filter((article) => ["critical", "high"].includes(article.relevance)).length || 54,
-    proposedCount: articles.filter((article) => article.reviewStatus === "proposed").length || 32,
+    articleCount: articles.length,
+    highRelevanceCount: articles.filter((article) => ["critical", "high"].includes(article.relevance)).length,
+    proposedCount: articles.filter((article) => article.reviewStatus === "proposed").length,
     staleCount: articles.filter((article) => article.isStale).length,
     lastSyncedAt: articles.length ? articles[0].sourceUpdatedAt : null,
   };

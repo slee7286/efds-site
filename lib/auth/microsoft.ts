@@ -1,5 +1,8 @@
 export const MICROSOFT_AUTH_PROVIDER = "azure" as const;
-export const MICROSOFT_AUTH_SCOPES = "openid profile email" as const;
+// Supabase Auth's Azure provider always supplies `openid` itself. The
+// `scopes` option is therefore limited to the additional identity scopes so
+// the effective provider request contains each scope exactly once.
+export const MICROSOFT_AUTH_SCOPES = "profile email" as const;
 export const AUTH_CALLBACK_PATH = "/auth/callback" as const;
 
 export function getMicrosoftOAuthOptions(origin: string) {

@@ -6,10 +6,10 @@ const memberItems = [
   ["Dashboard", "/dashboard", LayoutDashboard], ["Knowledge", "/dashboard/knowledge", BookOpen], ["Careers", "/dashboard/careers", BriefcaseBusiness], ["Jobs", "/dashboard/jobs", BriefcaseBusiness], ["Events", "/dashboard/events", CalendarDays], ["Ask EFDS", "/dashboard/chat", CircleHelp], ["Profile", "/dashboard/profile", UserRound],
 ] as const;
 
-const adminItems = [["Overview", "/admin", Gauge], ["Knowledge review", "/admin/knowledge", BookOpen], ["Committee", "/admin/committee", UserRound], ["Actions", "/admin/actions", CalendarDays], ["Integrations", "/admin/integrations", Settings]] as const;
+const adminItems = [["Overview", "/admin", Gauge], ["Knowledge review", "/admin/knowledge", BookOpen], ["Document archive", "/admin/documents", BookOpen], ["Slack archive", "/admin/slack", BookOpen], ["Committee", "/admin/committee", UserRound], ["Actions", "/admin/actions", CalendarDays], ["Integrations", "/admin/integrations", Settings]] as const;
 
 export function AppSidebar({ role = "member" }: { role?: AccessRole }) {
-  const visibleMemberItems = memberItems.filter(([, href]) => href !== "/dashboard/knowledge" || role === "committee" || role === "admin");
+  const visibleMemberItems = memberItems.filter(([, href]) => href !== "/dashboard/knowledge" || role === "member" || role === "committee" || role === "admin");
   return (
     <aside className="app-sidebar">
       <Link className="brand" href="/">

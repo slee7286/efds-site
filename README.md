@@ -88,7 +88,12 @@ Public publication should be an explicit transition from internal data. The appl
 
 ## ICU knowledge integration
 
-`lib/db/knowledge.ts` is the domain query boundary. It contains `listKnowledgeArticles`, `getKnowledgeArticle`, `getKnowledgeSummary` and `listRequirements`. The module selects only fields needed by the page and maps snake_case backend rows into typed application objects. More domain modules should follow the same pattern for officers, events, meetings and actions.
+`lib/db/knowledge.ts` is the domain query boundary. It contains `listKnowledgeArticles`, `getKnowledgeArticle`, `getKnowledgeSummary` and `listRequirements`. The module selects only fields needed by the page and maps snake_case backend rows into typed application objects. The Slack archive follows the same server-only pattern in `lib/db/slack.ts` and never calls Slack directly.
+
+The private `/admin/documents` archive follows the same boundary in
+`lib/db/documents.ts`. It reads only backend-owned OneDrive source/version
+records through authenticated admin queries; it never reads the local
+filesystem or exposes absolute source paths.
 
 The detail page preserves provenance language and does not expose raw source paths. Approve/reject mutations are intentionally not implemented until the backend review semantics and committee authorization are connected.
 
@@ -139,3 +144,46 @@ No DNS or deployment action is automated by this repository.
 5. Connect public publication views and the real officer/event reads.
 6. Add committee review actions with auditability.
 7. Add private retrieval with document-level scope enforcement.
+
+## Knowledge Operations V1
+
+The website is the human-operated review surface for the source-first
+knowledge lifecycle:
+
+```text
+ICU source → crawler → knowledge_articles → extraction → proposed candidates
+→ admin review → approved internal knowledge → explicit publication
+```
+
+`/admin/knowledge` provides live database counts and source/extraction health.
+The review queue, stale queue, source article pages, requirements/timing/
+process/resource registers, role views, evidence panels and review history are
+backed by centralized server-side queries in `lib/db/knowledge-ops.ts`.
+Review mutations are server actions in `lib/actions/knowledge-review.ts` and
+require an active admin profile. They validate input, call the backend's
+transactional `review_knowledge_transaction` RPC, preserve the original
+extraction when editing, and revalidate affected pages. The RPC owns the
+transaction, authorization re-check, optimistic `review_version` conflict
+check, publication guard, and audit insert.
+
+The backend migration owned by `efds-knowledge-base` supplies the
+`knowledge_review_events` audit table and the `internal`, `committee`,
+`member`, and `public` visibility boundary. Member reads include only approved,
+current, explicitly published records. Public resources use the backend's
+restricted publication view. ICU source Markdown and internal derived records
+are not public by default.
+
+Apply the backend migration locally from the schema-owner repository after
+reviewing its offline SQL; this website does not create or run migrations.
+
+Slack source browsing is now included through the admin-only `/admin/slack`
+archive. Slack ingestion, credentials, allowlisting and migrations remain
+backend-owned; Slack extraction, meeting ingestion, vector search, and full
+RAG remain out of scope for this milestone.
+
+Rich editing is limited to EFDS interpretation fields: requirement
+classification and taxonomy, structured timing semantics, process metadata,
+ordered steps, and links to existing resources. ICU article text, source URL,
+source hash, evidence, extraction metadata, and crawler data are read-only.
+Stale content is excluded from member/public queries, and publication remains
+an explicit approved/current decision.
