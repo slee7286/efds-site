@@ -15,6 +15,7 @@ export async function GET(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   await provisionAuthenticatedProfile(user);
   const { allowed } = await evaluateUserAccess(user);
+  if (!allowed) await supabase.auth.signOut();
   const destination = allowed ? safeInternalPath(url.searchParams.get("next")) ?? "/dashboard" : "/access-denied";
   return NextResponse.redirect(new URL(destination, config.siteUrl));
 }

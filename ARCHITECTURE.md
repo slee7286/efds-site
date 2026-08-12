@@ -104,8 +104,10 @@ The public site currently uses placeholder/public application data for events an
 /events /careers        public content
 /research /resources     public content
 /chat                     public agent, public scope only
-/login                    Microsoft-first login + approved OTP entry
+/login                    Microsoft-first login + approved email/password or OTP entry
 /auth/callback            server callback and access decision
+/auth/recovery            recovery-code exchange and exception check
+/auth/set-password        authenticated password setup/recovery
 /access-denied            safe denial state
 
 /dashboard                member shell
@@ -140,7 +142,9 @@ Scope is resolved before retrieval and before model-provider selection. The prov
 
 - Verified Supabase identity is checked server-side.
 - Imperial domains are case-insensitive and normalized.
-- External magic-link authentication is allowlist-based, not open signup.
+- External email/password and magic-link authentication are exception-allowlist-based, not open signup.
+- Microsoft is the domain-based authentication path; email-authenticated Imperial identities still require an explicit active exception.
+- Password hashes and recovery tokens belong only to Supabase Auth.
 - Roles from URL, local storage, client state or request body are not trusted.
 - Service-role access is not needed for normal page reads.
 - Public visibility is an explicit publication decision.
@@ -157,6 +161,36 @@ python scripts/grant_access.py person@imperial.ac.uk --role admin
 ```
 
 The grant command requires an existing profile, so the person must first complete Microsoft login successfully. It is idempotent and can optionally link an existing officer with `--officer-id UUID`.
+
+## External exception password authentication
+
+The external authentication boundary is:
+
+```text
+auth_access_exceptions
+        ↓ active + unexpired eligibility RPC
+Supabase recovery email / password or magic link
+        ↓ authenticated Supabase identity
+/api/auth/external/authorize
+        ↓
+EFDS exception + active profile + role authorization
+```
+
+There is no public `signUp` flow. First-time password setup and forgotten
+password use Supabase's `resetPasswordForEmail`, then the authenticated
+recovery code is exchanged by `/auth/recovery`. `/auth/set-password` calls
+Supabase `updateUser({ password })`; it never writes a password to EFDS
+PostgreSQL. Password login uses `signInWithPassword` in the browser and then
+the server authorization endpoint. Unauthorized or revoked sessions are
+signed out by the endpoint.
+
+Microsoft identities from the approved Imperial domains remain authorized by
+the domain policy. Email-authenticated identities, including an Imperial
+address using the temporary alternate path, require a matching active,
+unexpired exception. Existing profile roles are never downgraded during
+automatic provisioning; higher exception roles may promote a lower existing
+role. Explicit profile deactivation and exception revocation still deny
+private access on every server-side authorization check.
 
 ## Knowledge Operations V1
 

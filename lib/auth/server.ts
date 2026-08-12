@@ -2,7 +2,7 @@ import "server-only";
 
 import type { User } from "@supabase/supabase-js";
 import { config, isSupabaseConfigured } from "@/lib/config";
-import { isAllowedImperialEmail, normalizeEmail, resolveAccess } from "@/lib/auth/access";
+import { isActiveException, isAllowedImperialEmail, normalizeEmail } from "@/lib/auth/access";
 import { hasMinimumRole } from "@/lib/auth/roles";
 import type { AccessException, AccessProfile, AccessRole } from "@/types/domain";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -12,6 +12,19 @@ export class AuthorizationError extends Error {
     super(message);
     this.name = "AuthorizationError";
   }
+}
+
+const roleRank: Record<AccessRole, number> = { viewer: 1, member: 2, committee: 3, admin: 4 };
+
+export function usesMicrosoftAuthentication(user: User | null) {
+  if (!user) return false;
+  const provider = user.app_metadata?.provider;
+  return provider === "azure" || user.identities?.some((identity) => identity.provider === "azure") === true;
+}
+
+function requiresException(user: User | null) {
+  if (!user?.email) return false;
+  return !isAllowedImperialEmail(user.email, config.allowedEmailDomains) || !usesMicrosoftAuthentication(user);
 }
 
 export async function getAuthUser() {
@@ -36,6 +49,16 @@ export async function getAccessException(email: string): Promise<AccessException
     memberType: "external",
     active: true,
   };
+}
+
+export function resolveAuthenticatedAccess(user: User, exception: AccessException | null) {
+  if (isAllowedImperialEmail(user.email ?? "", config.allowedEmailDomains) && usesMicrosoftAuthentication(user)) {
+    return { allowed: true, accessRole: "member" as AccessRole, memberType: "imperial" as const };
+  }
+  if (exception && isActiveException(exception)) {
+    return { allowed: true, accessRole: exception.accessRole, memberType: "external" as const };
+  }
+  return { allowed: false, accessRole: null, memberType: null };
 }
 
 function mapProfile(data: Record<string, unknown>): AccessProfile {
@@ -76,10 +99,8 @@ export async function evaluateUserAccess(user: User | null) {
   const email = user?.email;
   const emailIsUsable = Boolean(email && (user.email_confirmed_at ?? user.confirmed_at));
   if (!email || !emailIsUsable) return { allowed: false, profile: null, decision: null };
-  const exception = isAllowedImperialEmail(email, config.allowedEmailDomains)
-    ? null
-    : await getAccessException(email);
-  const decision = resolveAccess(email, config.allowedEmailDomains, exception);
+  const exception = requiresException(user) ? await getAccessException(email) : null;
+  const decision = resolveAuthenticatedAccess(user, exception);
   const profile = await getApplicationProfile(user);
   return { allowed: decision.allowed && Boolean(profile?.active), profile, decision };
 }
@@ -87,22 +108,23 @@ export async function evaluateUserAccess(user: User | null) {
 export async function provisionAuthenticatedProfile(user: User | null) {
   if (!user?.email || !isSupabaseConfigured || !(user.email_confirmed_at ?? user.confirmed_at)) return null;
   const normalizedEmail = normalizeEmail(user.email);
-  const exception = isAllowedImperialEmail(normalizedEmail, config.allowedEmailDomains)
-    ? null
-    : await getAccessException(normalizedEmail);
-  const decision = resolveAccess(normalizedEmail, config.allowedEmailDomains, exception);
+  const exception = requiresException(user) ? await getAccessException(normalizedEmail) : null;
+  const decision = resolveAuthenticatedAccess(user, exception);
   const existing = await getStoredProfile(user);
   if (!decision.allowed || existing && !existing.active) return null;
 
   const supabase = await createServerSupabaseClient();
   const fullName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? null;
   const lastLoginAt = new Date().toISOString();
-  const isImperial = isAllowedImperialEmail(normalizedEmail, config.allowedEmailDomains);
+  const isImperialMicrosoft = isAllowedImperialEmail(normalizedEmail, config.allowedEmailDomains) && usesMicrosoftAuthentication(user);
 
   if (existing) {
+    const promoteRole = decision.accessRole && roleRank[decision.accessRole] > roleRank[existing.accessRole]
+      ? { access_role: decision.accessRole }
+      : {};
     const { data, error } = await supabase
       .from("profiles")
-      .update({ email: normalizedEmail, full_name: fullName, member_type: isImperial ? "imperial" : existing.memberType, last_login_at: lastLoginAt })
+      .update({ email: normalizedEmail, full_name: fullName, member_type: isImperialMicrosoft ? "imperial" : existing.memberType, last_login_at: lastLoginAt, ...promoteRole })
       .eq("auth_user_id", user.id)
       .select("id, auth_user_id, email, full_name, access_role, member_type, officer_id, active, last_login_at")
       .single();
@@ -120,7 +142,7 @@ export async function provisionAuthenticatedProfile(user: User | null) {
       email: normalizedEmail,
       full_name: fullName,
       access_role: decision.accessRole,
-      member_type: decision.memberType,
+      member_type: isImperialMicrosoft ? "imperial" : decision.memberType,
       active: true,
       last_login_at: lastLoginAt,
     })

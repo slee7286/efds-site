@@ -73,7 +73,9 @@ The service-role key is intentionally unused by ordinary page reads. If a future
 
 The primary login action is `Continue with Microsoft`, implemented with Supabase Azure OAuth and minimal identity scopes: `openid profile email`. The callback exchanges the code server-side, requires a usable verified email, normalizes it, checks the exact Imperial domain policy or current external exception, provisions/updates the profile without downgrading an existing role, updates `last_login_at`, then redirects to `/dashboard` or `/access-denied`.
 
-External users use the secondary Supabase magic-link flow. Before sending an OTP, the website calls the narrow `is_external_email_eligible` RPC; the response is generic and never returns exception rows. The callback repeats the authorization decision. An external exception with `admin` does not self-provision an admin profile; bootstrap it through the backend CLI.
+Approved external users use a secondary Supabase email-authentication flow. The login page supports password sign-in, password setup/recovery, and the existing magic-link fallback. First-time setup uses the allowlisted magic-link flow to create the Supabase Auth identity only after email ownership is proven; it does not use public `signUp`. Before sending any setup, reset, or magic-link email, the website calls the narrow `is_external_email_eligible` RPC; the response is generic and never returns exception rows. Password sessions are then checked server-side against the authenticated email, active exception, expiry, active profile, and role. An external exception with `admin` does not self-provision an admin profile; bootstrap it through the backend CLI.
+
+Supabase Auth owns password hashing and recovery state. EFDS never stores a password or reset token in PostgreSQL. Microsoft remains the normal path for `@ic.ac.uk` and `@imperial.ac.uk`; an Imperial-domain email using password or magic-link authentication must have an explicit active exception. Revoking or expiring that exception denies EFDS access even if the Supabase password remains valid.
 
 Identity, membership, committee position and authorization are represented as separate concepts. The browser never supplies a trusted role. Private layouts and future mutations resolve access server-side, and database RLS must enforce the same policy for direct Supabase reads.
 
@@ -115,8 +117,9 @@ Streaming UI is supported as the provider boundary evolves; V1 returns a mock re
 4. Configure the Microsoft application with the required redirect URL shown by Supabase, plus the production callback URL `${NEXT_PUBLIC_SITE_URL}/auth/callback`.
 5. Request only identity scopes; do not add Microsoft Graph permissions for mail, calendar, OneDrive or SharePoint in V1.
 6. Apply the reviewed backend migration with `alembic upgrade head`, enable RLS, and provision the first admin out-of-band.
-7. Configure Supabase Auth Site URL and allowed redirect URLs for localhost and production.
-8. Test: Imperial Microsoft account allowed; non-Imperial account denied unless an active exception exists; expired/inactive exceptions denied.
+7. Configure Supabase Auth Site URL and allowed redirect URLs for localhost and production, including `/auth/callback` and `/auth/recovery`.
+8. Enable Supabase email/password authentication and recovery email delivery; configure the password policy and rate limits in Supabase Dashboard.
+9. Test: Imperial Microsoft account allowed; approved external password/magic-link account allowed; non-Imperial and Imperial email-auth accounts denied without an active exception; expired/inactive exceptions denied.
 
 Microsoft authenticates identity. EFDS decides authorization regardless of the Azure tenant configuration.
 
