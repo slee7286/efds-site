@@ -4,25 +4,33 @@ import { useState } from "react";
 import { z } from "zod";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { getMicrosoftOAuthOptions, MICROSOFT_AUTH_PROVIDER } from "@/lib/auth/microsoft";
+import { config } from "@/lib/config";
+import { type EmailAuthIntent, useEmailCooldown } from "@/lib/auth/email-cooldown";
 
 type ExternalAction = "password" | "magic" | "setup" | "reset";
 const emailSchema = z.string().trim().email().max(320);
 const passwordSchema = z.string().min(8, "Your password must be at least 8 characters long.");
 const genericEmailMessage = "If this email is eligible for EFDS access, you will receive an email with the next step.";
 
-export function LoginForm() {
+function intentForAction(action: ExternalAction): EmailAuthIntent | null {
+  if (action === "setup" || action === "reset") return action;
+  return action === "magic" ? "magic_link" : null;
+}
+
+export function LoginForm({ initialMessage = "" }: { initialMessage?: string }) {
   const [external, setExternal] = useState(false);
   const [action, setAction] = useState<ExternalAction>("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(initialMessage);
   const [pending, setPending] = useState(false);
+  const cooldown = useEmailCooldown(intentForAction(action), email);
 
   async function signInWithMicrosoft() {
     setPending(true); setMessage("");
     const supabase = createBrowserSupabaseClient();
-    const { error } = await supabase.auth.signInWithOAuth({ provider: MICROSOFT_AUTH_PROVIDER, options: getMicrosoftOAuthOptions(window.location.origin) });
-    if (error) setMessage(error.message);
+    const { error } = await supabase.auth.signInWithOAuth({ provider: MICROSOFT_AUTH_PROVIDER, options: getMicrosoftOAuthOptions(config.siteUrl) });
+    if (error) setMessage("We could not start Microsoft sign-in. Please try again.");
     setPending(false);
   }
 
@@ -55,31 +63,25 @@ export function LoginForm() {
     }
   }
 
-  async function requestMagicLink(event: React.FormEvent) {
-    event.preventDefault(); setPending(true); setMessage("");
+  async function requestEmail(event: React.FormEvent) {
+    event.preventDefault();
+    if (pending || cooldown.active) return;
+    setPending(true); setMessage("");
+    const endpoint = action === "magic" ? "/api/auth/external" : "/api/auth/external/password-email";
+    const body = action === "magic" ? { email } : { email, flow: action };
     try {
-      const response = await fetch("/api/auth/external", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
-      const data = await response.json();
-      setMessage(data.message ?? "If this email is eligible for EFDS access, a sign-in link is on its way.");
+      const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const data = await response.json().catch(() => ({}));
+      setMessage(data.message ?? (response.ok ? genericEmailMessage : "We could not send the email. Please try again later."));
+      if (response.ok) cooldown.start();
     } catch {
-      setMessage("We could not start the secure sign-in flow. Please try again.");
+      setMessage("We could not start the secure email flow. Please try again.");
     } finally {
       setPending(false);
     }
   }
 
-  async function requestPasswordEmail(event: React.FormEvent) {
-    event.preventDefault(); setPending(true); setMessage("");
-    try {
-      const response = await fetch("/api/auth/external/password-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, flow: action }) });
-      const data = await response.json();
-      setMessage(data.message ?? genericEmailMessage);
-    } catch {
-      setMessage(genericEmailMessage);
-    } finally {
-      setPending(false);
-    }
-  }
+  const emailButtonLabel = pending ? "Sending…" : cooldown.active ? `Resend in ${cooldown.seconds}s` : action === "magic" ? "Send secure email link" : action === "setup" ? "Send setup email" : "Send reset email";
 
   return <div>
     <button className="microsoft-button" disabled={pending} onClick={signInWithMicrosoft}><span className="ms-icon"><i /><i /><i /><i /></span>{pending ? "Connecting…" : "Continue with Microsoft"}</button>
@@ -92,10 +94,10 @@ export function LoginForm() {
         <label className="auth-label" htmlFor="external-password">Password</label>
         <input className="auth-input" id="external-password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} />
         <button className="auth-submit" disabled={pending} type="submit">{pending ? "Signing in…" : "Sign in"}</button>
-      </form> : <form onSubmit={action === "magic" ? requestMagicLink : requestPasswordEmail}>
+      </form> : <form onSubmit={requestEmail}>
         <label className="auth-label" htmlFor="external-email">Approved email address</label>
         <input className="auth-input" id="external-email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" />
-        <button className="auth-submit" disabled={pending} type="submit">{pending ? "Sending…" : action === "magic" ? "Send secure email link" : action === "setup" ? "Send setup email" : "Send reset email"}</button>
+        <button className="auth-submit" disabled={pending || cooldown.active} type="submit">{emailButtonLabel}</button>
       </form>}
       <div className="ops-inline" style={{ marginTop: 12, gap: 12, flexWrap: "wrap" }}>
         {action !== "password" && <button className="button button-quiet" type="button" onClick={() => { setAction("password"); setMessage(""); }}>Sign in with password</button>}

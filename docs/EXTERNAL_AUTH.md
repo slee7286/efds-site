@@ -9,7 +9,9 @@ unexpired row in the backend-owned `auth_access_exceptions` table.
 ```text
 approved exception
     ↓ narrow boolean eligibility RPC
-Supabase allowlisted email link (first setup)
+setup: Supabase allowlisted email link
+reset: Supabase recovery email
+magic: Supabase allowlisted email link
     ↓ /auth/recovery code exchange
 /auth/set-password
     ↓ updateUser({ password })
@@ -24,6 +26,28 @@ server authorization endpoint. First-time setup uses the allowlisted
 Auth identity. Forgotten-password uses `resetPasswordForEmail` for existing
 Auth identities. There is no public `signUp` call and no custom password
 hashing or reset-token storage.
+
+The production origin is fixed server-side to
+`https://www.imperial-efds.com`. In development, `NEXT_PUBLIC_SITE_URL` may
+point to `http://localhost:4587`. The generated redirects are:
+
+```text
+setup       https://www.imperial-efds.com/auth/recovery?flow=setup
+reset       https://www.imperial-efds.com/auth/recovery?flow=reset
+magic_link  https://www.imperial-efds.com/auth/callback
+```
+
+The client applies a 60-second per-intent/per-email resend cooldown and stores
+the expiry timestamp in `sessionStorage`. This is only a usability and
+double-click guard; Supabase Auth remains the server-side rate limiter. A
+Supabase 429 is mapped to: “Too many authentication emails have been
+requested. Please wait before requesting another email.”
+
+PKCE codes are exchanged only by the server routes. `/auth/recovery` exchanges
+setup/reset codes, re-reads the authenticated Supabase user, re-checks the
+active exception and profile, and then redirects to `/auth/set-password`.
+`/auth/callback` handles normal Microsoft and magic-link sign-in. Expired or
+used recovery codes return to `/login` with a safe generic message.
 
 ## Authorization and revocation
 
@@ -60,6 +84,11 @@ Verify manually in Supabase Dashboard:
 
 The recovery URL may contain the generated `flow=setup` or `flow=reset`
 query parameter. Do not add service-role keys to the website.
+
+The first-time setup email uses the Supabase magic-link email template because
+it creates the initial Auth identity. Forgot-password uses the Supabase
+password-recovery email template. Ordinary email-link login uses the same
+magic-link template but redirects to `/auth/callback`, not the password page.
 
 ## Onboarding and revocation
 

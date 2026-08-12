@@ -1,11 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   AUTH_CALLBACK_PATH,
   getMicrosoftOAuthOptions,
   MICROSOFT_AUTH_PROVIDER,
   MICROSOFT_AUTH_SCOPES,
 } from "../lib/auth/microsoft";
-import { getExternalMagicLinkOptions } from "../lib/auth/external";
+import { getExternalAuthRedirect, getExternalMagicLinkOptions } from "../lib/auth/external";
+import { getSiteUrl } from "../lib/config";
 
 describe("Microsoft authentication request", () => {
   it("leaves Supabase's required openid scope to the Azure provider", () => {
@@ -41,5 +42,13 @@ describe("external magic-link authentication", () => {
     expect(getExternalMagicLinkOptions("https://efds.example")).toEqual({
       emailRedirectTo: "https://efds.example/auth/callback",
     });
+  });
+
+  it("uses the canonical recovery URL for setup and reset", () => {
+    expect(getExternalAuthRedirect("https://www.imperial-efds.com", "setup")).toBe("https://www.imperial-efds.com/auth/recovery?flow=setup");
+    expect(getExternalAuthRedirect("https://www.imperial-efds.com", "reset")).toBe("https://www.imperial-efds.com/auth/recovery?flow=reset");
+    expect(getExternalAuthRedirect("https://www.imperial-efds.com", "magic_link")).toBe("https://www.imperial-efds.com/auth/callback");
+    vi.stubEnv("NODE_ENV", "production");
+    expect(getSiteUrl()).toBe("https://www.imperial-efds.com");
   });
 });

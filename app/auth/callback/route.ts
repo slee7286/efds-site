@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   if (!code || !isSupabaseConfigured) return NextResponse.redirect(new URL("/login?error=auth_unconfigured", config.siteUrl));
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error) return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error.message)}`, config.siteUrl));
+  if (error) return NextResponse.redirect(new URL("/login?error=auth_failed", config.siteUrl));
   const { data: { user } } = await supabase.auth.getUser();
   await provisionAuthenticatedProfile(user);
   const { allowed } = await evaluateUserAccess(user);

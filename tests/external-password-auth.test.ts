@@ -42,6 +42,15 @@ describe("external password email endpoint", () => {
     expect(signInWithOtp).not.toHaveBeenCalled();
   });
 
+  it("maps a Supabase email rate limit without exposing its raw error", async () => {
+    rpc.mockResolvedValue({ data: true, error: null });
+    signInWithOtp.mockResolvedValue({ error: { status: 429, message: "rate limit exceeded: internal detail" } });
+    const response = await requestPasswordEmail(new Request("http://localhost/api", { method: "POST", body: JSON.stringify({ email: "person@example.com", flow: "setup" }) }));
+
+    expect(response.status).toBe(429);
+    await expect(response.json()).resolves.toEqual({ message: "Too many authentication emails have been requested. Please wait before requesting another email.", code: "AUTH_RATE_LIMITED" });
+  });
+
   it("does not reveal or send mail for an ineligible address", async () => {
     rpc.mockResolvedValue({ data: false, error: null });
     const response = await requestPasswordEmail(new Request("http://localhost/api", { method: "POST", body: JSON.stringify({ email: "unknown@example.com", flow: "reset" }) }));
