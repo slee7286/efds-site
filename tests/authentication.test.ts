@@ -49,6 +49,6 @@ describe("external magic-link authentication", () => {
     expect(getExternalAuthRedirect("https://www.imperial-efds.com", "reset")).toBe("https://www.imperial-efds.com/auth/recovery?flow=reset");
     expect(getExternalAuthRedirect("https://www.imperial-efds.com", "magic_link")).toBe("https://www.imperial-efds.com/auth/callback");
     vi.stubEnv("NODE_ENV", "production");
-    expect(getSiteUrl()).toBe("https://www.imperial-efds.com");
+    expect(getSiteUrl()).toBe("https://imperial-efds.com");
   });
 });

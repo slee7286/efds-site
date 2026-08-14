@@ -1,6 +1,6 @@
 # EFDS website
 
-The V1 web application for the Economics, Finance & Data Science Society at Imperial College London. It is the public website and application layer over the existing EFDS knowledge-base, not a second owner of the PostgreSQL schema.
+The EFDS public website and application layer over the existing EFDS knowledge-base, not a second owner of the PostgreSQL schema. The website is the browser-facing interface for the read-only EFDS agent.
 
 ## What is here
 
@@ -8,6 +8,7 @@ The V1 web application for the Economics, Finance & Data Science Society at Impe
 - Public editorial website: home, about, privacy, terms, contact, security, events, careers, research, competitions, resources, partners and public chat
 - Private member workspace: dashboard, ICU knowledge reads, requirements, careers, job tracker, events, profile and private chat shell
 - Separate admin shell for knowledge review, committee, actions and integrations
+- Admin-only Meetily meeting archive with timestamped transcripts and explicitly labelled AI-generated summaries
 - Microsoft-first Supabase Auth callback architecture
 - Imperial domain policy for `@ic.ac.uk` and `@imperial.ac.uk`
 - First-class external-user exception contract backed by `auth_access_exceptions`
@@ -61,10 +62,10 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 NEXT_PUBLIC_SITE_URL=http://localhost:4587
+EFDS_AGENT_URL=http://localhost:8000
+EFDS_AGENT_SHARED_SECRET=
 ALLOWED_AUTH_EMAIL_DOMAINS=ic.ac.uk,imperial.ac.uk
 SUPABASE_SERVICE_ROLE_KEY=
-AI_PROVIDER=mock
-AI_API_KEY=
 ```
 
 The service-role key is intentionally unused by ordinary page reads. If a future server-only operation needs it, isolate it in a server-only module and document the specific bypass reason. Never prefix it with `NEXT_PUBLIC_`.
@@ -101,9 +102,11 @@ The detail page preserves provenance language and does not expose raw source pat
 
 ## Agent architecture
 
-`AgentScope` is one of `public`, `member`, `committee` or `admin`. The scope is resolved above the model provider. `lib/agents/types.ts` defines the provider interface and `lib/agents/mock.ts` provides a local responder. `/api/chat` validates input with Zod and passes an explicit scope to the provider. A production retrieval layer must enforce the same scope before it calls any model, and the public agent must only query published/public data.
+`AgentScope` is one of `public`, `member`, `committee` or `admin`. `/api/chat` validates input, resolves the current Supabase user server-side, checks the requested scope against the stored profile, forwards the short-lived access token to `efds-agent`, and proxies SSE. `EFDS_AGENT_SHARED_SECRET` is optional server-to-server authenticity protection; it never grants data access. The agent and database RLS remain authoritative.
 
-Streaming UI is supported as the provider boundary evolves; V1 returns a mock response to keep the app credential-free.
+When `EFDS_AGENT_URL` is unset, the website returns a configuration error rather than answering from a local model or mock. The browser never receives OpenAI credentials, database credentials, access tokens, or refresh tokens.
+
+The website proxies the agent's SSE stream and renders validated citations. All model logic remains server-side in `efds-agent`.
 
 ## Careers and job tracker
 
@@ -114,10 +117,10 @@ Streaming UI is supported as the provider boundary evolves; V1 returns a mock re
 1. Create or select the Supabase project that owns the EFDS database.
 2. Set the project URL and publishable/anon key in Vercel and local `.env.local`.
 3. Enable Azure/Microsoft as an Auth provider in Supabase.
-4. Configure the Microsoft application with the required redirect URL shown by Supabase, plus the production callback URL `https://www.imperial-efds.com/auth/callback`.
-5. Request only identity scopes; do not add Microsoft Graph permissions for mail, calendar, OneDrive or SharePoint in V1.
+4. Configure the Microsoft application with the required redirect URL shown by Supabase, plus the production callback URL `https://imperial-efds.com/auth/callback`.
+5. Request only identity scopes; do not add Microsoft Graph permissions for mail, calendar, OneDrive or SharePoint.
 6. Apply the reviewed backend migration with `alembic upgrade head`, enable RLS, and provision the first admin out-of-band.
-7. Configure Supabase Auth Site URL as `https://www.imperial-efds.com` and allow `/auth/callback` and `/auth/recovery` for production plus the localhost equivalents.
+7. Configure Supabase Auth Site URL as `https://imperial-efds.com` and allow `/auth/callback` and `/auth/recovery` for production plus the localhost equivalents.
 8. Enable Supabase email/password authentication and recovery email delivery; configure the password policy and rate limits in Supabase Dashboard.
 9. Test: Imperial Microsoft account allowed; approved external password/magic-link account allowed; non-Imperial and Imperial email-auth accounts denied without an active exception; expired/inactive exceptions denied.
 
@@ -198,3 +201,20 @@ ordered steps, and links to existing resources. ICU article text, source URL,
 source hash, evidence, extraction metadata, and crawler data are read-only.
 Stale content is excluded from member/public queries, and publication remains
 an explicit approved/current decision.
+
+Unified search is available at `/dashboard/search` for member-visible knowledge
+and `/admin/search` for administrators. Both call the backend's permission-
+filtered PostgreSQL retrieval RPC; the website does not query Slack or OneDrive
+APIs and never receives their credentials. See [docs/RETRIEVAL.md](docs/RETRIEVAL.md).
+
+The admin `/admin/operations` console is the reviewed operational-truth layer.
+It supports proposed decisions, actions, commitments, questions and status
+updates; source-scoped evidence attachment; atomic review/publication actions;
+and audit history. Raw source systems remain authoritative evidence and are
+never edited from this UI. See [docs/OPERATIONAL_TRUTH.md](docs/OPERATIONAL_TRUTH.md).
+
+Semantic/hybrid embedding generation remains backend-only. The website does
+not receive provider credentials or send raw Slack, OneDrive, or Meetily text
+to an embedding API; it continues to use the permission-filtered Supabase
+retrieval boundary until a backend retrieval HTTP service is deployed. See
+[docs/EMBEDDINGS.md](docs/EMBEDDINGS.md).

@@ -245,16 +245,40 @@ identity and `document_id + content_hash` as version identity. Missing,
 unavailable, unsupported, and stale source states are displayed rather than
 silently hidden. Public/member routes have no raw filesystem archive surface.
 
+## Meetily Meeting Ingestion V1
+
+The admin-only `/admin/meetings` route family browses backend-ingested Meetily
+records. The website does not read the local Meetily SQLite database, access
+audio, or call an AI provider. `lib/db/meetings.ts` is the server-only query
+boundary and uses authenticated Supabase reads protected by backend RLS.
+
+Meetings have stable logical IDs; transcript and summary artifacts are immutable
+versions. The detail page renders timestamped transcript segments and keeps the
+Meetily summary visibly separate as “AI-generated Meetily summary — not
+committee-approved minutes”. Meeting retrieval links return to the admin
+meeting detail route. Public/member scopes receive no raw meeting records.
+
 ## Known V1 gaps
 
 Migrations `0005_knowledge_review_publication` and
 `0006_transactional_knowledge_review` require controlled backend application;
 the website does not create or run migrations. The demo provider remains local,
 and no full RAG,
-realtime, Slack extraction, Microsoft Graph, filesystem cloud sync, meeting ingestion, job scraping or
+realtime, Slack extraction, Microsoft Graph, filesystem cloud sync, job scraping or
 sponsorship operations are included.
 The RPC/editing boundary is deliberately source-safe: requirement taxonomy,
 timing semantics, process metadata/steps, and existing process-resource links
 can be edited, while ICU article text, evidence, source hashes, extraction
 metadata, and crawler data remain immutable. A stale browser tab is sent to a
 reload/cancel conflict state rather than silently overwriting a newer review.
+
+## Operational truth V1
+
+`/admin/operations` is the human review console for decisions, action items,
+commitments, open questions and status updates. Records are created as
+proposed interpretations and can link to permission-scoped retrieval units as
+evidence. The backend `mutate_operational_record` RPC performs authorization,
+optimistic concurrency, the mutation and its audit event atomically. Source
+messages, transcripts, documents and ICU records are never edited through the
+operations UI. Only approved/current records are eligible for explicit
+committee/member/public publication.

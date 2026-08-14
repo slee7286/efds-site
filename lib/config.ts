@@ -1,5 +1,5 @@
 const configuredDomains = process.env.ALLOWED_AUTH_EMAIL_DOMAINS ?? "ic.ac.uk,imperial.ac.uk";
-export const CANONICAL_PRODUCTION_SITE_URL = "https://www.imperial-efds.com";
+export const CANONICAL_PRODUCTION_SITE_URL = "https://imperial-efds.com";
 
 export function getSiteUrl() {
   if (process.env.NODE_ENV === "production") return CANONICAL_PRODUCTION_SITE_URL;
