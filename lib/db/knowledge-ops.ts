@@ -484,7 +484,10 @@ export async function listPublicResources() {
   if (!isSupabaseConfigured) return [] as DbRow[];
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.from("public_knowledge_resources").select("id, name, resource_type, url, system_name, anchor_text, description, source_article_title, source_article_url, published_at").order("name");
-  if (error) throw error;
+  if (error) {
+    console.error("Published EFDS resources could not be loaded", error);
+    return null;
+  }
   return (data ?? []) as DbRow[];
 }
 
