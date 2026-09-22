@@ -3,7 +3,7 @@
 import React from "react";
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { MeetingSummary, MeetingTranscript, MeetingTable } from "../components/meetings/archive";
+import { MeetingNotes, MeetingSummary, MeetingTranscript, MeetingTable } from "../components/meetings/archive";
 
 const item = {
   id: "meeting-1", title: "Committee meeting", externalMeetingId: "m1", meetingType: null,
@@ -12,7 +12,7 @@ const item = {
   isMissing: false, transcriptAvailable: true, summaryAvailable: true,
 };
 
-describe("private Meetily archive", () => {
+describe("private meeting archive", () => {
   it("renders meeting status and links to the admin detail page", () => {
     const { container } = render(<MeetingTable items={[item]} />);
     expect(container.textContent).toContain("Committee meeting");
@@ -33,3 +33,11 @@ describe("private Meetily archive", () => {
     expect(container.textContent).toContain("not committee-approved minutes");
   });
 });
+
+ it("renders original Google Docs notes with a safe source link and no inferred approval", () => {
+    const { container } = render(<MeetingNotes artifact={{ id: "notes-1", artifactType: "notes", sourceRecordId: "doc1", sourceReference: "https://docs.google.com/document/d/doc1/edit", content: "Original meeting log", contentHash: "hash", format: "text", sourceCreatedAt: null, sourceUpdatedAt: null, ingestedAt: null, isCurrent: true, generatedBy: null, reviewStatus: "source_generated", summaryTemplate: null }} />);
+    expect(container.textContent).toContain("Original meeting log");
+    expect(container.textContent).toContain("Approval and authorship are not inferred");
+    expect(container.querySelector("a")?.getAttribute("href")).toBe("https://docs.google.com/document/d/doc1/edit");
+    expect(container.textContent).not.toContain("AI-generated Meetily");
+  });

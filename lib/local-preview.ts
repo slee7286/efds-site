@@ -24,7 +24,7 @@ export const slackPreview: Awaited<ReturnType<typeof getSlackDashboard>> = {
   latestRun: null, failures: [],
 };
 export const meetingPreview: Awaited<ReturnType<typeof getMeetingDashboard>> = {
-  counts: { meetings: 0, thisMonth: 0, transcripts: 0, summaries: 0, changedArtifacts: 0, errors: 0 },
+  counts: { meetings: 0, thisMonth: 0, transcripts: 0, summaries: 0, notes: 0, changedArtifacts: 0, errors: 0 },
   latestMeeting: null, latestRun: null,
 };
 export const operationsPreview: Awaited<ReturnType<typeof getOperationsDashboard>> = {

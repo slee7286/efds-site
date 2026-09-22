@@ -83,6 +83,7 @@ export interface MeetingArchiveItem {
   lastSeenAt: string | null;
   lastChangedAt: string | null;
   isMissing: boolean;
+  notesAvailable?: boolean;
   transcriptAvailable: boolean;
   summaryAvailable: boolean;
 }
