@@ -116,7 +116,7 @@ test("chat retains a failed question and renders a successful streamed citation"
 test("reduced motion and narrow layouts remain usable", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 760 });
   await page.goto("/");
-  expect(await page.locator(".hero-content").evaluate(el => getComputedStyle(el).animationName)).toBe("none");
+  expect(await page.locator(".editorial-hero-copy").evaluate(el => getComputedStyle(el).animationName)).toBe("none");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole("button", { name: "Open navigation", exact: true }).click();
   const menu = page.getByRole("dialog", { name: "Site navigation" });
@@ -124,11 +124,13 @@ test("reduced motion and narrow layouts remain usable", async ({ page }) => {
 });
 
 
-test("homepage artwork loads at this viewport", async ({ page }) => {
+test("authentic campus photograph loads with its credit", async ({ page }) => {
   await page.goto("/");
-  const art = page.locator(".hero-image-wrap img");
+  const art = page.locator(".campus-photo-image img");
+  await art.scrollIntoViewIfNeeded();
   await expect(art).toBeVisible();
   await expect.poll(() => art.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+  await expect(page.locator(".campus-photograph figcaption")).toContainText("Shadowssettle");
 });
 
 test("advanced search filters persist and stay open after submission", async ({ page }) => {
@@ -156,7 +158,7 @@ test("an interrupted chat stream keeps the question available to retry", async (
 test("unknown pages provide a working way home", async ({ page }) => {
   const response = await page.goto("/this-page-does-not-exist");
   expect(response?.status()).toBe(404);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("A different direction.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Page not found.");
   await page.getByRole("link", { name: "Back to the homepage", exact: false }).click();
   await expect(page).toHaveURL(/\/$/);
 });

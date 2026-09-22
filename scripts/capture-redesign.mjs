@@ -2,7 +2,7 @@ import { chromium } from "playwright";
 import { mkdir, writeFile } from "node:fs/promises";
 
 const base = process.env.PREVIEW_URL || "http://127.0.0.1:4587";
-const destination = "artifacts/redesign";
+const destination = "artifacts/editorial";
 await mkdir(destination, { recursive: true });
 const browser = await chromium.launch();
 const errors = [];
@@ -18,6 +18,9 @@ const routes = [
   ["documents-desktop", 1440, 1000, "/admin/documents"], ["documents-mobile", 390, 844, "/admin/documents/files"],
   ["search-filters-mobile", 390, 844, "/admin/search?q=events&source=knowledge_process&area=events"],
   ["operations-form-mobile", 390, 844, "/admin/operations/new"],
+  ["partners-desktop", 1440, 1000, "/partners"], ["competitions-mobile", 390, 844, "/competitions"],
+  ["research-mobile", 390, 844, "/research"], ["contact-desktop", 1440, 1000, "/contact"],
+  ["home-narrow", 320, 760, "/"],
 ];
 const results = [];
 try {
@@ -27,6 +30,7 @@ try {
     const response = await page.goto(base + route, { waitUntil: "networkidle" });
     if (response.status() !== 200) throw new Error(`${route}: HTTP ${response.status()}`);
     await page.evaluate(async () => {
+      for (const img of document.images) img.loading = "eager";
       await document.fonts.ready;
       await Promise.all(Array.from(document.images, img => img.decode()));
     });

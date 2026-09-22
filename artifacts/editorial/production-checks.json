@@ -1,0 +1,135 @@
+{
+  "checkedAt": "2026-09-22T14:59:45.573Z",
+  "public": [
+    {
+      "route": "/",
+      "status": 200
+    },
+    {
+      "route": "/about",
+      "status": 200
+    },
+    {
+      "route": "/events",
+      "status": 200
+    },
+    {
+      "route": "/careers",
+      "status": 200
+    },
+    {
+      "route": "/research",
+      "status": 200
+    },
+    {
+      "route": "/competitions",
+      "status": 200
+    },
+    {
+      "route": "/resources",
+      "status": 200
+    },
+    {
+      "route": "/committee",
+      "status": 200
+    },
+    {
+      "route": "/partners",
+      "status": 200
+    },
+    {
+      "route": "/contact",
+      "status": 200
+    },
+    {
+      "route": "/chat",
+      "status": 200
+    },
+    {
+      "route": "/login",
+      "status": 200
+    }
+  ],
+  "protected": [
+    {
+      "route": "/dashboard",
+      "destination": "/access-denied"
+    },
+    {
+      "route": "/dashboard/search",
+      "destination": "/access-denied"
+    },
+    {
+      "route": "/dashboard/profile",
+      "destination": "/access-denied"
+    },
+    {
+      "route": "/admin",
+      "destination": "/access-denied"
+    },
+    {
+      "route": "/admin/documents",
+      "destination": "/access-denied"
+    },
+    {
+      "route": "/admin/documents/files",
+      "destination": "/access-denied"
+    },
+    {
+      "route": "/admin/slack",
+      "destination": "/access-denied"
+    },
+    {
+      "route": "/admin/meetings",
+      "destination": "/access-denied"
+    },
+    {
+      "route": "/admin/operations",
+      "destination": "/access-denied"
+    },
+    {
+      "route": "/admin/search",
+      "destination": "/access-denied"
+    }
+  ],
+  "api": [
+    {
+      "route": "/api/chat",
+      "scope": "public",
+      "emptyQuestion": false,
+      "status": 503
+    },
+    {
+      "route": "/api/chat",
+      "scope": "public",
+      "emptyQuestion": true,
+      "status": 400
+    }
+  ],
+  "assets": [
+    {
+      "width": 1440,
+      "image": {
+        "width": 792,
+        "src": "/_next/image"
+      },
+      "fonts": "loaded"
+    },
+    {
+      "width": 768,
+      "image": {
+        "width": 345,
+        "src": "/_next/image"
+      },
+      "fonts": "loaded"
+    },
+    {
+      "width": 390,
+      "image": {
+        "width": 350,
+        "src": "/_next/image"
+      },
+      "fonts": "loaded"
+    }
+  ]
+}

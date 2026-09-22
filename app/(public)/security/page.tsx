@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Security", description: "EFDS Societ
 const configuredSiteUrl = config.siteUrl || "the public EFDS site origin";
 
 export default function SecurityPage() {
-  return <InformationPage eyebrow="Security" title="Identity in, access by design." intro="This page gives users and reviewers a plain-language view of the current EFDS authentication, authorization, database, and hosting boundaries.">
+  return <InformationPage eyebrow="Security" title="Security & access." intro="This page gives users and reviewers a plain-language view of the current EFDS authentication, authorization, database, and hosting boundaries.">
     <InformationCard eyebrow="Authentication" title="Identity and access are separate"><p>Imperial users authenticate through Microsoft Entra ID and Supabase Auth. EFDS then makes its own server-side authorization decision from the authenticated identity and the EFDS profile.</p><pre className="security-diagram">{`Imperial user
     ↓
 Microsoft Entra ID

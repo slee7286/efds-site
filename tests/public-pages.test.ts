@@ -13,10 +13,10 @@ import { SiteFooter } from "../components/public/site-footer";
 describe("public information pages", () => {
   it.each([
     ["about", AboutPage, "EFDS stands for Economics, Finance & Data Science Society"],
-    ["privacy", PrivacyPage, "A clear account of your data."],
-    ["terms", TermsPage, "Use the society space well."],
-    ["contact", ContactPage, "Find the right route in."],
-    ["security", SecurityPage, "Identity in, access by design."],
+    ["privacy", PrivacyPage, "Privacy."],
+    ["terms", TermsPage, "Terms of use."],
+    ["contact", ContactPage, "Contact."],
+    ["security", SecurityPage, "Security & access."],
   ])("%s renders without authentication", (_route, Page, expectedText) => {
     const { container, unmount } = render(React.createElement(Page));
     const text = container.textContent ?? "";

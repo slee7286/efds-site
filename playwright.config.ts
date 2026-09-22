@@ -6,7 +6,7 @@ export default defineConfig({
   workers: 2,
   timeout: 30_000,
   expect: { timeout: 10_000 },
-  reporter: [["list"], ["json", { outputFile: "artifacts/redesign/browser-results.json" }]],
+  reporter: [["list"], ["json", { outputFile: "artifacts/editorial/browser-results.json" }]],
   use: { baseURL: process.env.PREVIEW_URL ?? "http://127.0.0.1:4587", reducedMotion: "reduce", trace: "retain-on-failure", screenshot: "only-on-failure" },
   projects: [
     { name: "desktop", use: { viewport: { width: 1440, height: 1000 } } },

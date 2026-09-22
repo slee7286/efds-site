@@ -1,5 +1,5 @@
 import { chromium } from "playwright";
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 const base = process.env.PREVIEW_URL || "http://127.0.0.1:4587";
 const browser = await chromium.launch();
 const page = await browser.newPage();
@@ -20,7 +20,8 @@ try {
       if (url.origin === base && !url.pathname.startsWith("/api/") && !visited.has(url.pathname)) pending.push(url.pathname);
     }
   }
-  await writeFile("artifacts/redesign/local-links.json", JSON.stringify(results, null, 2) + "\n");
+  await mkdir("artifacts/editorial", { recursive: true });
+  await writeFile("artifacts/editorial/local-links.json", JSON.stringify(results, null, 2) + "\n");
   const failed = results.filter(r => r.status !== 200);
   console.log(JSON.stringify({ checked: results.length, failed }));
   if (failed.length) process.exitCode = 1;

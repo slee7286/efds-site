@@ -10,7 +10,7 @@ const groups = [
 ];
 export function SiteFooter() {
   return <footer className="public-footer"><div className="container"><div className="footer-top">
-    <div className="footer-identity"><Brand /><p>Different disciplines.<br />A shared way of thinking.</p><a href={society.unionUrl} target="_blank" rel="noreferrer">Find us at Imperial College Union <ArrowUpRight size={14} /></a></div>
+    <div className="footer-identity"><Brand /><p>The departmental society for Economics, Finance &amp; Data Science students at Imperial.</p><a href={society.unionUrl} target="_blank" rel="noreferrer">Find us at Imperial College Union <ArrowUpRight size={14} /></a></div>
     {groups.map(({ title, links }) => <div className="footer-group" key={title}><h2>{title}</h2><ul>{links.map(([label, href]) => <li key={href}><Link href={href}>{label}</Link></li>)}</ul></div>)}
   </div><div className="footer-bottom"><p>© {new Date().getFullYear()} EFDS Society. Student-led at Imperial College London.</p><nav aria-label="Legal information"><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/security">Security</Link></nav></div><p className="footer-disclaimer">An independent student society website. This is not the official Imperial College London website.</p></div></footer>;
 }

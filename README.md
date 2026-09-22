@@ -2,7 +2,7 @@
 
 The EFDS public website and application layer over the existing EFDS knowledge-base, not a second owner of the PostgreSQL schema. The website is the browser-facing interface for the read-only EFDS agent.
 
-The September 2026 redesign, screenshot gallery, local preview instructions and verification boundaries are documented in [docs/redesign.md](docs/redesign.md).
+The current editorial redesign, moving graphics, design references, screenshot gallery and local preview instructions are documented in [docs/editorial-redesign.md](docs/editorial-redesign.md). The first revision is recorded in [docs/redesign.md](docs/redesign.md).
 
 ## What is here
 

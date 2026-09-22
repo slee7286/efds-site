@@ -1,5 +1,7 @@
 # EFDS visual redesign
 
+This records the first visual revision. The current design and verification are documented in [editorial-redesign.md](editorial-redesign.md).
+
 Implemented on the local branch `design/imperial-efds-redesign`, September 2026. The work covers the public site, authentication, shared member and administrator interfaces, and source archive presentation. No deployment or remote push is part of this milestone.
 
 ## Direction and sources

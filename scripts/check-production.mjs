@@ -1,5 +1,5 @@
 import { chromium } from "playwright";
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 
 const base = process.env.PRODUCTION_URL || "http://127.0.0.1:4588";
@@ -30,11 +30,12 @@ try {
   for (const width of [1440, 768, 390]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto(base + "/", { waitUntil: "networkidle" });
-    await page.evaluate(async () => { await document.fonts.ready; await Promise.all(Array.from(document.images, img => img.decode())); });
+    await page.evaluate(async () => { for (const img of document.images) img.loading = "eager"; await document.fonts.ready; await Promise.all(Array.from(document.images, img => img.decode())); });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-    assert.equal(await page.locator(".hero-image-wrap img").evaluate(img => img.naturalWidth > 0), true);
-    results.assets.push({ width, image: await page.locator(".hero-image-wrap img").evaluate(img => ({ width: img.naturalWidth, src: new URL(img.currentSrc).pathname })), fonts: await page.evaluate(() => document.fonts.status) });
+    assert.equal(await page.locator(".campus-photo-image img").evaluate(img => img.naturalWidth > 0), true);
+    results.assets.push({ width, image: await page.locator(".campus-photo-image img").evaluate(img => ({ width: img.naturalWidth, src: new URL(img.currentSrc).pathname })), fonts: await page.evaluate(() => document.fonts.status) });
   }
-  await writeFile("artifacts/redesign/production-checks.json", JSON.stringify({ checkedAt: new Date().toISOString(), ...results }, null, 2) + "\n");
+  await mkdir("artifacts/editorial", { recursive: true });
+  await writeFile("artifacts/editorial/production-checks.json", JSON.stringify({ checkedAt: new Date().toISOString(), ...results }, null, 2) + "\n");
   console.log(JSON.stringify({ publicRoutes: results.public.length, protectedRoutes: results.protected.length, apiChecks: results.api.length, responsiveChecks: results.assets.length, notFound: 404 }));
 } finally { await browser.close(); }
