@@ -110,16 +110,28 @@ async function normalizeMessages(supabase: any, rows: Row[], channelNames: Map<s
   return rows.map((row) => ({ id: text(row.id), channelId: text(row.channel_id), channelName: channelNames.get(text(row.channel_id)) ?? "Unknown channel", slackTs: text(row.slack_ts), threadTs: nullable(row.thread_ts), parentMessageId: nullable(row.parent_message_id), authorUserId: nullable(row.author_user_id), authorName: users.get(String(row.author_user_id)) ?? text(row.user_slack_id, "Unknown user"), text: nullable(row.message_text), subtype: nullable(row.subtype), sourcePostedAt: nullable(row.source_posted_at), sourceEditedAt: nullable(row.source_edited_at), permalink: nullable(row.permalink), contentHash: nullable(row.content_hash), isDeleted: bool(row.is_deleted), firstSeenAt: nullable(row.first_seen_at), lastSeenAt: nullable(row.last_seen_at), lastChangedAt: nullable(row.last_changed_at), reactions: reactions.get(text(row.id)) ?? [], links: links.get(text(row.id)) ?? [], files: files.get(text(row.id)) ?? [] }));
 }
 
-export async function listSlackMessages(options: { query?: string; channelId?: string; authorId?: string; from?: string; to?: string; edited?: boolean; deleted?: boolean } = {}) {
+export async function listSlackMessages(options: { query?: string; channelId?: string; authorId?: string; from?: string; to?: string; edited?: boolean; deleted?: boolean; page?: number } = {}) {
   await requireSlackAdmin();
-  if (!isSupabaseConfigured) return [] as SlackMessage[];
+  const pageSize = 30;
+  const page = Math.min(Math.max(Math.trunc(options.page || 1), 1), 10000);
+  if (!isSupabaseConfigured) return { items: [] as SlackMessage[], total: 0, page, pageSize };
   const supabase = await createServerSupabaseClient();
-  const [channels, rows] = await Promise.all([supabase.from("slack_channels").select("id, name"), fetchMessageRows(supabase, { ...options, query: undefined })]);
+  let query = supabase.from("slack_messages").select("*", { count: "exact" }).order("source_posted_at", { ascending: false });
+  if (options.channelId) query = query.eq("channel_id", options.channelId);
+  if (options.query?.trim()) query = query.ilike("message_text", `%${options.query.trim().slice(0, 160)}%`);
+  if (options.authorId) query = query.eq("author_user_id", options.authorId);
+  if (options.from) query = query.gte("source_posted_at", options.from);
+  if (options.to) query = query.lte("source_posted_at", options.to);
+  if (options.edited) query = query.not("source_edited_at", "is", null);
+  if (options.deleted) query = query.eq("is_deleted", true);
+  const [channels, result] = await Promise.all([
+    supabase.from("slack_channels").select("id, name"),
+    query.range((page - 1) * pageSize, page * pageSize - 1),
+  ]);
   if (channels.error) throw channels.error;
-  const messages = await normalizeMessages(supabase, rows, new Map((channels.data ?? []).map((row: Row) => [text(row.id), text(row.name)])));
-  const normalizedQuery = options.query?.trim().toLowerCase();
-  if (!normalizedQuery) return messages.slice(0, 500);
-  return messages.filter((message) => [message.text, message.authorName, message.channelName, ...message.links.flatMap((link) => [link.url, link.domain])].filter(Boolean).join(" ").toLowerCase().includes(normalizedQuery)).slice(0, 500);
+  if (result.error) throw result.error;
+  const items = await normalizeMessages(supabase, (result.data ?? []) as Row[], new Map((channels.data ?? []).map((row: Row) => [text(row.id), text(row.name)])));
+  return { items, total: result.count ?? 0, page, pageSize };
 }
 
 export async function getSlackChannel(id: string) {

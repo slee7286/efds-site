@@ -8,7 +8,7 @@ function formatSlackDate(value: string | null | undefined) {
 }
 
 export function SlackNav() {
-  return <nav className="tag-list" aria-label="Slack archive navigation" style={{ marginBottom: 24 }}><Link className="tag" href="/admin/slack">Overview</Link><Link className="tag" href="/admin/slack/channels">Channels and search</Link></nav>;
+  return <nav className="tag-list" aria-label="Slack archive navigation" style={{ marginBottom: 24 }}><Link className="tag" href="/admin/slack">Overview</Link><Link className="tag" href="/admin/slack/channels">Search messages</Link></nav>;
 }
 
 export function SlackMessageCard({ message, compact = false }: { message: SlackMessage; compact?: boolean }) {

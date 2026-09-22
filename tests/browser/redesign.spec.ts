@@ -71,6 +71,15 @@ test("search preserves its query and gives an honest empty result", async ({ pag
   await expect(page.getByText("No permitted current sources matched this search.", { exact: true })).toBeVisible();
 });
 
+test("Slack archive search keeps its filters and explains empty results", async ({ page }) => {
+  await page.goto("/admin/slack/channels");
+  await page.getByRole("textbox", { name: "Search message text" }).fill("ACTION-004");
+  await page.getByRole("button", { name: "Search", exact: true }).click();
+  await expect(page).toHaveURL(/q=ACTION-004/);
+  await expect(page.getByRole("textbox", { name: "Search message text" })).toHaveValue("ACTION-004");
+  await expect(page.getByRole("region", { name: "Archived Slack message results" })).toContainText("No archived messages found");
+});
+
 test("unconfigured Microsoft sign-in gives recoverable feedback", async ({ page }) => {
   await page.goto("/login");
   const button = page.getByRole("button", { name: "Continue with Microsoft" });
