@@ -22,12 +22,26 @@ function resultHref(result: UnifiedRetrievalResult, admin: boolean) {
 
 export function UnifiedSearch({ results, query, admin, source, area, channel, author, from, to, history }: { results: UnifiedRetrievalResult[]; query: string; admin: boolean; source?: string; area?: string; channel?: string; author?: string; from?: string; to?: string; history?: boolean }) {
   return <>
-    <form className="surface info-card" method="get" style={{ display: "flex", gap: 10, margin: "24px 0", flexWrap: "wrap" }}>
-      <label htmlFor="search-query" className="sr-only">Search EFDS</label>
-      <input id="search-query" name="q" defaultValue={query} placeholder="Search ICU, processes, documents and more" style={{ flex: "1 1 240px" }} />
-      <select name="source" defaultValue={source ?? ""} aria-label="Filter by source"><option value="">All sources</option><option value="knowledge_requirement">Requirements</option><option value="knowledge_process">Processes</option><option value="knowledge_resource">Resources</option><option value="icu_article">ICU articles</option>{admin && <><option value="document">OneDrive documents</option><option value="slack_message">Slack messages</option><option value="meeting_transcript">Meeting transcripts</option><option value="meeting_summary">Meetily summaries</option><option value="operational_decision">Operational decisions</option><option value="operational_action">Operational actions</option><option value="operational_question">Operational questions</option></>}</select>
-      <input name="area" defaultValue={area ?? ""} placeholder="Area" aria-label="Source area" />{admin && <><input name="channel" defaultValue={channel ?? ""} placeholder="Slack channel" aria-label="Slack channel" /><input name="author" defaultValue={author ?? ""} placeholder="Author" aria-label="Author" /></>}<input name="from" type="date" defaultValue={from ?? ""} aria-label="From date" /><input name="to" type="date" defaultValue={to ?? ""} aria-label="To date" />{admin && <label className="muted"><input name="history" type="checkbox" value="1" defaultChecked={history} /> history</label>}
-      <button className="button button-primary" type="submit">Search</button>
+    <form className="surface info-card search-filters" method="get">
+      <div className="search-query-row">
+        <label className="form-label" htmlFor="search-query">Search EFDS
+          <input id="search-query" className="input" name="q" defaultValue={query} placeholder="Ask a question or search by keyword" />
+        </label>
+        <button className="button button-primary" type="submit">Search</button>
+      </div>
+      <details className="search-advanced" open={Boolean(source || area || channel || author || from || to || history)}>
+        <summary>Refine your search</summary>
+        <div className="search-filter-grid">
+          <label className="form-label">Source
+            <select className="select" name="source" defaultValue={source ?? ""} aria-label="Filter by source"><option value="">All sources</option><option value="knowledge_requirement">Requirements</option><option value="knowledge_process">Processes</option><option value="knowledge_resource">Resources</option><option value="icu_article">ICU articles</option>{admin && <><option value="document">OneDrive documents</option><option value="slack_message">Slack messages</option><option value="meeting_transcript">Meeting transcripts</option><option value="meeting_summary">Meetily summaries</option><option value="operational_decision">Operational decisions</option><option value="operational_action">Operational actions</option><option value="operational_question">Operational questions</option></>}</select>
+          </label>
+          <label className="form-label">Source area<input className="input" name="area" defaultValue={area ?? ""} placeholder="e.g. events" /></label>
+          {admin && <><label className="form-label">Slack channel<input className="input" name="channel" defaultValue={channel ?? ""} placeholder="Channel" /></label><label className="form-label">Author<input className="input" name="author" defaultValue={author ?? ""} placeholder="Author" /></label></>}
+          <label className="form-label">From date<input className="input" name="from" type="date" defaultValue={from ?? ""} /></label>
+          <label className="form-label">To date<input className="input" name="to" type="date" defaultValue={to ?? ""} /></label>
+        </div>
+        {admin && <label className="search-history"><input name="history" type="checkbox" value="1" defaultChecked={history} /> Include source history</label>}
+      </details>
     </form>
     {query && <p className="muted" style={{ fontSize: 12, marginBottom: 14 }}>{results.length} result{results.length === 1 ? "" : "s"} for “{query}”</p>}
     <section aria-live="polite">

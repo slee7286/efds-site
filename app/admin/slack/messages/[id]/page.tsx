@@ -1,3 +1,4 @@
+import { readPageData } from "@/lib/local-preview";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Paperclip, ThumbsUp } from "lucide-react";
 import { getSlackMessage } from "@/lib/db/slack";
@@ -6,7 +7,7 @@ import { SlackMessageCard } from "@/components/slack/archive";
 
 export default async function SlackMessagePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const result = await getSlackMessage(id);
+  const result = await readPageData(() => getSlackMessage(id), null);
   if (!result) return <div className="app-content"><Link className="button button-quiet" href="/admin/slack/channels"><ArrowLeft size={14} /> Back to Slack archive</Link><h1>Message not found</h1></div>;
   const { message, changes } = result;
   return <div className="app-content">

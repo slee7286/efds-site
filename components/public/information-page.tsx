@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PageIntro } from "@/components/public/page-intro";
 
 type InformationPageProps = {
   eyebrow: string;
@@ -9,12 +10,8 @@ type InformationPageProps = {
 
 export function InformationPage({ eyebrow, title, intro, children }: InformationPageProps) {
   return (
-    <main>
-      <section className="container page-intro">
-        <div className="eyebrow">{eyebrow}</div>
-        <h1 className="display">{title}</h1>
-        <p>{intro}</p>
-      </section>
+    <main id="main-content">
+      <PageIntro eyebrow={eyebrow} title={title} description={intro} />
       <section className="section-tight"><div className="container info-page-content">{children}</div></section>
     </main>
   );

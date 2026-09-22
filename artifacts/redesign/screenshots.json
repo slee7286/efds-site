@@ -1,0 +1,174 @@
+{
+  "capturedAt": "2026-09-22T14:13:22.811Z",
+  "results": [
+    {
+      "name": "home-desktop",
+      "route": "/",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "title": "EFDS — Economics, Finance & Data Science Society"
+    },
+    {
+      "name": "home-mobile",
+      "route": "/",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "title": "EFDS — Economics, Finance & Data Science Society"
+    },
+    {
+      "name": "home-tablet",
+      "route": "/",
+      "width": 768,
+      "status": 200,
+      "overflow": false,
+      "title": "EFDS — Economics, Finance & Data Science Society"
+    },
+    {
+      "name": "about-desktop",
+      "route": "/about",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "title": "About — EFDS"
+    },
+    {
+      "name": "events-desktop",
+      "route": "/events",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "title": "Events — EFDS"
+    },
+    {
+      "name": "careers-desktop",
+      "route": "/careers",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "title": "Careers — EFDS"
+    },
+    {
+      "name": "research-desktop",
+      "route": "/research",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "title": "Research — EFDS"
+    },
+    {
+      "name": "committee-desktop",
+      "route": "/committee",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "title": "Committee — EFDS"
+    },
+    {
+      "name": "resources-mobile",
+      "route": "/resources",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "title": "Resources — EFDS"
+    },
+    {
+      "name": "login-desktop",
+      "route": "/login",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "title": "Member access — EFDS"
+    },
+    {
+      "name": "login-mobile",
+      "route": "/login",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "title": "Member access — EFDS"
+    },
+    {
+      "name": "chat-desktop",
+      "route": "/chat",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "title": "Ask EFDS — EFDS"
+    },
+    {
+      "name": "dashboard-desktop",
+      "route": "/dashboard",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "title": "EFDS — Economics, Finance & Data Science Society"
+    },
+    {
+      "name": "dashboard-mobile",
+      "route": "/dashboard",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "title": "EFDS — Economics, Finance & Data Science Society"
+    },
+    {
+      "name": "admin-desktop",
+      "route": "/admin",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "title": "EFDS — Economics, Finance & Data Science Society"
+    },
+    {
+      "name": "admin-mobile",
+      "route": "/admin",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "title": "EFDS — Economics, Finance & Data Science Society"
+    },
+    {
+      "name": "search-mobile",
+      "route": "/dashboard/search",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "title": "EFDS — Economics, Finance & Data Science Society"
+    },
+    {
+      "name": "documents-desktop",
+      "route": "/admin/documents",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "title": "EFDS — Economics, Finance & Data Science Society"
+    },
+    {
+      "name": "documents-mobile",
+      "route": "/admin/documents/files",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "title": "EFDS — Economics, Finance & Data Science Society"
+    },
+    {
+      "name": "search-filters-mobile",
+      "route": "/admin/search?q=events&source=knowledge_process&area=events",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "title": "EFDS — Economics, Finance & Data Science Society"
+    },
+    {
+      "name": "operations-form-mobile",
+      "route": "/admin/operations/new",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "title": "EFDS — Economics, Finance & Data Science Society"
+    }
+  ],
+  "errors": []
+}

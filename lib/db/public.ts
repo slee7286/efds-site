@@ -1,16 +1,20 @@
 import type { PublicEvent, PublicOfficer } from "@/types/domain";
 
+// Public officers listed by Imperial College Union; checked 22 September 2026.
+// Source: https://www.imperialcollegeunion.org/activities/a-to-z/efds-soc
 export async function getPublicCommittee(): Promise<PublicOfficer[]> {
   return [
-    { name: "EFDS Committee", role: "2026–27 committee", academicYear: "2026–27" },
-    { name: "Economics, Finance & Data Science", role: "Imperial College London", academicYear: "" },
-  ];
+    ["Siheon Lee", "President"], ["Yifan Dai", "Vice President"],
+    ["Teja Sule", "Secretary"], ["Katia Bubenok-Honchar", "Treasurer"],
+    ["Shashwat Sarawagi", "Events / Trips Officer"], ["Queena Zeng", "Social Secretary"],
+    ["Hannah Khalique", "Committee Member"], ["Iphazha Masala", "Committee Member"],
+    ["Alice Ye", "Committee Member"], ["Nikodem Brol", "Committee Member"],
+    ["Eesa Jaswal", "Committee Member"], ["Tanuj Kakumani", "Committee Member"],
+  ].map(([name, role]) => ({ name, role, academicYear: "" }));
 }
 
 export async function getUpcomingEvents(): Promise<PublicEvent[]> {
-  return [
-    { title: "Welcome to EFDS", date: "18 Sep 2026", type: "Social", description: "Meet the committee, find your people and start the year with a clear signal.", accent: "yellow" },
-    { title: "Quantitative finance evening", date: "01 Oct 2026", type: "Industry", description: "A practical conversation on markets, models and the work behind the numbers.", accent: "mint" },
-    { title: "EFDS Data Challenge", date: "22 Oct 2026", type: "Competition", description: "Form a team, investigate a real dataset and present the insight that matters.", accent: "blue" },
-  ];
+  // No verified published event feed is connected yet. Do not publish the old
+  // illustrative dates as confirmed society events.
+  return [];
 }

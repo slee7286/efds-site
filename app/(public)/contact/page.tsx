@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
-import { InformationCard, InformationPage } from "../../../components/public/information-page";
-
-export const metadata: Metadata = { title: "Contact", description: "Contact routes for EFDS Society members, partners, and privacy or security questions." };
-const unionPage = "https://www.imperialcollegeunion.org/activities/a-to-z/efds-soc";
-
+import { ArrowUpRight } from "lucide-react";
+import { PageIntro } from "@/components/public/page-intro";
+import { society } from "@/lib/public-content";
+export const metadata: Metadata = { title: "Contact", description: "Contact routes for EFDS Society members, collaborators and account enquiries." };
 export default function ContactPage() {
-  return <InformationPage eyebrow="Contact" title="Find the right route in." intro="Use the EFDS Society’s Imperial College Union activity page for current society contact and registration routes.">
-    <InformationCard eyebrow="Current public route" title="EFDS Society on Imperial College Union" dark><p style={{ color: "rgba(247,247,243,.75)" }}>This repository does not define a public EFDS email address or a message-submission backend, so the site does not present a form that could silently discard your message.</p><p style={{ color: "rgba(247,247,243,.75)" }}>Use the official EFDS Society activity page for the current Union-managed contact and interest options.</p><p><a className="button button-primary" href={unionPage} target="_blank" rel="noreferrer">Open EFDS Society page <ExternalLink size={14} /></a></p></InformationCard>
-    <InformationCard eyebrow="What to mention" title="A useful subject helps"><ul><li><strong>Prospective members:</strong> say that you are asking about joining or attending.</li><li><strong>Current members:</strong> include the relevant society or account context, but never send a password or sign-in link.</li><li><strong>Partners and sponsors:</strong> describe the collaboration briefly.</li><li><strong>Imperial staff or ICT/security:</strong> identify the EFDS Society website and the nature of the enquiry.</li><li><strong>Privacy or data requests:</strong> ask for account information, correction, deletion where applicable, or raise a concern.</li></ul></InformationCard>
-    <InformationCard eyebrow="Safety" title="Keep sensitive details out of public forms"><p>Do not include passwords, Microsoft or Supabase tokens, database credentials, or private member information in a message. If you are reporting a security issue, describe the affected page or behavior and avoid publishing an exploit or personal data.</p><p>For privacy, security, and authentication architecture information, see <Link href="/privacy">Privacy</Link> and <Link href="/security">Security</Link>.</p></InformationCard>
-  </InformationPage>;
+  return <main id="main-content"><PageIntro eyebrow="Get in touch" title={<>Find the right<br /><em>route in.</em></>} description="A question, an idea or a conversation worth having? Start with the society’s official Imperial College Union page." graphic="data" />
+    <section className="section"><div className="container editorial-grid"><div><div className="eyebrow">Your first stop</div><h2>EFDS at<br />Imperial College Union.</h2><p className="editorial-copy" style={{ marginTop: 24 }}>Find the right route in. Our Union listing holds current society information, membership and registration options.</p><a className="button button-primary" href={society.unionUrl} target="_blank" rel="noreferrer">Open the EFDS Union page <ArrowUpRight size={17} /></a></div><div className="career-list">{[["01", "Joining & society life", "Ask about membership, getting involved or attending society activities."], ["02", "Collaborations & ideas", "Introduce your organisation or idea, the proposed timing and what you would like to explore together."], ["03", "Accounts & support", "Describe the page and what happened. Keep passwords and sign-in links private."], ["04", "Privacy & security", "Tell the society about your request or concern. Include the affected page, without sharing private data."]].map(([n,title,text]) => <div className="contact-row" key={n}><span className="feature-card-number">{n} /</span><div><h3>{title}</h3><p>{text}</p></div></div>)}</div></div></section>
+    <section className="section-tight section-tinted"><div className="container"><p className="editorial-note">For information about your data and account access, read our <Link href="/privacy">privacy information</Link> and <Link href="/security">security information</Link>.</p></div></section>
+  </main>;
 }

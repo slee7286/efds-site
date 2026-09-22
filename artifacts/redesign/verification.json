@@ -1,0 +1,38 @@
+{
+  "verifiedAt": "2026-09-22T14:17:22.080169+00:00",
+  "branch": "design/imperial-efds-redesign",
+  "lint": "passed",
+  "typescript": "passed",
+  "unitTests": {
+    "files": 12,
+    "passed": 45
+  },
+  "productionBuild": "passed",
+  "browser": {
+    "startTime": "2026-09-22T14:12:31.995Z",
+    "duration": 64661.218,
+    "expected": 192,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "wcagChecks": 36,
+  "internalDestinations": 48,
+  "screenshots": 21,
+  "screenshotErrors": [],
+  "production": {
+    "publicRoutes": 12,
+    "protectedRoutes": 10,
+    "apiChecks": 2,
+    "responsiveChecks": 3
+  },
+  "productionDependencyAudit": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "liveIntegrationsVerified": false
+}

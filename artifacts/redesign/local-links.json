@@ -1,0 +1,242 @@
+[
+  {
+    "route": "/",
+    "status": 200,
+    "links": 44
+  },
+  {
+    "route": "/admin",
+    "status": 200,
+    "links": 45
+  },
+  {
+    "route": "/dashboard",
+    "status": 200,
+    "links": 28
+  },
+  {
+    "route": "/about",
+    "status": 200,
+    "links": 35
+  },
+  {
+    "route": "/events",
+    "status": 200,
+    "links": 37
+  },
+  {
+    "route": "/careers",
+    "status": 200,
+    "links": 35
+  },
+  {
+    "route": "/research",
+    "status": 200,
+    "links": 35
+  },
+  {
+    "route": "/resources",
+    "status": 200,
+    "links": 34
+  },
+  {
+    "route": "/chat",
+    "status": 200,
+    "links": 36
+  },
+  {
+    "route": "/login",
+    "status": 200,
+    "links": 2
+  },
+  {
+    "route": "/competitions",
+    "status": 200,
+    "links": 36
+  },
+  {
+    "route": "/committee",
+    "status": 200,
+    "links": 34
+  },
+  {
+    "route": "/partners",
+    "status": 200,
+    "links": 36
+  },
+  {
+    "route": "/contact",
+    "status": 200,
+    "links": 36
+  },
+  {
+    "route": "/privacy",
+    "status": 200,
+    "links": 36
+  },
+  {
+    "route": "/terms",
+    "status": 200,
+    "links": 35
+  },
+  {
+    "route": "/security",
+    "status": 200,
+    "links": 35
+  },
+  {
+    "route": "/dashboard/search",
+    "status": 200,
+    "links": 22
+  },
+  {
+    "route": "/dashboard/knowledge",
+    "status": 200,
+    "links": 3
+  },
+  {
+    "route": "/dashboard/careers",
+    "status": 200,
+    "links": 23
+  },
+  {
+    "route": "/dashboard/jobs",
+    "status": 200,
+    "links": 22
+  },
+  {
+    "route": "/dashboard/events",
+    "status": 200,
+    "links": 23
+  },
+  {
+    "route": "/dashboard/chat",
+    "status": 200,
+    "links": 22
+  },
+  {
+    "route": "/dashboard/profile",
+    "status": 200,
+    "links": 22
+  },
+  {
+    "route": "/admin/search",
+    "status": 200,
+    "links": 40
+  },
+  {
+    "route": "/admin/knowledge",
+    "status": 200,
+    "links": 64
+  },
+  {
+    "route": "/admin/documents",
+    "status": 200,
+    "links": 43
+  },
+  {
+    "route": "/admin/slack",
+    "status": 200,
+    "links": 43
+  },
+  {
+    "route": "/admin/meetings",
+    "status": 200,
+    "links": 43
+  },
+  {
+    "route": "/admin/operations",
+    "status": 200,
+    "links": 54
+  },
+  {
+    "route": "/admin/committee",
+    "status": 200,
+    "links": 40
+  },
+  {
+    "route": "/admin/integrations",
+    "status": 200,
+    "links": 40
+  },
+  {
+    "route": "/admin/knowledge/review",
+    "status": 200,
+    "links": 49
+  },
+  {
+    "route": "/admin/knowledge/stale",
+    "status": 200,
+    "links": 49
+  },
+  {
+    "route": "/admin/knowledge/articles",
+    "status": 200,
+    "links": 49
+  },
+  {
+    "route": "/admin/knowledge/requirements",
+    "status": 200,
+    "links": 50
+  },
+  {
+    "route": "/admin/knowledge/timing",
+    "status": 200,
+    "links": 50
+  },
+  {
+    "route": "/admin/knowledge/processes",
+    "status": 200,
+    "links": 50
+  },
+  {
+    "route": "/admin/knowledge/resources",
+    "status": 200,
+    "links": 50
+  },
+  {
+    "route": "/admin/knowledge/roles",
+    "status": 200,
+    "links": 49
+  },
+  {
+    "route": "/admin/documents/files",
+    "status": 200,
+    "links": 42
+  },
+  {
+    "route": "/admin/slack/channels",
+    "status": 200,
+    "links": 42
+  },
+  {
+    "route": "/admin/meetings/all",
+    "status": 200,
+    "links": 42
+  },
+  {
+    "route": "/admin/operations/decisions",
+    "status": 200,
+    "links": 46
+  },
+  {
+    "route": "/admin/operations/actions",
+    "status": 200,
+    "links": 46
+  },
+  {
+    "route": "/admin/operations/questions",
+    "status": 200,
+    "links": 46
+  },
+  {
+    "route": "/admin/operations/timeline",
+    "status": 200,
+    "links": 46
+  },
+  {
+    "route": "/admin/operations/new",
+    "status": 200,
+    "links": 46
+  }
+]

@@ -1,19 +1,51 @@
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BarChart3, CircleCheck, LineChart, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, MapPin } from "lucide-react";
+import { DisciplineGraphic } from "@/components/public/discipline-graphic";
+import { JoinBanner } from "@/components/public/join-banner";
+import { EventsEmptyState } from "@/components/public/events-empty-state";
 import { EventCard } from "@/components/public/event-card";
 import { getUpcomingEvents } from "@/lib/db/public";
 
+const disciplines = [
+  { number: "01", title: "Economics", type: "economics" as const, description: "Understand the choices, incentives and systems that shape our world.", href: "/research", link: "Follow a question" },
+  { number: "02", title: "Finance", type: "finance" as const, description: "Connect the theory of markets with the people and decisions behind them.", href: "/careers", link: "Explore your direction" },
+  { number: "03", title: "Data science", type: "data" as const, description: "Find the patterns. Test the assumptions. Turn evidence into understanding.", href: "/resources", link: "Build your toolkit" },
+];
+
 export default async function HomePage() {
   const events = await getUpcomingEvents();
-  return <>
-    <div className="ticker"><div className="container ticker-inner"><span className="ticker-dot" /> 2026–27 applications are open <span className="muted">/</span> Make a signal, not just a spreadsheet <ArrowRight size={13} /></div></div>
-    <main>
-      <section className="hero"><div className="container hero-grid"><div><div className="eyebrow">Imperial College London · Est. 2024</div><h1>Where economics meets <em>evidence.</em></h1><p className="hero-copy">EFDS is a student-led space for people who want to understand the systems behind the numbers — and build the next version of them.</p><div className="hero-actions"><Link className="button button-primary" href="/events">See what&apos;s on <ArrowRight size={15} /></Link><Link className="button button-outline" href="/about">Meet the society</Link></div><div className="hero-note"><CircleCheck size={15} /> Open to every Imperial student with a curious mind.</div></div><div className="data-card"><div className="data-card-top"><div><div className="eyebrow">EFDS / live signal</div><h2>Ideas in motion</h2></div><span className="data-live"><i /> Active now</span></div><div className="chart"><svg viewBox="0 0 400 210" preserveAspectRatio="none" aria-label="Illustrative upward trend line"><path d="M0 175 C58 165 66 143 100 150 S148 173 176 101 S222 65 250 86 S295 74 324 50 S363 54 400 10" fill="none" stroke="#f36c51" strokeWidth="3" /><path d="M0 175 C58 165 66 143 100 150 S148 173 176 101 S222 65 250 86 S295 74 324 50 S363 54 400 10 L400 210 L0 210Z" fill="url(#shade)" opacity=".24" /><defs><linearGradient id="shade" x1="0" x2="0" y1="0" y2="1"><stop stopColor="#f36c51" /><stop offset="1" stopColor="#f36c51" stopOpacity="0" /></linearGradient></defs></svg><span className="chart-point one" /><span className="chart-point two" /><span className="chart-point three" /><span className="chart-point four" /><span className="chart-point five" /><div className="chart-labels"><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Now</span></div></div><div className="chart-stat"><strong>+ 28%</strong><span>more ideas worth sharing</span></div><div className="signal-row"><div className="signal"><span>Next event</span><strong>01 Oct</strong></div><div className="signal"><span>People connected</span><strong>1,240+</strong></div></div></div></div></section>
-      <section className="section"><div className="container"><div className="section-header"><div><div className="eyebrow">The calendar</div><h2 className="display">Something for<br />every angle.</h2></div><p>From first principles to first interviews, the society is built around useful collisions.</p></div><div className="event-grid">{events.map((event) => <EventCard event={event} key={event.title} />)}</div><div style={{ marginTop: 24 }}><Link className="button button-quiet" href="/events">View all events <ArrowRight size={14} /></Link></div></div></section>
-      <section className="manifesto"><div className="container"><div className="manifesto-grid"><div><div className="eyebrow">Our point of view</div><h2 className="display">Curiosity is a competitive edge.</h2></div><div className="manifesto-copy"><p>We bring together economics, finance and data science because the interesting questions don&apos;t stay in one department. EFDS is where theory gets tested, data gets interrogated and ambitious people find each other.</p><Link href="/about">More about EFDS <ArrowRight size={14} /></Link></div></div><div className="principles"><div className="principle"><b>01 / Be rigorous</b><span>Follow the question far enough to find the real answer.</span></div><div className="principle"><b>02 / Share early</b><span>Good ideas get better when they leave the notebook.</span></div><div className="principle"><b>03 / Stay generous</b><span>Make the room smarter for everyone in it.</span></div></div></div></section>
-      <section className="section"><div className="container"><div className="section-header"><div><div className="eyebrow">Choose your route</div><h2 className="display">Go deeper.</h2></div><p>One society, four ways to find your next useful question.</p></div><div className="pathway-grid"><Pathway number="01" icon={<BarChart3 size={22} />} title="Events" text="Meet practitioners, researchers and people who are just getting started." href="/events" /><Pathway number="02" icon={<LineChart size={22} />} title="Careers" text="Make the map from your degree to the work you want to do." href="/careers" /><Pathway number="03" icon={<Sparkles size={22} />} title="Research" text="Read widely, share a finding and add something to the conversation." href="/research" /><Pathway number="04" icon={<CircleCheck size={22} />} title="Community" text="Find a committee, competition or project that moves you forward." href="/about" /></div></div></section>
-    </main>
-  </>;
+  return <main id="main-content">
+    <section className="home-hero">
+      <div className="container home-hero-grid">
+        <div className="hero-content">
+          <div className="eyebrow"><span className="eyebrow-rule" />Student-led. Imperial-minded.</div>
+          <h1>Think across<br /><em>boundaries.</em></h1>
+          <p className="hero-description">Economics, finance and data science.<br />A shared curiosity. A different perspective.<br />Your community at Imperial College London.</p>
+          <div className="hero-actions"><Link className="button button-primary" href="/about">Discover the society <ArrowUpRight size={17} /></Link><Link className="button button-outline" href="/events">Explore events <ArrowRight size={16} /></Link></div>
+          <div className="hero-note"><MapPin size={13} />South Kensington, London</div>
+        </div>
+        <figure className="hero-artwork" aria-label="A conceptual architectural study inspired by Imperial’s Queen’s Tower">
+          <div className="hero-image-wrap"><Image src="/images/imperial-connections.webp" alt="Ivory architectural model inspired by Queen’s Tower, surrounded by a flowing blue mathematical surface and geometric forms" fill sizes="(max-width: 600px) 100vw, 50vw" preload /></div>
+          <span className="hero-coordinate" aria-hidden="true">IMPERIAL / A DIFFERENT PERSPECTIVE</span>
+          <figcaption className="artwork-label"><span><i />Studies in connection</span><span>Original conceptual artwork · 01</span></figcaption>
+        </figure>
+      </div>
+    </section>
+    <div className="discipline-strip"><div className="container discipline-strip-inner">{disciplines.map((d) => <div className="discipline-strip-item" key={d.title}><span>{d.number} /</span>{d.title}</div>)}<div className="discipline-strip-note">The Economics, Finance<br />&amp; Data Science Society</div></div></div>
+    <section className="section"><div className="container">
+      <div className="section-heading"><div><div className="eyebrow">The intersection is the interesting part</div><h2>Three disciplines.<br /><em>One bigger picture.</em></h2></div><p>Good questions rarely fit inside one subject. We’re a community for exploring what happens between them.</p></div>
+      <div className="discipline-cards">{disciplines.map((d) => <article className="discipline-card" key={d.title}><div className="discipline-card-visual"><span className="eyebrow">FIELD / {d.number}</span><DisciplineGraphic type={d.type} /></div><div className="discipline-card-body"><h3>{d.title}</h3><p>{d.description}</p><Link className="text-link" href={d.href}>{d.link}<ArrowUpRight size={16} /></Link></div></article>)}</div>
+    </div></section>
+    <section className="section community-section"><div className="container community-grid">
+      <div><div className="eyebrow">More than a course</div><h2>Serious curiosity.<br /><em>Shared generously.</em></h2><p>EFDS brings together the Economics, Finance and Data Science student community at Imperial. A place to exchange ideas, discover opportunities and find the people who make university yours.</p><Link className="button button-paper" href="/committee">Meet the people behind EFDS <ArrowUpRight size={16} /></Link></div>
+      <div className="community-rows">{[
+        ["01", "A place to connect", "Find your community through conversations, shared interests and society life.", "/about"],
+        ["02", "A direction to explore", "Connect your academic interests with the work you might want to do.", "/careers"],
+        ["03", "A question to pursue", "Bring your curiosity to research, competitions and practical learning.", "/competitions"],
+      ].map(([n, title, description, href]) => <Link className="community-row" href={href} key={n}><span>{n}</span><div><h3>{title}</h3><p>{description}</p></div><ArrowUpRight size={19} /></Link>)}</div>
+    </div></section>
+    <section className="section"><div className="container"><div className="section-heading"><div><div className="eyebrow">From ideas to conversations</div><h2>See what’s <em>next.</em></h2></div><Link className="text-link" href="/events">Events &amp; opportunities <ArrowUpRight size={16} /></Link></div>{events.length ? <div className="event-grid">{events.map((event) => <EventCard event={event} key={event.title} />)}</div> : <EventsEmptyState />}</div></section>
+    <JoinBanner />
+  </main>;
 }
-
-function Pathway({ number, icon, title, text, href }: { number: string; icon: React.ReactNode; title: string; text: string; href: string }) { return <Link className="pathway surface" href={href}><span className="pathway-index">{number}</span><div style={{ color: "var(--coral)", marginTop: 24 }}>{icon}</div><h3>{title}</h3><p>{text}</p><span className="pathway-link">Explore <ArrowRight size={13} /></span></Link>; }

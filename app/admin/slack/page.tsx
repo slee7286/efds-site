@@ -1,3 +1,4 @@
+import { readPageData, slackPreview } from "@/lib/local-preview";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getSlackDashboard } from "@/lib/db/slack";
@@ -5,8 +6,8 @@ import { SlackChannelTable, SlackNav } from "@/components/slack/archive";
 import { formatDate } from "@/components/knowledge/operations";
 
 export default async function SlackAdminPage() {
-  const dashboard = await getSlackDashboard();
+  const dashboard = await readPageData(() => getSlackDashboard(), slackPreview);
   return <div className="app-content"><div className="eyebrow">Admin · Slack source archive</div><h1>Committee memory,<br />kept intact.</h1><p className="app-subtitle">Read-only Slack ingestion preserves messages, threads, edits, reactions, links and file metadata. Only explicitly enabled channels are archived.</p><SlackNav /><div className="metric-grid"><Metric label="Workspaces" value={dashboard.workspaces.length} /><Metric label="Enabled channels" value={dashboard.channels.filter((channel) => channel.syncEnabled).length} /><Metric label="Archived messages" value={dashboard.counts.messages} /><Metric label="Threads" value={dashboard.counts.threads} /><Metric label="Users" value={dashboard.counts.users} /></div><div className="app-grid" style={{ marginTop: 24 }}><section className="surface app-panel"><div className="panel-heading"><h2>Archive health</h2><Link href="/admin/slack/channels">Browse channels <ArrowRight size={12} /></Link></div><dl className="security-details"><div><dt>Latest sync</dt><dd>{String(dashboard.latestRun?.status ?? "Not run")}</dd></div><div><dt>Last started</dt><dd>{formatDate(dashboard.latestRun?.started_at)}</dd></div><div><dt>Edits tracked</dt><dd>{dashboard.counts.edits}</dd></div><div><dt>Links</dt><dd>{dashboard.counts.links} · files {dashboard.counts.files}</dd></div></dl></section><aside className="surface-dark app-panel"><div className="eyebrow" style={{ color: "var(--mint)" }}>Privacy boundary</div><h2 style={{ fontSize: 20, fontWeight: 500, marginTop: 26 }}>Admin-only raw source.</h2><p style={{ color: "rgba(247,247,243,.68)", fontSize: 12, lineHeight: 1.5 }}>Members and public users cannot read Slack archive tables. The website never calls Slack and never receives the bot token.</p></aside></div><section style={{ marginTop: 24 }}><div className="eyebrow">Discovered channels</div><SlackChannelTable channels={dashboard.channels} /></section></div>;
 }
 
-function Metric({ label, value }: { label: string; value: number }) { return <div className="metric surface"><span>{label}</span><strong>{value}</strong><small>live database value</small></div>; }
+function Metric({ label, value }: { label: string; value: number }) { return <div className="metric surface"><span>{label}</span><strong>{value}</strong><small>archive records</small></div>; }

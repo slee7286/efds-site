@@ -1,3 +1,9 @@
+import type { Metadata } from "next";
+import { PageIntro } from "@/components/public/page-intro";
 import { getPublicCommittee } from "@/lib/db/public";
-
-export default async function CommitteePage() { const committee = await getPublicCommittee(); return <main><section className="container page-intro"><div className="eyebrow">The committee</div><h1 className="display">People behind<br />the platform.</h1><p>EFDS is run by students who care about making the society useful, welcoming and worth returning to.</p></section><section className="section-tight"><div className="container pathway-grid">{committee.map((person) => <article className="surface pathway" key={person.name}><span className="pathway-index">{person.academicYear || "EFDS"}</span><h3>{person.name}</h3><p>{person.role}</p></article>)}</div></section></main>; }
+import { society } from "@/lib/public-content";
+export const metadata: Metadata = { title: "Committee", description: "Meet the student committee behind Imperial’s EFDS Society." };
+export default async function CommitteePage() {
+  const committee = await getPublicCommittee();
+  return <main id="main-content"><PageIntro eyebrow="Your committee" title={<>A society made<br /><em>by its people.</em></>} description="Meet the students behind EFDS. The committee helps the society stay connected, organised and open to new ideas." graphic="data" /><section className="section"><div className="container"><div className="committee-grid">{committee.map(person => <article className="person-card" key={person.name}><div className="person-avatar" aria-hidden="true">{person.name.split(" ").map(p => p[0]).slice(0,2).join("")}</div><div className="person-body"><h2>{person.name}</h2><p>{person.role}</p></div></article>)}</div><p className="source-note">Committee information from <a href={society.unionUrl} target="_blank" rel="noreferrer">Imperial College Union’s EFDS listing</a>, checked 22 September 2026. Visit the Union page for the latest details.</p></div></section></main>;
+}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { getMicrosoftOAuthOptions, MICROSOFT_AUTH_PROVIDER } from "@/lib/auth/microsoft";
-import { config } from "@/lib/config";
+import { config, isSupabaseConfigured } from "@/lib/config";
 import { type EmailAuthIntent, useEmailCooldown } from "@/lib/auth/email-cooldown";
 
 type ExternalAction = "password" | "magic" | "setup" | "reset";
@@ -28,10 +28,16 @@ export function LoginForm({ initialMessage = "" }: { initialMessage?: string }) 
 
   async function signInWithMicrosoft() {
     setPending(true); setMessage("");
-    const supabase = createBrowserSupabaseClient();
-    const { error } = await supabase.auth.signInWithOAuth({ provider: MICROSOFT_AUTH_PROVIDER, options: getMicrosoftOAuthOptions(config.siteUrl) });
-    if (error) setMessage("We could not start Microsoft sign-in. Please try again.");
-    setPending(false);
+    try {
+      if (!isSupabaseConfigured) throw new Error("Sign-in is unavailable in this local preview. Your account has not been changed.");
+      const supabase = createBrowserSupabaseClient();
+      const { error } = await supabase.auth.signInWithOAuth({ provider: MICROSOFT_AUTH_PROVIDER, options: getMicrosoftOAuthOptions(config.siteUrl) });
+      if (error) throw new Error("We could not start Microsoft sign-in. Please try again.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "We could not start Microsoft sign-in. Please try again.");
+    } finally {
+      setPending(false);
+    }
   }
 
   async function authorizePasswordSession() {

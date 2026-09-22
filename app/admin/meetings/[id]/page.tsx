@@ -1,10 +1,11 @@
+import { readPageData } from "@/lib/local-preview";
 import { notFound } from "next/navigation";
 import { MeetingArtifacts, MeetingChanges, MeetingFacts, MeetingNav, MeetingSummary, MeetingTranscript } from "@/components/meetings/archive";
 import { getMeeting } from "@/lib/db/meetings";
 
 export default async function AdminMeetingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const result = await getMeeting(id);
+  const result = await readPageData(() => getMeeting(id), null);
   if (!result) notFound();
   const currentTranscript = result.artifacts.find((artifact) => artifact.artifactType === "transcript" && artifact.isCurrent);
   const currentSummary = result.artifacts.find((artifact) => artifact.artifactType === "summary" && artifact.isCurrent);

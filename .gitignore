@@ -6,3 +6,7 @@ out/
 .env.*.local
 coverage/
 *.tsbuildinfo
+
+# Browser traces are regenerated on failures.
+test-results/
+playwright-report/

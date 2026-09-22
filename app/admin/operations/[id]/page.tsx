@@ -1,3 +1,4 @@
+import { readPageData } from "@/lib/local-preview";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EditOperationalRecordForm, EvidenceList, EvidencePicker, OperationsNav, RecordActions, ReviewTimeline } from "@/components/operations/archive";
@@ -6,7 +7,7 @@ import { searchRetrieval } from "@/lib/db/retrieval";
 
 export default async function OperationalRecordPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams?: Promise<{ evidenceQuery?: string }> }) {
   const { id } = await params;
-  const result = await getOperationalRecord(id);
+  const result = await readPageData(() => getOperationalRecord(id), null);
   if (!result) notFound();
   const query = searchParams ? (await searchParams).evidenceQuery?.trim() : undefined;
   const evidenceResults = query ? await searchRetrieval({ query, scope: "admin", limit: 10 }) : [];
