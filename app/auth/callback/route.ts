@@ -15,7 +15,8 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   if (!config.siteUrl) return new NextResponse("NEXT_PUBLIC_SITE_URL is required", { status: 500 });
-  if (!code || !isSupabaseConfigured) return redirectAfterAuth("/login?error=auth_unconfigured");
+  if (!isSupabaseConfigured) return redirectAfterAuth("/login?error=auth_unconfigured");
+  if (url.searchParams.has("error") || !code) return redirectAfterAuth("/login?error=auth_link_expired");
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) return redirectAfterAuth("/login?error=auth_failed");

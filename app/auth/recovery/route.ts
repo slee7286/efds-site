@@ -15,7 +15,8 @@ export async function GET(request: Request) {
   const code = url.searchParams.get("code");
   const flow = url.searchParams.get("flow");
   const safeFlow = flow === "setup" || flow === "reset" ? flow : "reset";
-  if (!config.siteUrl || !isSupabaseConfigured || !code) return redirectAfterRecovery("/login?error=recovery_unavailable", config.siteUrl || url.origin);
+  if (!config.siteUrl || !isSupabaseConfigured) return redirectAfterRecovery("/login?error=auth_unconfigured", config.siteUrl || url.origin);
+  if (url.searchParams.has("error") || !code) return redirectAfterRecovery("/login?error=recovery_expired", config.siteUrl);
 
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
