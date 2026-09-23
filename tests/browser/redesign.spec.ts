@@ -32,6 +32,10 @@ for (const route of ["/", "/about", "/events", "/resources", "/committee", "/con
 test("public navigation opens, restores focus and follows a destination", async ({ page }, info) => {
   await page.goto("/");
   if (info.project.name === "desktop") {
+    await expect(page.locator(".header-login")).toHaveText("Login");
+    await expect(page.locator(".header-login")).toHaveAttribute("href", "/login");
+  }
+  if (info.project.name === "desktop") {
     await page.getByRole("navigation", { name: "Main navigation", exact: true }).getByRole("link", { name: "Careers", exact: true }).click();
     await expect(page).toHaveURL(/\/careers$/);
     await expect(page.getByRole("navigation", { name: "Main navigation", exact: true }).getByRole("link", { name: "Careers", exact: true })).toHaveAttribute("aria-current", "page");
@@ -41,6 +45,7 @@ test("public navigation opens, restores focus and follows a destination", async 
   await trigger.click();
   const menu = page.getByRole("dialog", { name: "Site navigation" });
   await expect(menu).toBeVisible();
+  await expect(menu.getByRole("link", { name: "Login" })).toHaveAttribute("href", "/login");
   await expect(menu.getByRole("link")).toHaveCount(11);
   await page.keyboard.press("Escape");
   await expect(menu).not.toBeVisible();

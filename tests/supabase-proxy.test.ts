@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 vi.mock("@supabase/ssr", () => ({
   createServerClient: (_url: string, _key: string, options: { cookies: { setAll: (cookies: { name: string; value: string; options?: Record<string, unknown> }[], headers: Record<string, string>) => void } }) => ({
     auth: {
-      getUser: async () => {
+      getClaims: async () => {
         options.cookies.setAll([
           { name: "sb-access.0", value: "first", options: { httpOnly: true } },
           { name: "sb-access.1", value: "second", options: { httpOnly: true } },
