@@ -3,6 +3,7 @@ import "server-only";
 import { requireRole } from "@/lib/auth/server";
 import { isSupabaseConfigured } from "@/lib/config";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { buildTicketTimeline, type CommitteeTicketChange, type SlackTicketMessage, type SlackTicketReaction, type TicketTimeline } from "@/lib/tickets/activity";
 
 export type TicketStatus = "open" | "in_progress" | "blocked" | "completed" | "cancelled";
 export type TicketOfficer = { id: string; name: string; role: string };
@@ -24,6 +25,7 @@ export type Ticket = {
 };
 
 type Row = Record<string, unknown>;
+type Client = Awaited<ReturnType<typeof createServerSupabaseClient>>;
 const fields = "id,title,description,workstream,priority,due_at,due_text,execution_status,review_version,created_at,updated_at,owner_text,metadata";
 const activeStatuses = new Set<TicketStatus>(["open", "in_progress", "blocked"]);
 
@@ -33,8 +35,77 @@ function ticketStatus(value: unknown): TicketStatus {
   return ["open", "in_progress", "blocked", "completed", "cancelled"].includes(string(value)) ? value as TicketStatus : "open";
 }
 
+async function allTicketChannelMessages(supabase: Client, channelId: string) {
+  const rows: Row[] = [];
+  // Read the archive in pages so older thread updates remain in the dated log.
+  for (let offset = 0; offset < 10000; offset += 1000) {
+    const result = await supabase.from("slack_messages")
+      .select("id,slack_ts,thread_ts,message_text,source_posted_at,author_user_id,user_slack_id,is_deleted")
+      .eq("channel_id", channelId).order("source_posted_at").range(offset, offset + 999);
+    if (result.error) throw result.error;
+    rows.push(...(result.data ?? []));
+    if ((result.data ?? []).length < 1000) break;
+  }
+  return rows;
+}
+
+async function getTicketActivityData(supabase: Client, tickets: Ticket[], officers: TicketOfficer[]) {
+  const timelines = new Map<string, TicketTimeline>();
+  if (!tickets.length) return { timelines, slackSyncedAt: null as string | null };
+  const [channelResult, historyResult, usersResult] = await Promise.all([
+    supabase.from("slack_channels").select("id").eq("name", "actions-tickets").eq("is_private", false).maybeSingle(),
+    supabase.rpc("committee_ticket_history", { p_ticket_id: null }),
+    supabase.from("slack_users").select("id,slack_user_id,display_name,real_name"),
+  ]);
+  if (channelResult.error) throw channelResult.error;
+  if (historyResult.error) throw historyResult.error;
+  if (usersResult.error) throw usersResult.error;
+  const channelId = channelResult.data?.id;
+  const [messagesResult, syncResult, mentionsResult] = await Promise.all([
+    channelId ? allTicketChannelMessages(supabase, channelId) : Promise.resolve([] as Row[]),
+    channelId ? supabase.from("slack_channel_sync_settings").select("last_successful_sync_at").eq("channel_id", channelId).maybeSingle() : Promise.resolve({ data: null, error: null }),
+    channelId ? supabase.from("slack_messages")
+      .select("id,slack_ts,thread_ts,message_text,source_posted_at,author_user_id,user_slack_id,is_deleted")
+      .neq("channel_id", channelId).ilike("message_text", "%ACTION-%")
+      .order("source_posted_at", { ascending: false }).limit(1000) : Promise.resolve({ data: [] as Row[], error: null }),
+  ]);
+  if (syncResult.error) throw syncResult.error;
+  if (mentionsResult.error) throw mentionsResult.error;
+  const rows = [...messagesResult, ...(mentionsResult.data ?? [])];
+  const messages: SlackTicketMessage[] = rows.filter((row) => optional(row.source_posted_at)).map((row) => ({
+    id: string(row.id), slackTs: string(row.slack_ts), threadTs: optional(row.thread_ts), text: string(row.message_text),
+    postedAt: string(row.source_posted_at), authorId: optional(row.author_user_id), userSlackId: optional(row.user_slack_id),
+    isDeleted: row.is_deleted === true,
+  }));
+  const users = new Map<string, string>();
+  for (const row of usersResult.data ?? []) {
+    const name = optional(row.real_name) ?? optional(row.display_name) ?? string(row.slack_user_id);
+    users.set(string(row.id), name);
+    users.set(string(row.slack_user_id), name);
+  }
+  const sourceIds = new Set(tickets.map((ticket) => ticket.sourceMessageId).filter(Boolean));
+  const reactionIds = messages.filter((message) => sourceIds.has(message.id)
+    || message.text.startsWith("[EFDS archive repost:")).map((message) => message.id);
+  const reactions: SlackTicketReaction[] = [];
+  for (let offset = 0; offset < reactionIds.length; offset += 100) {
+    const result = await supabase.from("slack_reactions").select("message_id,name,slack_user_id,first_seen_at")
+      .in("message_id", reactionIds.slice(offset, offset + 100));
+    if (result.error) throw result.error;
+    for (const row of result.data ?? []) reactions.push({
+      messageId: string(row.message_id), name: string(row.name), slackUserId: string(row.slack_user_id), firstSeenAt: string(row.first_seen_at),
+    });
+  }
+  const changes: CommitteeTicketChange[] = (historyResult.data ?? []).map((row: Row) => ({
+    id: string(row.event_id), ticketId: string(row.ticket_id), action: string(row.action),
+    actorName: string(row.actor_name), changes: row.changes && typeof row.changes === "object" ? row.changes as Row : {},
+    occurredAt: string(row.occurred_at),
+  }));
+  for (const ticket of tickets) timelines.set(ticket.id, buildTicketTimeline(ticket, messages, reactions, users, changes, officers));
+  return { timelines, slackSyncedAt: optional(syncResult.data?.last_successful_sync_at) };
+}
+
 export async function getTicketWorkspace() {
-  if (!isSupabaseConfigured) return { tickets: [] as Ticket[], officers: [] as TicketOfficer[] };
+  if (!isSupabaseConfigured) return { tickets: [] as Ticket[], officers: [] as TicketOfficer[], timelines: new Map<string, TicketTimeline>(), slackSyncedAt: null as string | null };
   await requireRole("committee");
   const supabase = await createServerSupabaseClient();
   const [ticketsResult, officersResult, assignmentsResult] = await Promise.all([
@@ -61,7 +132,7 @@ export async function getTicketWorkspace() {
       ownerText: optional(row.owner_text), sourceMessageId: optional(metadata.slack_message_id), assignees: assignments.get(string(row.id)) ?? [],
     };
   });
-  return { tickets, officers };
+  return { tickets, officers, ...(await getTicketActivityData(supabase, tickets, officers)) };
 }
 
 export function ticketCounts(tickets: Ticket[]) {

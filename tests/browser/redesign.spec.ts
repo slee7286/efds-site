@@ -112,6 +112,29 @@ test("tickets preview has a useful empty state and a clearly disabled create for
   await expect(page.getByRole("button", { name: "Create ticket" })).toBeDisabled();
 });
 
+test("ticket board and activity layout contain long evidence at 320px", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 760 });
+  await page.goto("/dashboard/tickets");
+  await expect(page.getByText("No tickets have been added yet.")).toBeVisible();
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => {
+    const container = document.querySelector(".ticket-page");
+    if (!container) throw new Error("Ticket page missing");
+    const stress = document.createElement("section");
+    stress.className = "ticket-clusters";
+    stress.innerHTML = `<section class="ticket-cluster"><div class="ticket-cluster-heading"><div><span>Workstream</span><h2>Operations and an unusually long committee workstream heading</h2></div><strong>13 tickets</strong></div><div class="ticket-cluster-cards"><a class="ticket-card" href="/dashboard/tickets/new"><span class="ticket-card-top"><span class="ticket-status">In progress</span><span class="ticket-priority">Urgent priority</span></span><strong>ACTION-023 — AVeryLongUnbrokenIdentifierThatWouldUsuallyBreakTheDashboardFormatting</strong><span class="ticket-signal">Slack suggests completed. Review evidence</span><span class="ticket-card-bottom"><span>Siheon, Katia, Alice, Hannah, Teja, Queena, Eesa, Tanuj, Shashwat, Nikodem</span></span></a></div></section>`;
+    container.append(stress);
+  });
+  await expect(page.getByText("ACTION-023 — AVeryLongUnbrokenIdentifierThatWouldUsuallyBreakTheDashboardFormatting")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.evaluate(() => {
+    const container = document.querySelector(".ticket-page");
+    if (!container) throw new Error("Ticket page missing");
+    container.innerHTML = `<h1>ACTION-023 — AVeryLongUnbrokenIdentifierThatWouldUsuallyBreakTheDashboardFormatting</h1><section class="ticket-progress-suggestion"><div><h2>Slack suggests completed</h2><p>Katia shared a long update in Slack.</p></div><form><button class="button button-primary">Confirm completed</button></form></section><div class="ticket-detail-grid"><div><section class="surface info-card ticket-description"><h2>What needs to happen</h2><p>https://example.org/aVeryLongUnbrokenIdentifierThatWouldUsuallyBreakTheDashboardFormatting</p></section><section class="surface info-card ticket-activity"><ol class="ticket-activity-list"><li><div class="ticket-activity-marker"></div><div class="ticket-activity-entry"><strong>Katia</strong><p class="ticket-activity-detail">https://example.org/aVeryLongUnbrokenIdentifierThatWouldUsuallyBreakTheDashboardFormatting</p></div></li></ol></section></div><aside><section class="surface info-card ticket-side-form"><h2>People</h2><div class="ticket-assignees"><div><label><input type="checkbox"><span><strong>AVeryLongUnbrokenIdentifierThatWouldUsuallyBreakTheDashboardFormatting</strong></span></label></div></div></section></aside></div>`;
+  });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
 test("approved email flow gives confirmation and a resend cooldown", async ({ page }) => {
   await page.route("**/api/auth/external", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({ message: "If this email is eligible for EFDS access, you will receive an email with the next step." }) }));
   await page.goto("/login");
