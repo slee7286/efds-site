@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAccessException, evaluateUserAccess, provisionAuthenticatedProfile } from "@/lib/auth/server";
+import { evaluateUserAccess, provisionAuthenticatedProfile } from "@/lib/auth/server";
 import { config, isSupabaseConfigured } from "@/lib/config";
 import { safeInternalPath } from "@/lib/auth/redirect";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -14,13 +14,12 @@ export async function POST(request: Request) {
 
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const exception = user?.email ? await getAccessException(user.email, supabase) : null;
   const profile = await provisionAuthenticatedProfile(user, supabase);
   const result = await evaluateUserAccess(user, supabase);
 
-  if (!user || !exception || !profile || !result.allowed) {
+  if (!user || !profile || !result.allowed) {
     await supabase.auth.signOut();
-    return NextResponse.json({ message: "This account is not currently authorised for EFDS external access." }, { status: 403 });
+    return NextResponse.json({ message: "This account is not currently authorised for EFDS access." }, { status: 403 });
   }
 
   const requestedPath = safeInternalPath(parsed.data.next ?? null) ?? "/dashboard";

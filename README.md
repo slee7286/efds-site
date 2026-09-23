@@ -10,8 +10,9 @@ The current editorial redesign, moving graphics, design references, screenshot g
 - Public editorial website: home, about, privacy, terms, contact, security, events, careers, research, competitions, resources, partners and public chat
 - Private member workspace: dashboard, ICU knowledge reads, requirements, careers, job tracker, events, profile and private chat shell
 - Separate admin shell for knowledge review, committee, actions and integrations
-- Admin-only Meetily meeting archive with timestamped transcripts and explicitly labelled AI-generated summaries
-- Microsoft-first Supabase Auth callback architecture
+- Committee ticket board with status, assignments, workstream and person views, plus human-reviewed AI suggestions
+- Admin meeting archive with sourced Google Docs meeting notes
+- Email-first Supabase Auth with optional Google OAuth when the provider is configured
 - Imperial domain policy for `@ic.ac.uk` and `@imperial.ac.uk`
 - First-class external-user exception contract backed by `auth_access_exceptions`
 - Server-side role helpers and agent scopes
@@ -23,9 +24,7 @@ The local app has a deliberately obvious preview mode when Supabase variables ar
 
 ## Related repositories and backend assessment
 
-The owner repository is:
-
-`C:\Users\slee7\OneDrive - Imperial College London\Imperial EFDS Society 26-27\12_Technology\efds-knowledge-base`
+The schema owner is the sibling `efds-knowledge-base` repository.
 
 The ICU crawler remains the owner of Freshdesk discovery and its local archive. The knowledge-base owns SQLAlchemy models and Alembic migrations. Relevant existing tables are:
 
@@ -74,11 +73,11 @@ The service-role key is intentionally unused by ordinary page reads. If a future
 
 ## Authentication and authorization
 
-The primary login action is `Continue with Microsoft`, implemented with Supabase Azure OAuth and minimal identity scopes: `openid profile email`. The callback exchanges the code server-side, requires a usable verified email, normalizes it, checks the exact Imperial domain policy or current external exception, provisions/updates the profile without downgrading an existing role, updates `last_login_at`, then redirects to `/dashboard` or `/access-denied`.
+Email and password are the primary sign-in path. The login page also supports first-time password setup, password recovery and secure email links. Verified `@ic.ac.uk` and `@imperial.ac.uk` addresses are eligible; other addresses need an active exception. Before sending setup, reset or sign-in links, the site calls `is_external_email_eligible` without disclosing whether an address is registered. First-time setup proves email ownership through Supabase Auth, then creates a member profile. Committee status and officer identity are assigned separately by an EFDS administrator; see [the account setup guide](docs/COMMITTEE_ACCOUNT_SETUP.md).
 
-Approved external users use a secondary Supabase email-authentication flow. The login page supports password sign-in, password setup/recovery, and the existing magic-link fallback. First-time setup uses the allowlisted magic-link flow to create the Supabase Auth identity only after email ownership is proven; it does not use public `signUp`. Before sending any setup, reset, or magic-link email, the website calls the narrow `is_external_email_eligible` RPC; the response is generic and never returns exception rows. Password sessions are then checked server-side against the authenticated email, active exception, expiry, active profile, and role. An external exception with `admin` does not self-provision an admin profile; bootstrap it through the backend CLI.
+Google OAuth is optional and appears only when the Supabase Google provider is enabled. It uses the same callback, verified-email access check and profile. The site no longer offers Microsoft login. The callback exchanges the code server-side, checks the exact Imperial domain policy or current external exception, provisions/updates the profile without downgrading an existing role, updates `last_login_at`, then redirects to `/dashboard` or `/access-denied`.
 
-Supabase Auth owns password hashing and recovery state. EFDS never stores a password or reset token in PostgreSQL. Microsoft remains the normal path for `@ic.ac.uk` and `@imperial.ac.uk`; an Imperial-domain email using password or magic-link authentication must have an explicit active exception. Revoking or expiring that exception denies EFDS access even if the Supabase password remains valid.
+Supabase Auth owns password hashing and recovery state. EFDS never stores a password or reset token in PostgreSQL. Revoking or expiring an external exception denies EFDS access even if the Supabase password remains valid. An external exception with `admin` does not self-provision an admin profile; bootstrap it through the backend CLI.
 
 Identity, membership, committee position and authorization are represented as separate concepts. The browser never supplies a trusted role. Private layouts and future mutations resolve access server-side, and database RLS must enforce the same policy for direct Supabase reads.
 
@@ -114,19 +113,22 @@ The website proxies the agent's SSE stream and renders validated citations. All 
 
 `/careers` is public and structured around finance, quant, economics/policy, data/AI, consulting and software. `/dashboard/careers` is the private extension point. `/dashboard/jobs` provides a typed empty-to-demo skeleton around company, role, career area, location, deadline, status and next action. No production job table or scraper is added here; if persistence is needed, add it through the backend owner and Alembic.
 
-## Supabase and Microsoft setup
+## Committee tickets and onboarding
+
+`/dashboard/tickets` reads approved committee action records and their officer assignments through Supabase RLS. Committee members can create tickets, edit details, change status and assign active officers; the backend-owned `mutate_committee_ticket` RPC checks role and optimistic concurrency and writes an audit event. The board reports remaining, in-progress, blocked and completed work and groups tasks by workstream or person. The initial import from archived `#actions-tickets` messages is owned by `efds-knowledge-base` and keeps source evidence attached.
+
+An admin-only suggestion panel asks `efds-agent` for cited ideas from meeting notes or Slack. Its output is text for human review; it never publishes a ticket automatically. Recent Outlook mailbox history is not available to this workflow until a mailbox sync and retrieval source are configured. Committee account steps are available as an editable [Markdown source](docs/COMMITTEE_ACCOUNT_SETUP.md) and a [Word guide](docs/EFDS_Committee_Account_Setup_Guide.docx).
+
+## Supabase email and Google setup
 
 1. Create or select the Supabase project that owns the EFDS database.
 2. Set the project URL and publishable/anon key in Vercel and local `.env.local`.
-3. Enable Azure/Microsoft as an Auth provider in Supabase.
-4. Configure the Microsoft application with the required redirect URL shown by Supabase, plus the production callback URL `https://www.imperial-efds.com/auth/callback`.
-5. Request only identity scopes; do not add Microsoft Graph permissions for mail, calendar, OneDrive or SharePoint.
-6. Apply the reviewed backend migration with `alembic upgrade head`, enable RLS, and provision the first admin out-of-band.
-7. Configure Supabase Auth Site URL as `https://www.imperial-efds.com` and allow `/auth/callback` and `/auth/recovery` for production plus the localhost equivalents.
-8. Enable Supabase email/password authentication and recovery email delivery; configure the password policy and rate limits in Supabase Dashboard.
-9. Test: Imperial Microsoft account allowed; approved external password/magic-link account allowed; non-Imperial and Imperial email-auth accounts denied without an active exception; expired/inactive exceptions denied.
-
-Microsoft authenticates identity. EFDS decides authorization regardless of the Azure tenant configuration.
+3. Enable Supabase email/password authentication and recovery email delivery; configure password policy and rate limits.
+4. Set the Supabase Auth Site URL to `https://www.imperial-efds.com`. Add `https://www.imperial-efds.com/auth/callback`, `https://www.imperial-efds.com/auth/recovery`, and localhost equivalents to the allowed redirect URLs.
+5. Apply the backend migrations with `alembic upgrade head` and provision the first admin out-of-band.
+6. For optional Google sign-in, configure the Google OAuth client in Google Cloud, register the exact Supabase callback URI shown in the Supabase Dashboard, and enable Google in Supabase Auth with the client ID and secret. Request only identity scopes; no Gmail, Drive or Calendar permissions are needed.
+7. Disable the unused Azure provider in Supabase Auth once any legacy Azure identities have a working email sign-in path. Removing the button from the website does not disable the provider at the Auth service.
+8. Test: Imperial email setup/password/link allowed; approved external account allowed; unapproved external and expired/inactive exceptions denied; Google sign-in works only after provider configuration.
 
 External setup and recovery emails use an explicit canonical production
 redirect. The browser never supplies the production origin. Setup and reset
@@ -147,7 +149,7 @@ For Vercel:
 3. Deploy after the Supabase callback and Site URL are configured.
 4. Add the purchased custom domain in Vercel.
 5. At the domain registrar, add the DNS records Vercel displays; Vercel will issue HTTPS after verification.
-6. Update `NEXT_PUBLIC_SITE_URL` and Microsoft/Supabase redirect URLs to the final HTTPS domain.
+6. Update `NEXT_PUBLIC_SITE_URL` and Supabase redirect URLs to the final HTTPS domain.
 
 No DNS or deployment action is automated by this repository.
 

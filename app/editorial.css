@@ -212,7 +212,7 @@ h1, h2, h3 { letter-spacing: -.035em; text-wrap: pretty; }
 .app-content h1 { font-size: 40px; font-weight: 450; letter-spacing: -.035em; }
 .app-subtitle { font-size: 14px; }
 .app-topbar { border-bottom: 1px solid var(--line); }
-.app-panel, .surface, .metric, .ops-link, .input, .textarea, .select, .auth-input, .microsoft-button { border-radius: 0; }
+.app-panel, .surface, .metric, .ops-link, .input, .textarea, .select, .auth-input, .provider-button { border-radius: 0; }
 .sidebar-nav a, .badge { border-radius: 0; }
 .workspace-welcome { background: var(--ink); border-radius: 0; }
 .workspace-welcome .button { margin-top: 22px; }
@@ -225,7 +225,11 @@ h1, h2, h3 { letter-spacing: -.035em; text-wrap: pretty; }
 .auth-box h2 { font-size: 34px; font-weight: 400; }
 .auth-box > p, .auth-footnote { font-size: 14px; }
 .auth-footnote > svg { display: inline; margin-right: 6px; vertical-align: -2px; }
-.microsoft-button { font-weight: 500; }
+.auth-primary-action { margin-top: 20px; min-height: 48px; width: 100%; justify-content: center; }
+.provider-button { align-items: center; background: var(--white); border: 1px solid var(--line); color: var(--ink); cursor: pointer; display: flex; font: inherit; font-size: 14px; font-weight: 500; gap: 12px; justify-content: center; min-height: 50px; width: 100%; }
+.provider-button:hover { border-color: var(--cobalt); background: var(--paper-deep); }
+.provider-button:disabled, .auth-primary-action:disabled { cursor: wait; opacity: .6; }
+.google-mark { color: #4285f4; font-size: 22px; font-weight: 700; line-height: 1; }
 .auth-input { font-size: 16px; }
 .chat-panel, .chat-composer, .scope-card { border-radius: 0; }
 .chat-suggestions button { border-radius: 0; font-size: 12px; min-height: 40px; }

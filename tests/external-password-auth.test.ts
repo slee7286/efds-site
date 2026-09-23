@@ -73,10 +73,16 @@ describe("provider-aware EFDS access", () => {
     expect(decision).toMatchObject({ allowed: true, accessRole: "member", memberType: "imperial" });
   });
 
-  it("requires an active exception for Imperial email/password authentication", async () => {
+  it("allows verified Imperial email/password authentication without an exception", async () => {
     const { resolveAuthenticatedAccess } = await import("../lib/auth/server");
     const user = { email: "user@imperial.ac.uk", app_metadata: { provider: "email" }, identities: [], email_confirmed_at: "now" } as never;
-    expect(resolveAuthenticatedAccess(user, null).allowed).toBe(false);
+    expect(resolveAuthenticatedAccess(user, null).allowed).toBe(true);
     expect(resolveAuthenticatedAccess(user, { email: "user@imperial.ac.uk", accessRole: "member", active: true }).allowed).toBe(true);
+  });
+
+  it("allows a Google-authenticated Imperial address but not an unapproved external address", async () => {
+    const { resolveAuthenticatedAccess } = await import("../lib/auth/server");
+    expect(resolveAuthenticatedAccess({ email: "user@ic.ac.uk", app_metadata: { provider: "google" } } as never, null).allowed).toBe(true);
+    expect(resolveAuthenticatedAccess({ email: "user@gmail.com", app_metadata: { provider: "google" } } as never, null).allowed).toBe(false);
   });
 });

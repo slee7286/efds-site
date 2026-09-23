@@ -3,15 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, BookOpen, BriefcaseBusiness, CalendarDays, CircleHelp, Gauge, LayoutDashboard, Menu, Search, Settings, UserRound, X } from "lucide-react";
+import { ArrowUpRight, BookOpen, BriefcaseBusiness, CalendarDays, CircleHelp, Gauge, LayoutDashboard, ListTodo, Menu, Search, Settings, UserRound, X } from "lucide-react";
 import { Brand } from "@/components/public/brand";
 import type { AccessRole } from "@/types/domain";
 
 const memberItems = [
   ["Dashboard", "/dashboard", LayoutDashboard], ["Search", "/dashboard/search", Search], ["Knowledge", "/dashboard/knowledge", BookOpen], ["Careers", "/dashboard/careers", BriefcaseBusiness], ["Jobs", "/dashboard/jobs", BriefcaseBusiness], ["Events", "/dashboard/events", CalendarDays], ["Ask EFDS", "/dashboard/chat", CircleHelp], ["Profile", "/dashboard/profile", UserRound],
 ] as const;
-const adminItems = [["Overview", "/admin", Gauge], ["Search", "/admin/search", Search], ["Knowledge review", "/admin/knowledge", BookOpen], ["Document archive", "/admin/documents", BookOpen], ["Slack archive", "/admin/slack", BookOpen], ["Meeting archive", "/admin/meetings", CalendarDays], ["Operational truth", "/admin/operations", CalendarDays], ["Committee", "/admin/committee", UserRound], ["Integrations", "/admin/integrations", Settings]] as const;
-const committeeItems = [["Slack archive", "/dashboard/slack", BookOpen]] as const;
+const adminItems = [["Tickets", "/dashboard/tickets", ListTodo], ["Overview", "/admin", Gauge], ["Search", "/admin/search", Search], ["Knowledge review", "/admin/knowledge", BookOpen], ["Document archive", "/admin/documents", BookOpen], ["Slack archive", "/admin/slack", BookOpen], ["Meeting archive", "/admin/meetings", CalendarDays], ["Operational truth", "/admin/operations", CalendarDays], ["Committee", "/admin/committee", UserRound], ["Integrations", "/admin/integrations", Settings]] as const;
+const committeeItems = [["Tickets", "/dashboard/tickets", ListTodo], ["Slack archive", "/dashboard/slack", BookOpen]] as const;
 
 export function AppSidebar({ role = "member", onNavigate }: { role?: AccessRole; onNavigate?: () => void }) {
   const pathname = usePathname();

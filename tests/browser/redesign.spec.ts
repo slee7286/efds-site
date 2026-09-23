@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 const publicRoutes = ["/", "/about", "/events", "/careers", "/research", "/competitions", "/resources", "/committee", "/partners", "/contact", "/chat", "/privacy", "/terms", "/security"];
-const workspaceRoutes = ["/dashboard", "/dashboard/search", "/dashboard/slack", "/dashboard/knowledge", "/dashboard/careers", "/dashboard/jobs", "/dashboard/events", "/dashboard/chat", "/dashboard/profile", "/admin", "/admin/search", "/admin/knowledge", "/admin/documents", "/admin/slack", "/admin/meetings", "/admin/operations", "/admin/committee", "/admin/integrations", "/admin/documents/files", "/admin/slack/channels", "/admin/meetings/all", "/admin/operations/actions", "/admin/operations/decisions", "/admin/operations/questions", "/admin/operations/timeline", "/admin/operations/new"];
+const workspaceRoutes = ["/dashboard", "/dashboard/tickets", "/dashboard/tickets/new", "/dashboard/search", "/dashboard/slack", "/dashboard/knowledge", "/dashboard/careers", "/dashboard/jobs", "/dashboard/events", "/dashboard/chat", "/dashboard/profile", "/admin", "/admin/search", "/admin/knowledge", "/admin/documents", "/admin/slack", "/admin/meetings", "/admin/operations", "/admin/committee", "/admin/integrations", "/admin/documents/files", "/admin/slack/channels", "/admin/meetings/all", "/admin/operations/actions", "/admin/operations/decisions", "/admin/operations/questions", "/admin/operations/timeline", "/admin/operations/new"];
 
 for (const route of [...publicRoutes, "/login", "/access-denied", ...workspaceRoutes]) {
   test(`${route} renders accessibly within the viewport`, async ({ page }) => {
@@ -21,7 +21,7 @@ for (const route of [...publicRoutes, "/login", "/access-denied", ...workspaceRo
   });
 }
 
-for (const route of ["/", "/about", "/events", "/resources", "/committee", "/contact", "/chat", "/login", "/dashboard", "/admin", "/dashboard/search", "/admin/documents"]) {
+for (const route of ["/", "/about", "/events", "/resources", "/committee", "/contact", "/chat", "/login", "/dashboard", "/dashboard/tickets", "/admin", "/dashboard/search", "/admin/documents"]) {
   test(`${route} has no WCAG A/AA accessibility violations`, async ({ page }) => {
     await page.goto(route);
     const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
@@ -96,20 +96,27 @@ test("an auth code sent to the homepage is routed into the callback", async ({ p
   await expect(page.getByRole("status")).toContainText("Sign-in is unavailable right now");
 });
 
-test("unconfigured Microsoft sign-in gives recoverable feedback", async ({ page }) => {
+test("email sign-in is primary and unavailable Google sign-in cannot be started", async ({ page }) => {
   await page.goto("/login");
-  const button = page.getByRole("button", { name: "Continue with Microsoft" });
-  await button.click();
-  await expect(page.getByRole("status")).toContainText("Sign-in is unavailable in this local preview");
-  await expect(button).toBeEnabled();
+  await expect(page.getByLabel("Email address")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue with Microsoft" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Google sign-in is being configured" })).toBeDisabled();
+});
+
+test("tickets preview has a useful empty state and a clearly disabled create form", async ({ page }) => {
+  await page.goto("/dashboard/tickets");
+  await expect(page.getByText("No tickets have been added yet.")).toBeVisible();
+  await page.getByRole("link", { name: "New ticket" }).click();
+  await expect(page).toHaveURL(/\/dashboard\/tickets\/new$/);
+  await expect(page.getByText("This local preview has no connected workspace, so saving is unavailable.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Create ticket" })).toBeDisabled();
 });
 
 test("approved email flow gives confirmation and a resend cooldown", async ({ page }) => {
   await page.route("**/api/auth/external", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({ message: "If this email is eligible for EFDS access, you will receive an email with the next step." }) }));
   await page.goto("/login");
-  await page.getByRole("button", { name: /Approved email user/ }).click();
   await page.getByRole("button", { name: "Sign in by email link" }).click();
-  await page.getByLabel("Approved email address", { exact: true }).fill("browser-test@example.org");
+  await page.getByLabel("Email address", { exact: true }).fill("browser-test@example.org");
   await page.getByRole("button", { name: "Send secure email link" }).click();
   await expect(page.getByRole("status")).toContainText("If this email is eligible");
   await expect(page.getByRole("button", { name: /Resend in/ })).toBeDisabled();

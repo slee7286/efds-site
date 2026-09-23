@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { config, isSupabaseConfigured } from "@/lib/config";
-import { getAccessException, evaluateUserAccess, provisionAuthenticatedProfile, usesMicrosoftAuthentication } from "@/lib/auth/server";
+import { evaluateUserAccess, provisionAuthenticatedProfile } from "@/lib/auth/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { EMAIL_FLOW_COOKIE } from "@/lib/auth/email-flow";
 
@@ -22,10 +22,9 @@ export async function GET(request: Request) {
   if (error) return redirectAfterRecovery("/login?error=recovery_expired", config.siteUrl);
 
   const { data: { user } } = await supabase.auth.getUser();
-  const exception = user?.email ? await getAccessException(user.email, supabase) : null;
   const profile = await provisionAuthenticatedProfile(user, supabase);
   const result = user ? await evaluateUserAccess(user, supabase) : { allowed: false };
-  if (!user || usesMicrosoftAuthentication(user) || !exception || !profile || !result.allowed) {
+  if (!user || !profile || !result.allowed) {
     await supabase.auth.signOut();
     return redirectAfterRecovery("/access-denied", config.siteUrl);
   }

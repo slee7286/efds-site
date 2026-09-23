@@ -18,15 +18,9 @@ export class AuthorizationError extends Error {
 
 const roleRank: Record<AccessRole, number> = { viewer: 1, member: 2, committee: 3, admin: 4 };
 
-export function usesMicrosoftAuthentication(user: User | null) {
-  if (!user) return false;
-  const provider = user.app_metadata?.provider;
-  return provider === "azure" || user.identities?.some((identity) => identity.provider === "azure") === true;
-}
-
 function requiresException(user: User | null) {
   if (!user?.email) return false;
-  return !isAllowedImperialEmail(user.email, config.allowedEmailDomains) || !usesMicrosoftAuthentication(user);
+  return !isAllowedImperialEmail(user.email, config.allowedEmailDomains);
 }
 
 export async function getAuthUser(client?: ServerSupabaseClient) {
@@ -54,7 +48,7 @@ export async function getAccessException(email: string, client?: ServerSupabaseC
 }
 
 export function resolveAuthenticatedAccess(user: User, exception: AccessException | null) {
-  if (isAllowedImperialEmail(user.email ?? "", config.allowedEmailDomains) && usesMicrosoftAuthentication(user)) {
+  if (isAllowedImperialEmail(user.email ?? "", config.allowedEmailDomains)) {
     return { allowed: true, accessRole: "member" as AccessRole, memberType: "imperial" as const };
   }
   if (exception && isActiveException(exception)) {
@@ -118,7 +112,7 @@ export async function provisionAuthenticatedProfile(user: User | null, client?: 
   const supabase = client ?? await createServerSupabaseClient();
   const fullName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? null;
   const lastLoginAt = new Date().toISOString();
-  const isImperialMicrosoft = isAllowedImperialEmail(normalizedEmail, config.allowedEmailDomains) && usesMicrosoftAuthentication(user);
+  const isImperial = isAllowedImperialEmail(normalizedEmail, config.allowedEmailDomains);
 
   if (existing) {
     const promoteRole = decision.accessRole && roleRank[decision.accessRole] > roleRank[existing.accessRole]
@@ -126,7 +120,7 @@ export async function provisionAuthenticatedProfile(user: User | null, client?: 
       : {};
     const { data, error } = await supabase
       .from("profiles")
-      .update({ email: normalizedEmail, full_name: fullName, member_type: isImperialMicrosoft ? "imperial" : existing.memberType, last_login_at: lastLoginAt, ...promoteRole })
+      .update({ email: normalizedEmail, full_name: fullName, member_type: isImperial ? "imperial" : existing.memberType, last_login_at: lastLoginAt, ...promoteRole })
       .eq("auth_user_id", user.id)
       .select("id, auth_user_id, email, full_name, access_role, member_type, officer_id, active, last_login_at")
       .single();
@@ -144,7 +138,7 @@ export async function provisionAuthenticatedProfile(user: User | null, client?: 
       email: normalizedEmail,
       full_name: fullName,
       access_role: decision.accessRole,
-      member_type: isImperialMicrosoft ? "imperial" : decision.memberType,
+      member_type: isImperial ? "imperial" : decision.memberType,
       active: true,
       last_login_at: lastLoginAt,
     })
