@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { citedSuggestionSources, suggestedTitle } from "@/lib/tickets/suggestions";
+import { citedSuggestionSources, suggestedDescription, suggestedTitle } from "@/lib/tickets/suggestions";
 
 const source = (id: string, sourceType: string, retrievalUnitId = "11111111-1111-4111-8111-111111111111") => ({ id, sourceType, retrievalUnitId });
 
@@ -15,5 +15,13 @@ describe("AI ticket proposal evidence", () => {
   it("extracts an editable title without carrying a citation marker into it", () => {
     expect(suggestedTitle("**Title:** Confirm the next EFDS venue [S1]\nRationale: ...")).toBe("Confirm the next EFDS venue");
     expect(suggestedTitle("# Title:  Confirm data access [S2]")).toBe("Confirm data access");
+    expect(suggestedDescription("Title: Confirm data access [S2]\nThe research lead should check the approval. [S2]")).toBe("The research lead should check the approval. [S2]");
+  });
+
+  it("requires committee citations to come from the scoped Slack retrieval route", () => {
+    const safe = { ...source("S1", "slack_message"), reviewStatus: "source_generated", visibility: "committee", authority: "committee_slack", route: "/dashboard/slack/messages/22222222-2222-4222-8222-222222222222" };
+    const unsafe = { ...safe, id: "S2", visibility: "internal" };
+    const wrongRoute = { ...safe, id: "S3", route: "/admin/slack/messages/22222222-2222-4222-8222-222222222222" };
+    expect(citedSuggestionSources("Confirm the venue. [S1] [S2] [S3]", "committee", [safe, unsafe, wrongRoute])).toEqual([safe]);
   });
 });

@@ -132,6 +132,26 @@ test("tickets preview has a useful empty state and a clearly disabled create for
   await expect(page.getByRole("button", { name: "Create ticket" })).toBeDisabled();
 });
 
+test("committee ticket suggestion stays editable and cites its Slack source", async ({ page }, info) => {
+  await page.route("**/api/tickets/suggest", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({
+    answer: "Title: Confirm the autumn venue [S1]\nThe events discussion requests a venue confirmation. [S1]",
+    citations: [{ id: "S1", retrievalUnitId: "11111111-1111-4111-8111-111111111111", title: "#events", sourceType: "slack_message", route: "/dashboard/slack/messages/22222222-2222-4222-8222-222222222222", url: null }],
+    citedSources: [{ id: "S1", retrievalUnitId: "11111111-1111-4111-8111-111111111111", title: "#events", sourceType: "slack_message", route: "/dashboard/slack/messages/22222222-2222-4222-8222-222222222222", url: null }],
+    limitations: [], sourceFocus: "committee", reviewable: true,
+  }) }));
+  await page.goto("/dashboard/tickets");
+  await page.getByRole("button", { name: "Suggest a ticket" }).click();
+  await expect(page.getByRole("button", { name: /Publish reviewed ticket/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /#events/ }).first()).toHaveAttribute("href", "/dashboard/slack/messages/22222222-2222-4222-8222-222222222222");
+  await page.getByRole("textbox", { name: "Ticket title" }).fill("Confirm the autumn venue and budget");
+  await expect(page.getByRole("textbox", { name: "Ticket title" })).toHaveValue("Confirm the autumn venue and budget");
+  await expect(page.getByRole("checkbox", { name: /I reviewed the cited Slack message/ })).not.toBeChecked();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+  expect(result.violations.map(v => v.id)).toEqual([]);
+  await page.screenshot({ path: `artifacts/editorial/ticket-suggestion-${info.project.name}.png`, fullPage: true });
+});
+
 test("account review cards contain long claims without horizontal overflow", async ({ page }, info) => {
   await page.goto("/admin/accounts");
   await page.waitForLoadState("networkidle");

@@ -65,3 +65,40 @@ export async function ticketAction(formData: FormData) {
   if (finalId) revalidatePath(`/dashboard/tickets/${finalId}`);
   redirect(finalId ? `/dashboard/tickets/${finalId}?saved=${action.data}` : "/dashboard/tickets");
 }
+
+export async function committeeSuggestionAction(formData: FormData) {
+  const location = "/dashboard/tickets";
+  if (!isSupabaseConfigured) redirect(`${location}?error=unavailable`);
+  await requireRole("committee");
+  let patch: Record<string, unknown>;
+  let unitId: string;
+  try {
+    if (value(formData, "reviewedSource") !== "yes") throw new Error("source review required");
+    unitId = z.string().uuid().parse(value(formData, "retrievalUnitId"));
+    patch = {
+      title: z.string().min(1).max(300).parse(value(formData, "title")),
+      description: z.string().min(1).max(5000).parse(value(formData, "description")),
+      workstream: z.string().max(100).parse(value(formData, "workstream")),
+      priority: prioritySchema.parse(value(formData, "priority")),
+      assignee_ids: idsSchema.parse(formData.getAll("assigneeIds")),
+    };
+  } catch {
+    redirect(`${location}?error=invalid`);
+  }
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("create_committee_ticket_from_evidence", {
+    p_patch: patch,
+    p_unit_id: unitId,
+  });
+  if (error) {
+    const code = error.code === "P0007" ? "duplicate" : error.code === "P0001" ? "forbidden" : error.code === "P0008" ? "invalid" : "save_failed";
+    redirect(`${location}?error=${code}`);
+  }
+  const record = data && typeof data === "object" ? (data as Record<string, unknown>).record : null;
+  const returnedId = record && typeof record === "object" ? (record as Record<string, unknown>).id : null;
+  if (typeof returnedId !== "string" || !z.string().uuid().safeParse(returnedId).success) redirect(`${location}?error=save_failed`);
+  revalidatePath("/dashboard");
+  revalidatePath(location);
+  revalidatePath(`/dashboard/tickets/${returnedId}`);
+  redirect(`/dashboard/tickets/${returnedId}?saved=suggestion`);
+}

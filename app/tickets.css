@@ -190,6 +190,8 @@
 .ticket-proposal-form .input, .ticket-proposal-form .textarea, .ticket-proposal-form .select { width: 100%; }
 .ticket-proposal-form > p { margin: 0; }
 .ticket-proposal-form > .button { justify-self: start; }
+.ticket-source-review { align-items: start; color: var(--ink); display: flex; font-size: 12px; gap: 10px; line-height: 1.5; max-width: 690px; }
+.ticket-source-review input { accent-color: var(--cobalt); flex: none; height: 18px; margin: 1px 0 0; width: 18px; }
 .form-error, .form-success { border-left: 3px solid; font-size: 13px; margin: 14px 0; padding: 12px 16px; }
 .form-error { background: #f9e9e4; border-color: #b7482c; color: #71301f; }
 .form-success { background: #e9f4eb; border-color: #237d56; color: #205b42; }
