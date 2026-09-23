@@ -6,6 +6,7 @@ import "./globals.css";
 import "./editorial.css";
 import "./tickets.css";
 import "./profile.css";
+import "./slack-recap.css";
 
 const plex = localFont({ src: "../node_modules/@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2", variable: "--font-sans", display: "swap", weight: "100 700" });
 const newsreader = localFont({ src: [

@@ -116,7 +116,7 @@ The website proxies the agent's SSE stream and renders validated citations. All 
 
 ## Committee tickets and onboarding
 
-`/dashboard/tickets` reads approved committee action records and their officer assignments through Supabase RLS. Committee members can create tickets, edit details, change status and assign active officers; the backend-owned `mutate_committee_ticket` RPC checks role and optimistic concurrency and writes an audit event. The board reports remaining, in-progress, blocked and completed work and groups tasks by workstream or person. The initial import from archived `#actions-tickets` messages is owned by `efds-knowledge-base` and keeps source evidence attached.
+`/dashboard/tickets` reads approved committee action records and their officer assignments through Supabase RLS. Committee members can create tickets, edit details, change status and assign active officers; the backend-owned `mutate_committee_ticket` RPC checks role and optimistic concurrency and writes an audit event. The board reports remaining, in-progress, blocked and completed work. Its default graph links workstreams, tickets and roster assignees with clickable nodes; grouped workstream and person views remain available. The graph visualizes existing relationships and does not infer dependencies. The initial import from archived `#actions-tickets` messages is owned by `efds-knowledge-base` and keeps source evidence attached.
 
 The board reads the latest archived Slack sync and highlights progress signals from ticket threads, reposts, check/X reactions and explicit `ACTION-###` mentions. Each ticket has a dated activity log that combines attributed Slack updates with named committee edits. Reaction dates are labelled as the date first seen by the archive because Slack does not supply the original reaction time. Suggested statuses are never applied automatically: a committee member reviews the linked Slack evidence and confirms a change. To refresh the source, run `python scripts/sync_slack.py --channel C0BQPDP5T44` in `efds-knowledge-base`; the board shows when that channel last synced.
 
@@ -225,3 +225,5 @@ not receive provider credentials or send raw Slack, OneDrive, or Meetily text
 to an embedding API; it continues to use the permission-filtered Supabase
 retrieval boundary until a backend retrieval HTTP service is deployed. See
 [docs/EMBEDDINGS.md](docs/EMBEDDINGS.md).
+
+Committee and admin dashboards include a collapsed daily Slack recap with recent source-linked excerpts and a warning when any visible enabled channel is over 15 hours behind. Recaps use the same archive permissions as search. The hosted twice-daily refresh is maintained in `efds-knowledge-base/docs/SLACK_SCHEDULING.md`.

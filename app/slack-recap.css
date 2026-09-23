@@ -1,0 +1,24 @@
+.slack-daily-recap { background: #fff; border: 1px solid var(--line); margin-top: 23px; }
+.slack-daily-recap summary { align-items: center; cursor: pointer; display: flex; gap: 13px; list-style: none; min-height: 68px; padding: 12px 18px; }
+.slack-daily-recap summary::-webkit-details-marker { display: none; }
+.slack-daily-recap summary > svg { color: var(--ink-soft); flex: none; margin-left: 5px; transition: transform .2s ease; }
+.slack-daily-recap[open] summary > svg { transform: rotate(180deg); }
+.slack-daily-recap summary:hover { background: #f8f9fc; }
+.slack-recap-icon { align-items: center; background: #e9eef8; color: var(--cobalt-dark); display: inline-flex; flex: none; height: 36px; justify-content: center; width: 36px; }
+.slack-recap-title { display: grid; flex: 1; gap: 3px; min-width: 0; }
+.slack-recap-title strong { color: var(--ink); font-size: 12px; font-weight: 650; }
+.slack-recap-title small { color: var(--ink-soft); font-size: 11px; }
+.slack-recap-stale { color: #945125; font-size: 10px; font-weight: 650; text-align: right; }
+.slack-recap-content { border-top: 1px solid var(--line); padding: 0 18px 15px 67px; }
+.slack-recap-caution { background: #fcf4e8; color: #7c4a25; font-size: 11px; line-height: 1.5; margin: 15px 0; padding: 10px 12px; }
+.slack-recap-content ul { list-style: none; margin: 0; padding: 0; }
+.slack-recap-content li { border-bottom: 1px solid var(--line); padding: 12px 0; }
+.slack-recap-content li > span { color: var(--ink-soft); display: block; font-size: 10px; margin-bottom: 4px; }
+.slack-recap-content li a { align-items: start; color: var(--ink); display: flex; font-size: 12px; gap: 8px; line-height: 1.5; text-decoration: none; }
+.slack-recap-content li a:hover { color: var(--cobalt-dark); }
+.slack-recap-content li a svg { color: var(--cobalt-dark); flex: none; margin-top: 2px; }
+.slack-recap-empty { color: var(--ink-soft); font-size: 12px; margin: 17px 0; }
+.slack-recap-footer { align-items: center; color: var(--ink-soft); display: flex; flex-wrap: wrap; font-size: 10px; gap: 8px 20px; justify-content: space-between; padding-top: 14px; }
+.slack-recap-footer a { align-items: center; color: var(--cobalt-dark); display: inline-flex; font-weight: 650; gap: 5px; min-height: 32px; text-decoration: none; }
+@media (max-width: 600px) { .slack-recap-content { padding-left: 18px; } .slack-recap-stale { max-width: 83px; } }
+@media (prefers-reduced-motion: reduce) { .slack-daily-recap summary > svg { transition: none; } }

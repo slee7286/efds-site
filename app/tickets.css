@@ -18,13 +18,76 @@
 .ticket-evidence-summary > span:first-child { color: var(--cobalt-dark); font-weight: 650; }
 .ticket-toolbar { align-items: end; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; margin: 36px 0 22px; }
 .ticket-toolbar nav { display: flex; gap: 0; border-bottom: 1px solid var(--line); }
-.ticket-toolbar nav a { color: var(--ink-soft); font-size: 13px; min-height: 44px; padding: 12px 18px; }
+.ticket-toolbar nav a { align-items: center; color: var(--ink-soft); display: inline-flex; font-size: 13px; gap: 7px; min-height: 44px; padding: 12px 18px; }
 .ticket-toolbar nav a[aria-current="page"] { border-bottom: 2px solid var(--cobalt); color: var(--cobalt); font-weight: 600; }
 .ticket-toolbar form { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; }
 .ticket-toolbar input { min-width: 0; width: min(240px, 100%); }
 .ticket-toolbar nav { max-width: 100%; overflow-x: auto; }
 .ticket-toolbar nav a { flex: none; }
 .ticket-toolbar .select, .ticket-toolbar .button { min-height: 44px; }
+.ticket-graph { background: var(--white); border: 1px solid var(--line); margin-top: 8px; min-width: 0; }
+.ticket-graph-heading { align-items: end; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 20px 36px; justify-content: space-between; padding: 26px 28px 23px; }
+.ticket-graph-heading > div:first-child { min-width: 0; }
+.ticket-graph-heading h2 { color: var(--ink); font-family: var(--font-editorial), Georgia, serif; font-size: clamp(26px, 3vw, 37px); font-weight: 400; letter-spacing: -.035em; margin: 8px 0; }
+.ticket-graph-heading p { color: var(--ink-soft); font-size: 12px; line-height: 1.55; margin: 0; }
+.ticket-graph-key { display: flex; flex-wrap: wrap; gap: 8px 16px; max-width: 370px; }
+.ticket-graph-key span { align-items: center; color: var(--ink-soft); display: inline-flex; font-size: 10px; gap: 6px; white-space: nowrap; }
+.ticket-graph-jumps { align-items: center; background: #f0f3fa; border-bottom: 1px solid var(--line); display: none; gap: 5px; overflow-x: auto; padding: 5px 12px; }
+.ticket-graph-jumps span { color: var(--ink-soft); flex: none; font-size: 10px; font-weight: 700; margin-right: 4px; text-transform: uppercase; }
+.ticket-graph-jumps button { background: transparent; border: 0; color: var(--cobalt-dark); flex: none; font-size: 11px; font-weight: 650; min-height: 40px; padding: 9px 11px; }
+.ticket-graph-jumps button:hover, .ticket-graph-jumps button:focus-visible { background: #dfe7f9; }
+.graph-dot { background: #64748b; border-radius: 50%; display: inline-block; flex: none; height: 8px; width: 8px; }
+.graph-dot-blocked { background: #ae4635; }
+.graph-dot-in_progress { background: #3a5cba; }
+.graph-dot-open { background: #66738a; }
+.graph-dot-completed { background: #247455; }
+.graph-dot-cancelled { background: #9ba3b3; }
+.ticket-graph-layout { display: grid; grid-template-columns: minmax(0, 1fr) 245px; min-width: 0; }
+.ticket-graph-viewport { background: #f7f9fc; border-right: 1px solid var(--line); height: min(70vh, 700px); min-height: 470px; min-width: 0; overflow: auto; overscroll-behavior: contain; scrollbar-color: #a8b6d1 transparent; }
+.ticket-graph-canvas { background-image: linear-gradient(to right, rgba(80,105,153,.07) 1px, transparent 1px), linear-gradient(to bottom, rgba(80,105,153,.07) 1px, transparent 1px); background-size: 28px 28px; position: relative; }
+.ticket-graph-axis { color: #66758c; font-size: 10px; font-weight: 700; letter-spacing: .1em; position: absolute; text-transform: uppercase; top: 27px; white-space: nowrap; z-index: 1; }
+.ticket-graph-axis-workstreams { left: 18px; }
+.ticket-graph-axis-tickets { left: 288px; }
+.ticket-graph-axis-people { left: 653px; }
+.ticket-graph-lines { inset: 0; overflow: visible; pointer-events: none; position: absolute; }
+.graph-line { fill: none; opacity: .25; stroke: #7990bd; stroke-width: 1.3; transition: opacity .2s ease, stroke .2s ease; }
+.graph-line-active { opacity: .8; stroke: #365bc0; stroke-dasharray: 5 7; stroke-width: 1.8; animation: graph-link-flow 1.5s linear infinite; }
+.graph-line-muted { opacity: .035; }
+@keyframes graph-link-flow { to { stroke-dashoffset: -24; } }
+.graph-node { align-items: center; background: #fff; border: 1px solid #cbd4e4; box-shadow: 0 2px 5px rgba(28,44,75,.08); color: var(--ink); display: flex; font: inherit; gap: 8px; justify-content: space-between; min-height: 46px; padding: 7px 10px; position: absolute; text-align: left; text-decoration: none; transform: translateY(-50%); transition: opacity .18s ease, background .18s ease, box-shadow .18s ease; z-index: 2; }
+.graph-node:hover, .graph-node:focus-visible, .graph-node-selected { background: #eef2ff; border-color: #4c66b8; box-shadow: 0 5px 17px rgba(44,73,144,.18); z-index: 3; }
+.graph-node-muted { opacity: .32; }
+.graph-node-name { display: -webkit-box; min-width: 0; overflow: hidden; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.graph-workstream { color: #203c82; cursor: pointer; font-size: 12px; font-weight: 700; width: 174px; }
+.graph-node-count { align-items: center; background: #e9eefb; color: #2d4b9c; display: inline-flex; flex: none; font-size: 10px; height: 22px; justify-content: center; min-width: 22px; padding-inline: 5px; }
+.graph-ticket { border-left: 4px solid #66738a; font-size: 11px; font-weight: 650; gap: 9px; width: 276px; }
+.graph-ticket .graph-node-name { flex: 1; }
+.graph-ticket > svg { color: #526bad; flex: none; }
+.graph-ticket-blocked { border-left-color: #ae4635; }
+.graph-ticket-in_progress { border-left-color: #3a5cba; }
+.graph-ticket-completed { border-left-color: #247455; }
+.graph-ticket-cancelled { border-left-color: #9ba3b3; }
+.graph-person { cursor: pointer; font-size: 11px; width: 164px; }
+.graph-person-mark { align-items: center; background: #dfe9e6; color: #235944; display: inline-flex; flex: none; font-size: 10px; font-weight: 750; height: 28px; justify-content: center; width: 28px; }
+.graph-person .graph-node-name { flex: 1; font-weight: 650; }
+.graph-person small { color: var(--ink-soft); display: block; font-size: 9px; font-weight: 450; margin-top: 2px; }
+.ticket-graph-inspector { background: #fff; max-height: min(70vh, 700px); min-width: 0; overflow: auto; padding: 21px 18px; }
+.ticket-graph-inspector-top { align-items: center; color: var(--cobalt-dark); display: flex; font-size: 10px; font-weight: 700; gap: 8px; letter-spacing: .1em; text-transform: uppercase; }
+.ticket-graph-inspector-top button { align-items: center; background: transparent; border: 1px solid var(--line); color: var(--ink); display: inline-flex; height: 30px; justify-content: center; margin-left: auto; width: 30px; }
+.ticket-graph-inspector h3 { color: var(--ink); font-family: var(--font-editorial), Georgia, serif; font-size: 26px; font-weight: 400; letter-spacing: -.025em; line-height: 1.13; margin: 18px 0 8px; overflow-wrap: anywhere; }
+.ticket-graph-inspector p { color: var(--ink-soft); font-size: 11px; line-height: 1.55; margin: 0; }
+.ticket-graph-inspector-count { border-bottom: 1px solid var(--line); border-top: 1px solid var(--line); display: flex; gap: 10px; margin: 23px 0 9px; padding: 17px 0; }
+.ticket-graph-inspector-count strong { color: var(--cobalt-dark); font-size: 30px; font-weight: 500; line-height: 1; }
+.ticket-graph-inspector-count span { align-self: end; color: var(--ink-soft); font-size: 10px; line-height: 1.4; }
+.ticket-graph-inspector ul { list-style: none; margin: 0; padding: 0; }
+.ticket-graph-inspector li + li { border-top: 1px solid var(--line); }
+.ticket-graph-inspector li a { align-items: start; color: var(--ink); display: flex; font-size: 11px; gap: 7px; line-height: 1.4; min-height: 44px; padding: 11px 0; text-decoration: none; }
+.ticket-graph-inspector li a:hover { color: var(--cobalt-dark); }
+.ticket-graph-inspector li a > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.ticket-graph-inspector li a > svg { color: var(--cobalt-dark); flex: none; }
+.ticket-graph-inspector li .graph-dot { margin-top: 4px; }
+.ticket-graph-inspector .ticket-graph-swipe { font-size: 10px; margin-top: 18px; }
+.ticket-graph-note { border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 10px; line-height: 1.5; margin: 0; padding: 13px 28px; }
 .ticket-clusters { display: grid; gap: 17px; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
 .ticket-cluster { background: var(--white); border: 1px solid var(--line); min-width: 0; }
 .ticket-cluster-heading { align-items: end; border-bottom: 1px solid var(--line); display: flex; gap: 20px; justify-content: space-between; padding: 20px 22px 18px; }
@@ -145,6 +208,10 @@
   .ticket-clusters, .ticket-detail-grid { grid-template-columns: 1fr; }
   .committee-directory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .committee-directory-bottom { grid-template-columns: 1fr; }
+  .ticket-graph-layout { grid-template-columns: 1fr; }
+  .ticket-graph-jumps { display: flex; }
+  .ticket-graph-viewport { border-bottom: 1px solid var(--line); border-right: 0; }
+  .ticket-graph-inspector { max-height: 290px; }
 }
 @media (max-width: 640px) {
   .ticket-page-heading { align-items: start; flex-direction: column; }
@@ -160,5 +227,11 @@
   .ticket-progress-suggestion form .button { justify-content: center; width: 100%; }
   .ticket-activity { padding: 18px; }
   .committee-directory-grid { grid-template-columns: 1fr; }
+  .ticket-graph-heading { padding: 20px 17px; }
+  .ticket-graph-heading h2 { font-size: 29px; }
+  .ticket-graph-viewport { height: 500px; min-height: 0; }
+  .ticket-graph-inspector { max-height: 270px; padding: 18px; }
+  .ticket-graph-note { padding-inline: 17px; }
 }
 @media (prefers-reduced-motion: reduce) { .ticket-card { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .graph-line-active { animation: none; } .graph-line, .graph-node { transition: none; } }
