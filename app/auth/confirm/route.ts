@@ -9,7 +9,9 @@ export const dynamic = "force-dynamic";
 const confirmationCookie = "efds-email-confirmation";
 const headers = {
   "Cache-Control": "private, no-store, max-age=0",
-  "Referrer-Policy": "no-referrer",
+  // Hide the token-bearing path/query while preserving Origin on native form
+  // POSTs. no-referrer turns their Origin into "null", failing our CSRF check.
+  "Referrer-Policy": "strict-origin",
   "X-Robots-Tag": "noindex, nofollow",
   "X-Content-Type-Options": "nosniff",
   "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",

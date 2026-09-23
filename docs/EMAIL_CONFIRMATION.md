@@ -9,9 +9,12 @@ or load the existing EFDS profile, and apply the usual access checks.
 This supports existing Auth users who have never reached the dashboard. It
 does not recreate accounts, reset existing roles or grant committee access.
 
-The confirmation response is not cached, sends no referrer, loads no scripts or
-third-party assets, and cannot be embedded in another page. Do not add analytics
-to this route or log its token, request URL or form body.
+The confirmation response is not cached, sends only the origin as its referrer,
+loads no scripts or third-party assets, and cannot be embedded in another page.
+`Referrer-Policy: strict-origin` hides the token-bearing path and query while
+preserving the native form POST's `Origin` header. Do not use `no-referrer` here:
+browsers then send `Origin: null`, which the same-origin check must reject.
+Do not add analytics to this route or log its token, request URL or form body.
 
 ## Production configuration
 

@@ -48,7 +48,9 @@ describe("email confirmation that requires a deliberate submission", () => {
     expect(html).toContain("Continue to sign in");
     expect(html).not.toContain("<script");
     expect(response.headers.get("cache-control")).toContain("no-store");
-    expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+    // Native form POSTs need an Origin; no-referrer would replace it with null.
+    // strict-origin still prevents the credential's path/query leaking.
+    expect(response.headers.get("referrer-policy")).toBe("strict-origin");
     expect(response.headers.get("content-security-policy")).toContain("frame-ancestors 'none'");
     expect(verifyOtp).not.toHaveBeenCalled();
     expect(provisionAuthenticatedProfile).not.toHaveBeenCalled();
@@ -76,9 +78,11 @@ describe("email confirmation that requires a deliberate submission", () => {
     expect(provisionAuthenticatedProfile).toHaveBeenCalledWith(user, supabase);
   });
 
-  it("rejects cross-site form submissions before verification", async () => {
+  it.each(["https://attacker.example", "null", ""])("rejects untrusted Origin %s before verification", async (requestOrigin) => {
     const { fields, cookie } = await confirmation();
-    expect((await POST(submission(fields, cookie, "https://attacker.example"))).status).toBe(403);
+    const request = submission(fields, cookie, requestOrigin);
+    if (!requestOrigin) request.headers.delete("origin");
+    expect((await POST(request)).status).toBe(403);
     expect(verifyOtp).not.toHaveBeenCalled();
   });
 
