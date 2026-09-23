@@ -21,7 +21,7 @@ for (const route of [...publicRoutes, "/login", "/access-denied", ...workspaceRo
   });
 }
 
-for (const route of ["/", "/about", "/events", "/resources", "/committee", "/contact", "/chat", "/login", "/dashboard", "/dashboard/tickets", "/admin", "/dashboard/search", "/admin/documents"]) {
+for (const route of ["/", "/about", "/events", "/resources", "/committee", "/contact", "/chat", "/login", "/dashboard", "/dashboard/profile", "/dashboard/tickets", "/admin", "/dashboard/search", "/admin/documents"]) {
   test(`${route} has no WCAG A/AA accessibility violations`, async ({ page }) => {
     await page.goto(route);
     const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
@@ -65,6 +65,21 @@ test("workspace navigation follows the selected route", async ({ page }, info) =
   await expect(page).toHaveURL(/\/dashboard\/search$/);
   if (info.project.name !== "desktop") await expect(page.getByRole("dialog", { name: "Workspace navigation" })).not.toBeVisible();
   await expect(page.getByRole("note")).toContainText("Local design preview");
+});
+
+test("account menu opens the profile and security settings", async ({ page }) => {
+  await page.goto("/dashboard");
+  await page.locator(".account-trigger").click();
+  const accountNavigation = page.getByRole("navigation", { name: "Account navigation" });
+  await expect(accountNavigation.getByRole("link", { name: "My profile" })).toHaveAttribute("href", "/dashboard/profile");
+  await expect(accountNavigation.getByRole("link", { name: "Account & security" })).toHaveAttribute("href", "/dashboard/profile#account-security");
+  await expect(page.getByRole("button", { name: "Sign out unavailable in preview" })).toBeDisabled();
+  await accountNavigation.getByRole("link", { name: "My profile" }).click();
+  await expect(page).toHaveURL(/\/dashboard\/profile$/);
+  await expect(page.getByRole("heading", { name: "Make this account yours." })).toBeVisible();
+  await expect(page.getByLabel("Profile photo")).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Save name" })).toBeDisabled();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
 test("search preserves its query and gives an honest empty result", async ({ page }) => {

@@ -63,6 +63,7 @@ function mapProfile(data: Record<string, unknown>): AccessProfile {
     authUserId: String(data.auth_user_id),
     email: String(data.email),
     fullName: (data.full_name as string | null) ?? null,
+    avatarPath: (data.avatar_path as string | null) ?? null,
     accessRole: data.access_role as AccessRole,
     memberType: data.member_type as AccessProfile["memberType"],
     officerId: (data.officer_id as string | null) ?? null,
@@ -76,7 +77,7 @@ async function getStoredProfile(user: User | null, client?: ServerSupabaseClient
   const supabase = client ?? await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, auth_user_id, email, full_name, access_role, member_type, officer_id, active, last_login_at")
+    .select("id, auth_user_id, email, full_name, avatar_path, access_role, member_type, officer_id, active, last_login_at")
     .eq("auth_user_id", user.id)
     .maybeSingle();
   if (error || !data) return null;
@@ -120,9 +121,9 @@ export async function provisionAuthenticatedProfile(user: User | null, client?: 
       : {};
     const { data, error } = await supabase
       .from("profiles")
-      .update({ email: normalizedEmail, full_name: fullName, member_type: isImperial ? "imperial" : existing.memberType, last_login_at: lastLoginAt, ...promoteRole })
+      .update({ email: normalizedEmail, full_name: existing.fullName || fullName, member_type: isImperial ? "imperial" : existing.memberType, last_login_at: lastLoginAt, ...promoteRole })
       .eq("auth_user_id", user.id)
-      .select("id, auth_user_id, email, full_name, access_role, member_type, officer_id, active, last_login_at")
+      .select("id, auth_user_id, email, full_name, avatar_path, access_role, member_type, officer_id, active, last_login_at")
       .single();
     if (error || !data) return null;
     return mapProfile(data as Record<string, unknown>);
@@ -142,7 +143,7 @@ export async function provisionAuthenticatedProfile(user: User | null, client?: 
       active: true,
       last_login_at: lastLoginAt,
     })
-    .select("id, auth_user_id, email, full_name, access_role, member_type, officer_id, active, last_login_at")
+    .select("id, auth_user_id, email, full_name, avatar_path, access_role, member_type, officer_id, active, last_login_at")
     .single();
   if (error || !data) return null;
   return mapProfile(data as Record<string, unknown>);

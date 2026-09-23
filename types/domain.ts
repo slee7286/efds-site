@@ -228,6 +228,7 @@ export interface AccessProfile {
   authUserId: string;
   email: string;
   fullName: string | null;
+  avatarPath: string | null;
   accessRole: AccessRole;
   memberType: MemberType;
   officerId: string | null;

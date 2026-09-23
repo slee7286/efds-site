@@ -13,6 +13,7 @@ The current editorial redesign, moving graphics, design references, screenshot g
 - Committee ticket board with status, assignments, workstream and person views, plus human-reviewed AI suggestions
 - Admin meeting archive with sourced Google Docs meeting notes
 - Email-first Supabase Auth with optional Google OAuth when the provider is configured
+- Account menus on the public site and workspace, with editable display name, private profile photo, password settings where applicable, and sign-out
 - Imperial domain policy for `@ic.ac.uk` and `@imperial.ac.uk`
 - First-class external-user exception contract backed by `auth_access_exceptions`
 - Server-side role helpers and agent scopes

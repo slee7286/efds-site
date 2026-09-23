@@ -8,7 +8,7 @@ export default async function PrivateLayout({ children }: Readonly<{ children: R
     const user = await getAuthUser();
     const { allowed, profile } = await evaluateUserAccess(user);
     if (!user || !allowed) redirect("/access-denied");
-    return <AppShell role={profile?.accessRole ?? "member"}>{children}</AppShell>;
+    return <AppShell role={profile?.accessRole ?? "member"} profile={profile}>{children}</AppShell>;
   }
   if (process.env.NODE_ENV === "production") redirect("/access-denied");
   return <AppShell role="member">{children}</AppShell>;

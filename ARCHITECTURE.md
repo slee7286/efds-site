@@ -55,7 +55,7 @@ The corpus assessment records 78 current articles and a deterministic extraction
 ## Identity and access
 
 ```text
-Supabase/Microsoft identity
+Supabase Auth (email or optional Google)
           │ verified email
           ▼
 normalize → domain policy → exception policy → application profile
@@ -65,14 +65,15 @@ normalize → domain policy → exception policy → application profile
                        viewer < member < committee < admin
 ```
 
-Migration `0004_auth_profiles_and_rls` now adds the application profile and external exception tables to the backend owner. The website consumes them through Supabase/RLS and does not create a second migration system.
+Migration `0004_auth_profiles_and_rls` adds the application profile and external exception tables to the backend owner. Migration `0021_profile_photos` adds the optional avatar path and private Storage bucket. The website consumes both through Supabase/RLS and does not create a second migration system.
 
-Suggested backend-owned additions:
+Backend-owned records:
 
-- `profiles`: `auth_user_id`, normalized email, name, access role, member type, officer reference, active state, timestamps and metadata.
+- `profiles`: `auth_user_id`, normalized email, editable display name, private avatar path, access role, member type, officer reference, active state, timestamps and metadata.
 - `auth_access_exceptions`: normalized unique email, access role, optional member type, reason, active state, expiry, creator, timestamps and metadata.
 
 RLS should use active profile/role checks. An authenticated Supabase session alone is not private-site authorization.
+Profile photos are cropped in the browser to a 512-pixel WebP square and stored under the member's Auth user ID in `efds-profile-photos`. Storage RLS restricts reads, uploads and deletes to the owner, while a database constraint prevents a profile from referencing another owner's path. `/api/profile/photo` serves only the current account's image after the server-side EFDS access check.
 
 ## Data access matrix
 
@@ -81,6 +82,7 @@ RLS should use active profile/role checks. An authenticated Supabase session alo
 | Dataset | Public | Member | Committee | Admin | Backend |
 | --- | --- | --- | --- | --- | --- |
 | `profiles` | — | Own | Own | Read/manage | Read/write |
+| `efds-profile-photos` | — | Own | Own | Own | Administrative access |
 | `auth_access_exceptions` | narrow eligibility RPC only | — | — | Manage | Read/write |
 | `officers` | — | — | Read | Read | Read/write |
 | `knowledge_articles` | — | — | Read | Read | Read/write |
