@@ -43,6 +43,14 @@ export async function operationalRecordAction(formData: FormData) {
   }
   if (parsed.action === "reject" && !parsed.reason) throw new Error("A rejection reason is required");
   const supabase = await createServerSupabaseClient();
+  if (parsed.action === "publish") {
+    if (!parsed.recordId) throw new Error("Choose an operational record to publish.");
+    const source = await supabase.from("operational_records").select("metadata").eq("id", parsed.recordId).single();
+    if (source.error) throw new Error("The operational record could not be checked before publication.");
+    if (source.data?.metadata?.origin === "agent_ticket_suggestion" && patch.visibility !== "committee") {
+      throw new Error("AI-suggested tickets can only be published to the committee workspace.");
+    }
+  }
   const { data, error } = await supabase.rpc("mutate_operational_record", { p_action: parsed.action, p_record_id: parsed.recordId ?? null, p_expected_version: parsed.expectedVersion ?? null, p_patch: patch, p_reason: parsed.reason ?? null });
   if (error) { if (error.code === "P0006" && parsed.recordId) redirect(`/admin/operations/${parsed.recordId}?error=concurrency_conflict`); throw new Error(errorMessage(error.code)); }
   const record = data && typeof data === "object" ? (data as Record<string, unknown>).record : null;

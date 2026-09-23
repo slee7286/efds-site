@@ -182,9 +182,14 @@
 .ticket-suggestions-result > small { color: var(--ink-soft); display: block; margin-top: 8px; }
 .ticket-suggestions-citations { border-top: 1px solid var(--line); font-size: 12px; margin: 24px 0; padding-top: 15px; }
 .ticket-suggestions-citations ul { list-style: none; margin: 10px 0 0; padding: 0; }
-.ticket-suggestions-citations li { align-items: center; display: flex; gap: 8px; padding: 6px 0; }
-.ticket-suggestions-citations a { align-items: center; color: var(--cobalt); display: inline-flex; gap: 4px; }
-.ticket-suggestions-citations small { color: var(--ink-soft); font-size: 10px; }
+.ticket-suggestions-citations li { align-items: start; display: grid; gap: 3px 8px; grid-template-columns: auto minmax(0, 1fr); padding: 6px 0; }
+.ticket-suggestions-citations a { color: var(--cobalt); min-width: 0; overflow-wrap: anywhere; }
+.ticket-suggestions-citations small { color: var(--ink-soft); font-size: 10px; grid-column: 2; }
+.ticket-proposal-form { border-top: 1px solid var(--line); display: grid; gap: 14px; margin-top: 24px; padding-top: 22px; }
+.ticket-proposal-form .form-label { display: grid; gap: 7px; min-width: 0; }
+.ticket-proposal-form .input, .ticket-proposal-form .textarea, .ticket-proposal-form .select { width: 100%; }
+.ticket-proposal-form > p { margin: 0; }
+.ticket-proposal-form > .button { justify-self: start; }
 .form-error, .form-success { border-left: 3px solid; font-size: 13px; margin: 14px 0; padding: 12px 16px; }
 .form-error { background: #f9e9e4; border-color: #b7482c; color: #71301f; }
 .form-success { background: #e9f4eb; border-color: #237d56; color: #205b42; }
@@ -225,6 +230,9 @@
   .ticket-cluster-heading, .ticket-card { padding-inline: 16px; }
   .ticket-progress-suggestion { align-items: stretch; flex-direction: column; padding: 18px; }
   .ticket-progress-suggestion form .button { justify-content: center; width: 100%; }
+  .ticket-suggestions { padding: 18px; }
+  .ticket-suggestions-result { padding: 16px; }
+  .ticket-proposal-form > .button { justify-self: stretch; }
   .ticket-activity { padding: 18px; }
   .committee-directory-grid { grid-template-columns: 1fr; }
   .ticket-graph-heading { padding: 20px 17px; }
