@@ -119,10 +119,10 @@ The website proxies the agent's SSE stream and renders validated citations. All 
 1. Create or select the Supabase project that owns the EFDS database.
 2. Set the project URL and publishable/anon key in Vercel and local `.env.local`.
 3. Enable Azure/Microsoft as an Auth provider in Supabase.
-4. Configure the Microsoft application with the required redirect URL shown by Supabase, plus the production callback URL `https://imperial-efds.com/auth/callback`.
+4. Configure the Microsoft application with the required redirect URL shown by Supabase, plus the production callback URL `https://www.imperial-efds.com/auth/callback`.
 5. Request only identity scopes; do not add Microsoft Graph permissions for mail, calendar, OneDrive or SharePoint.
 6. Apply the reviewed backend migration with `alembic upgrade head`, enable RLS, and provision the first admin out-of-band.
-7. Configure Supabase Auth Site URL as `https://imperial-efds.com` and allow `/auth/callback` and `/auth/recovery` for production plus the localhost equivalents.
+7. Configure Supabase Auth Site URL as `https://www.imperial-efds.com` and allow `/auth/callback` and `/auth/recovery` for production plus the localhost equivalents.
 8. Enable Supabase email/password authentication and recovery email delivery; configure the password policy and rate limits in Supabase Dashboard.
 9. Test: Imperial Microsoft account allowed; approved external password/magic-link account allowed; non-Imperial and Imperial email-auth accounts denied without an active exception; expired/inactive exceptions denied.
 

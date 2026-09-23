@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { GENERIC_EXTERNAL_EMAIL_MESSAGE, requestExternalEmail } from "@/lib/auth/external-email";
+import { EMAIL_FLOW_COOKIE, emailFlowCookieOptions } from "@/lib/auth/email-flow";
 
 const requestSchema = z.object({
   email: z.string().trim().email().max(320),
@@ -14,5 +15,7 @@ export async function POST(request: Request) {
 
   const result = await requestExternalEmail(parsed.data.email, parsed.data.flow);
   if (result.kind === "error") return NextResponse.json({ message: result.error.message, code: result.error.code }, { status: result.error.status });
-  return NextResponse.json({ message: GENERIC_EXTERNAL_EMAIL_MESSAGE });
+  const response = NextResponse.json({ message: GENERIC_EXTERNAL_EMAIL_MESSAGE });
+  if (result.kind === "sent") response.cookies.set(EMAIL_FLOW_COOKIE, parsed.data.flow, emailFlowCookieOptions());
+  return response;
 }

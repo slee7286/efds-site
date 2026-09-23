@@ -29,6 +29,7 @@ describe("external password email endpoint", () => {
     const response = await requestPasswordEmail(new Request("http://localhost/api", { method: "POST", body: JSON.stringify({ email: " Person@Example.com ", flow: "setup" }) }));
 
     expect(response.status).toBe(200);
+    expect(response.cookies.get("efds-email-flow")?.value).toBe("setup");
     expect(signInWithOtp).toHaveBeenCalledWith({ email: "person@example.com", options: { emailRedirectTo: "http://localhost:4587/auth/recovery?flow=setup" } });
     expect(resetPasswordForEmail).not.toHaveBeenCalled();
   });
@@ -38,6 +39,7 @@ describe("external password email endpoint", () => {
     const response = await requestPasswordEmail(new Request("http://localhost/api", { method: "POST", body: JSON.stringify({ email: "person@example.com", flow: "reset" }) }));
 
     expect(response.status).toBe(200);
+    expect(response.cookies.get("efds-email-flow")?.value).toBe("reset");
     expect(resetPasswordForEmail).toHaveBeenCalledWith("person@example.com", { redirectTo: "http://localhost:4587/auth/recovery?flow=reset" });
     expect(signInWithOtp).not.toHaveBeenCalled();
   });
@@ -57,6 +59,7 @@ describe("external password email endpoint", () => {
 
     expect(response.status).toBe(200);
     expect(resetPasswordForEmail).not.toHaveBeenCalled();
+    expect(response.cookies.get("efds-email-flow")).toBeUndefined();
     await expect(response.json()).resolves.toEqual({ message: "If this email is eligible for EFDS access, you will receive an email with the next step." });
   });
 });

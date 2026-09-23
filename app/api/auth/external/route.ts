@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { GENERIC_EXTERNAL_EMAIL_MESSAGE, requestExternalEmail } from "@/lib/auth/external-email";
+import { EMAIL_FLOW_COOKIE, emailFlowCookieOptions } from "@/lib/auth/email-flow";
 
 const emailSchema = z.object({ email: z.string().trim().email().max(320) });
 
@@ -11,5 +12,7 @@ export async function POST(request: Request) {
 
   const result = await requestExternalEmail(parsed.data.email, "magic_link");
   if (result.kind === "error") return NextResponse.json({ message: result.error.message, code: result.error.code }, { status: result.error.status });
-  return NextResponse.json({ message: "If this email is approved for EFDS access, a sign-in link is on its way." });
+  const response = NextResponse.json({ message: "If this email is approved for EFDS access, a sign-in link is on its way." });
+  if (result.kind === "sent") response.cookies.set(EMAIL_FLOW_COOKIE, "magic_link", emailFlowCookieOptions());
+  return response;
 }

@@ -611,3 +611,10 @@ main { min-width: 0; }
 fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .form-preview-note { background: var(--blue); color: var(--cobalt-dark); border-left: 2px solid var(--cobalt); padding: 14px 18px; font-size: 12px; }
 fieldset:disabled { opacity: .7; }
+.slack-search-form { display: grid; grid-template-columns: minmax(210px, 1.4fr) repeat(2, minmax(140px, 1fr)) repeat(2, minmax(145px, .8fr)); align-items: end; gap: 14px; margin: 22px 0 28px; }
+.slack-search-form .form-label { min-width: 0; margin: 0; }
+.slack-search-form .input { width: 100%; min-width: 0; }
+.slack-search-actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.slack-search-actions .button { min-width: 126px; }
+@media (max-width: 1150px) { .slack-search-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .slack-search-form { grid-template-columns: 1fr; gap: 18px; } }

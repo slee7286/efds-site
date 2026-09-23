@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 const publicRoutes = ["/", "/about", "/events", "/careers", "/research", "/competitions", "/resources", "/committee", "/partners", "/contact", "/chat", "/privacy", "/terms", "/security"];
-const workspaceRoutes = ["/dashboard", "/dashboard/search", "/dashboard/knowledge", "/dashboard/careers", "/dashboard/jobs", "/dashboard/events", "/dashboard/chat", "/dashboard/profile", "/admin", "/admin/search", "/admin/knowledge", "/admin/documents", "/admin/slack", "/admin/meetings", "/admin/operations", "/admin/committee", "/admin/integrations", "/admin/documents/files", "/admin/slack/channels", "/admin/meetings/all", "/admin/operations/actions", "/admin/operations/decisions", "/admin/operations/questions", "/admin/operations/timeline", "/admin/operations/new"];
+const workspaceRoutes = ["/dashboard", "/dashboard/search", "/dashboard/slack", "/dashboard/knowledge", "/dashboard/careers", "/dashboard/jobs", "/dashboard/events", "/dashboard/chat", "/dashboard/profile", "/admin", "/admin/search", "/admin/knowledge", "/admin/documents", "/admin/slack", "/admin/meetings", "/admin/operations", "/admin/committee", "/admin/integrations", "/admin/documents/files", "/admin/slack/channels", "/admin/meetings/all", "/admin/operations/actions", "/admin/operations/decisions", "/admin/operations/questions", "/admin/operations/timeline", "/admin/operations/new"];
 
 for (const route of [...publicRoutes, "/login", "/access-denied", ...workspaceRoutes]) {
   test(`${route} renders accessibly within the viewport`, async ({ page }) => {
@@ -78,6 +78,22 @@ test("Slack archive search keeps its filters and explains empty results", async 
   await expect(page).toHaveURL(/q=ACTION-004/);
   await expect(page.getByRole("textbox", { name: "Search message text" })).toHaveValue("ACTION-004");
   await expect(page.getByRole("region", { name: "Archived Slack message results" })).toContainText("No archived messages found");
+});
+
+test("committee archive uses committee links and preserves search", async ({ page }) => {
+  await page.goto("/dashboard/slack");
+  await page.getByRole("textbox", { name: "Search message text" }).fill("ACTION-004");
+  await page.getByRole("button", { name: "Search", exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard\/slack\?q=ACTION-004/);
+  await expect(page.getByRole("textbox", { name: "Search message text" })).toHaveValue("ACTION-004");
+  await expect(page.getByRole("region", { name: "Archived Slack message results" })).toContainText("No archived messages found");
+  await expect(page.getByRole("navigation", { name: "Slack archive navigation" }).getByRole("link", { name: "Search messages" })).toHaveAttribute("href", "/dashboard/slack");
+});
+
+test("an auth code sent to the homepage is routed into the callback", async ({ page }) => {
+  await page.goto("/?code=browser-test-code");
+  await expect(page).toHaveURL(/\/login\?error=auth_unconfigured$/);
+  await expect(page.getByRole("status")).toContainText("Sign-in is unavailable right now");
 });
 
 test("unconfigured Microsoft sign-in gives recoverable feedback", async ({ page }) => {

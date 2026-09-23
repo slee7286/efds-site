@@ -7,6 +7,8 @@ import { hasMinimumRole } from "@/lib/auth/roles";
 import type { AccessException, AccessProfile, AccessRole } from "@/types/domain";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
+type ServerSupabaseClient = Awaited<ReturnType<typeof createServerSupabaseClient>>;
+
 export class AuthorizationError extends Error {
   constructor(message = "An active EFDS profile is required") {
     super(message);
@@ -27,18 +29,18 @@ function requiresException(user: User | null) {
   return !isAllowedImperialEmail(user.email, config.allowedEmailDomains) || !usesMicrosoftAuthentication(user);
 }
 
-export async function getAuthUser() {
+export async function getAuthUser(client?: ServerSupabaseClient) {
   if (!isSupabaseConfigured) return null;
-  const supabase = await createServerSupabaseClient();
+  const supabase = client ?? await createServerSupabaseClient();
   const { data } = await supabase.auth.getUser();
   return data.user;
 }
 
 export const getCurrentUser = getAuthUser;
 
-export async function getAccessException(email: string): Promise<AccessException | null> {
+export async function getAccessException(email: string, client?: ServerSupabaseClient): Promise<AccessException | null> {
   if (!isSupabaseConfigured) return null;
-  const supabase = await createServerSupabaseClient();
+  const supabase = client ?? await createServerSupabaseClient();
   // The RLS-protected table is never selected directly. This RPC only returns
   // the current authenticated identity's effective role, not the exception row.
   const { data, error } = await supabase.rpc("current_efds_external_access_role");
@@ -75,9 +77,9 @@ function mapProfile(data: Record<string, unknown>): AccessProfile {
   };
 }
 
-async function getStoredProfile(user: User | null): Promise<AccessProfile | null> {
+async function getStoredProfile(user: User | null, client?: ServerSupabaseClient): Promise<AccessProfile | null> {
   if (!user?.id || !isSupabaseConfigured) return null;
-  const supabase = await createServerSupabaseClient();
+  const supabase = client ?? await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("profiles")
     .select("id, auth_user_id, email, full_name, access_role, member_type, officer_id, active, last_login_at")
@@ -87,33 +89,33 @@ async function getStoredProfile(user: User | null): Promise<AccessProfile | null
   return mapProfile(data as Record<string, unknown>);
 }
 
-export async function getApplicationProfile(user: User | null): Promise<AccessProfile | null> {
-  const profile = await getStoredProfile(user);
+export async function getApplicationProfile(user: User | null, client?: ServerSupabaseClient): Promise<AccessProfile | null> {
+  const profile = await getStoredProfile(user, client);
   if (!profile?.active || !user?.email) return null;
   return profile.email === normalizeEmail(user.email) ? profile : null;
 }
 
 export const getCurrentProfile = async () => getApplicationProfile(await getAuthUser());
 
-export async function evaluateUserAccess(user: User | null) {
+export async function evaluateUserAccess(user: User | null, client?: ServerSupabaseClient) {
   const email = user?.email;
   const emailIsUsable = Boolean(email && (user.email_confirmed_at ?? user.confirmed_at));
   if (!email || !emailIsUsable) return { allowed: false, profile: null, decision: null };
-  const exception = requiresException(user) ? await getAccessException(email) : null;
+  const exception = requiresException(user) ? await getAccessException(email, client) : null;
   const decision = resolveAuthenticatedAccess(user, exception);
-  const profile = await getApplicationProfile(user);
+  const profile = await getApplicationProfile(user, client);
   return { allowed: decision.allowed && Boolean(profile?.active), profile, decision };
 }
 
-export async function provisionAuthenticatedProfile(user: User | null) {
+export async function provisionAuthenticatedProfile(user: User | null, client?: ServerSupabaseClient) {
   if (!user?.email || !isSupabaseConfigured || !(user.email_confirmed_at ?? user.confirmed_at)) return null;
   const normalizedEmail = normalizeEmail(user.email);
-  const exception = requiresException(user) ? await getAccessException(normalizedEmail) : null;
+  const exception = requiresException(user) ? await getAccessException(normalizedEmail, client) : null;
   const decision = resolveAuthenticatedAccess(user, exception);
-  const existing = await getStoredProfile(user);
+  const existing = await getStoredProfile(user, client);
   if (!decision.allowed || existing && !existing.active) return null;
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = client ?? await createServerSupabaseClient();
   const fullName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? null;
   const lastLoginAt = new Date().toISOString();
   const isImperialMicrosoft = isAllowedImperialEmail(normalizedEmail, config.allowedEmailDomains) && usesMicrosoftAuthentication(user);

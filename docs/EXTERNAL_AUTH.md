@@ -49,6 +49,13 @@ active exception and profile, and then redirects to `/auth/set-password`.
 `/auth/callback` handles normal Microsoft and magic-link sign-in. Expired or
 used recovery codes return to `/login` with a safe generic message.
 
+If Supabase ignores a redirect URL and returns a code to the Site URL root,
+the website Proxy sends it to `/auth/recovery` or `/auth/callback` using the
+short-lived, HTTP-only flow cookie set when the email was requested. This
+recovery path still requires the same browser's PKCE verifier cookie. Configure
+the exact callback and recovery URLs in Supabase's redirect allowlist; the
+root fallback is a safeguard for existing or misconfigured email templates.
+
 ## Authorization and revocation
 
 Supabase authentication proves control of an account; it does not grant EFDS

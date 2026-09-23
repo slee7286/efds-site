@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAccessException, evaluateUserAccess, provisionAuthenticatedProfile, getAuthUser } from "@/lib/auth/server";
+import { getAccessException, evaluateUserAccess, provisionAuthenticatedProfile } from "@/lib/auth/server";
 import { config, isSupabaseConfigured } from "@/lib/config";
 import { safeInternalPath } from "@/lib/auth/redirect";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -13,10 +13,10 @@ export async function POST(request: Request) {
   if (!parsed.success || !isSupabaseConfigured) return NextResponse.json({ message: "Authentication is not configured." }, { status: 503 });
 
   const supabase = await createServerSupabaseClient();
-  const user = await getAuthUser();
-  const exception = user?.email ? await getAccessException(user.email) : null;
-  const profile = await provisionAuthenticatedProfile(user);
-  const result = await evaluateUserAccess(user);
+  const { data: { user } } = await supabase.auth.getUser();
+  const exception = user?.email ? await getAccessException(user.email, supabase) : null;
+  const profile = await provisionAuthenticatedProfile(user, supabase);
+  const result = await evaluateUserAccess(user, supabase);
 
   if (!user || !exception || !profile || !result.allowed) {
     await supabase.auth.signOut();

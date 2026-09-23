@@ -15,6 +15,10 @@ async function requireSlackAdmin() {
   await requireRole("admin");
 }
 
+async function requireSlackReader() {
+  await requireRole("committee");
+}
+
 async function count(client: any, table: string) {
   const result = await client.from(table).select("id", { count: "exact", head: true });
   if (result.error) throw result.error;
@@ -65,7 +69,7 @@ async function getUsers(supabase: any) {
 }
 
 export async function listSlackChannels(query?: string): Promise<SlackChannel[]> {
-  await requireSlackAdmin();
+  await requireSlackReader();
   if (!isSupabaseConfigured) return [];
   const supabase = await createServerSupabaseClient();
   const [channelResult, settingsResult, messageRows] = await Promise.all([
@@ -111,7 +115,7 @@ async function normalizeMessages(supabase: any, rows: Row[], channelNames: Map<s
 }
 
 export async function listSlackMessages(options: { query?: string; channelId?: string; authorId?: string; from?: string; to?: string; edited?: boolean; deleted?: boolean; page?: number } = {}) {
-  await requireSlackAdmin();
+  await requireSlackReader();
   const pageSize = 30;
   const page = Math.min(Math.max(Math.trunc(options.page || 1), 1), 10000);
   if (!isSupabaseConfigured) return { items: [] as SlackMessage[], total: 0, page, pageSize };
@@ -135,12 +139,12 @@ export async function listSlackMessages(options: { query?: string; channelId?: s
 }
 
 export async function getSlackChannel(id: string) {
-  await requireSlackAdmin();
+  await requireSlackReader();
   if (!isSupabaseConfigured) return null;
   const supabase = await createServerSupabaseClient();
   const [channelResult, settingResult, rows] = await Promise.all([
     supabase.from("slack_channels").select("id, workspace_id, name, topic, purpose, is_private, archived, last_synced_at").eq("id", id).maybeSingle(),
-    supabase.from("slack_channel_sync_settings").select("enabled, include_threads, include_file_metadata, last_successful_sync_at, newest_message_ts").eq("channel_id", id).maybeSingle(),
+    supabase.from("slack_channel_sync_settings").select("enabled").eq("channel_id", id).maybeSingle(),
     fetchMessageRows(supabase, { channelId: id }),
   ]);
   if (channelResult.error) throw channelResult.error;
@@ -151,7 +155,7 @@ export async function getSlackChannel(id: string) {
 }
 
 export async function getSlackMessage(id: string) {
-  await requireSlackAdmin();
+  await requireSlackReader();
   if (!isSupabaseConfigured) return null;
   const supabase = await createServerSupabaseClient();
   const result = await supabase.from("slack_messages").select("*").eq("id", id).maybeSingle();
@@ -168,7 +172,7 @@ export async function getSlackMessage(id: string) {
 }
 
 export async function listSlackAuthors() {
-  await requireSlackAdmin();
+  await requireSlackReader();
   if (!isSupabaseConfigured) return [] as { id: string; label: string }[];
   const supabase = await createServerSupabaseClient();
   const result = await supabase.from("slack_users").select("id, slack_user_id, display_name, real_name").order("display_name");
