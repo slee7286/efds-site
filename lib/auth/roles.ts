@@ -3,9 +3,18 @@ import type { AccessRole, AgentScope } from "@/types/domain";
 const hierarchy: Record<AccessRole, number> = {
   viewer: 1,
   member: 2,
-  committee: 3,
-  admin: 4,
+  efds_member: 3,
+  committee: 4,
+  admin: 5,
 };
+
+const roleLabels: Record<AccessRole, string> = {
+  viewer: "Viewer", member: "Member", efds_member: "EFDS member", committee: "Committee", admin: "Admin",
+};
+
+export function roleLabel(role: AccessRole) {
+  return roleLabels[role];
+}
 
 export function hasMinimumRole(role: AccessRole, required: AccessRole) {
   return hierarchy[role] >= hierarchy[required];
@@ -22,12 +31,12 @@ export function canAccessCommittee(role: AccessRole) {
 export function scopeForRole(role: AccessRole): AgentScope {
   if (role === "admin") return "admin";
   if (role === "committee") return "committee";
-  return role === "member" ? "member" : "public";
+  return role === "efds_member" ? "member" : "public";
 }
 
 export function canUseScope(role: AccessRole, requestedScope: AgentScope) {
   if (requestedScope === "public") return true;
-  if (requestedScope === "member") return hasMinimumRole(role, "member");
+  if (requestedScope === "member") return hasMinimumRole(role, "efds_member");
   if (requestedScope === "committee") return hasMinimumRole(role, "committee");
   return canAccessAdmin(role);
 }

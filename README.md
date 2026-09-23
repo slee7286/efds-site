@@ -74,18 +74,19 @@ The service-role key is intentionally unused by ordinary page reads. If a future
 
 ## Authentication and authorization
 
-Email and password are the primary sign-in path. The login page also supports first-time password setup, password recovery and secure email links. Verified `@ic.ac.uk` and `@imperial.ac.uk` addresses are eligible; other addresses need an active exception. Before sending setup, reset or sign-in links, the site calls `is_external_email_eligible` without disclosing whether an address is registered. First-time setup proves email ownership through Supabase Auth, then creates a member profile. Committee status and officer identity are assigned separately by an EFDS administrator; see [the account setup guide](docs/COMMITTEE_ACCOUNT_SETUP.md).
+Email and password are the primary sign-in path. The login page also supports first-time password setup, password recovery and secure email links. Verified `@ic.ac.uk` and `@imperial.ac.uk` addresses are eligible; other addresses need an active exception. Before sending setup, reset or sign-in links, the site calls `is_external_email_eligible` without disclosing whether an address is registered. First-time setup proves email ownership through Supabase Auth, then creates a basic `member` profile. An EFDS administrator reviews society membership in `/admin/accounts` before granting `efds_member`, committee or admin access. Officer identity is linked separately; see [the account setup guide](docs/COMMITTEE_ACCOUNT_SETUP.md).
 
 Google OAuth is optional and appears only when the Supabase Google provider is enabled. It uses the same callback, verified-email access check and profile. The site no longer offers Microsoft login. The callback exchanges the code server-side, checks the exact Imperial domain policy or current external exception, provisions/updates the profile without downgrading an existing role, updates `last_login_at`, then redirects to `/dashboard` or `/access-denied`.
 
-Supabase Auth owns password hashing and recovery state. EFDS never stores a password or reset token in PostgreSQL. Revoking or expiring an external exception denies EFDS access even if the Supabase password remains valid. An external exception with `admin` does not self-provision an admin profile; bootstrap it through the backend CLI.
+Supabase Auth owns password hashing and recovery state. EFDS never stores a password or reset token in PostgreSQL. Revoking or expiring an external exception denies EFDS access even if the Supabase password remains valid. An external exception only permits registration; it never self-provisions a privileged role. The first administrator remains an out-of-band bootstrap step.
 
 Identity, membership, committee position and authorization are represented as separate concepts. The browser never supplies a trusted role. Private layouts and future mutations resolve access server-side, and database RLS must enforce the same policy for direct Supabase reads.
 
 ## Public, private and admin boundary
 
 - Public: published site pages, public events, published resources and `/chat` with `public` scope only.
-- Member: authorised Imperial users and approved external users with member access. ICU reads should be narrowed further with explicit policy before exposing all source content.
+- Member: the default signed-in account. Events and public resources remain available; future member-only publications are excluded.
+- EFDS member: society-verified account. Approved, current publications marked `member` become readable through database RLS and the agent's member scope.
 - Committee: officer or explicitly authorised committee access to operational views.
 - Admin: trusted operators only. Admin pages are separately wrapped and never unlocked by client state.
 
@@ -143,7 +144,7 @@ wait message rather than raw Supabase errors.
 
 ## RLS and deployment
 
-Migration `0004_auth_profiles_and_rls` enables RLS on the application and internal tables, adds role-hierarchy helper functions, restricts profiles to self/admin access, makes exceptions admin-only, and grants committee/admin reads only to internal knowledge and operational tables. A request must have an active profile and the required role; authenticated-but-unauthorised users must not receive private rows. Use public views or published rows for public reads. Do not make a service-role client part of rendering.
+Migration `0004_auth_profiles_and_rls` established application RLS. The later membership and account-review migrations add the `efds_member` role, pending/approved/declined review state, protected role columns and the audited `review_efds_account` RPC. Basic members can read public knowledge; member-visible knowledge requires EFDS verification. A request must have an active profile and the required role; authenticated-but-unauthorised users must not receive private rows. Do not make a service-role client part of rendering.
 
 For Vercel:
 
@@ -163,7 +164,7 @@ No DNS or deployment action is automated by this repository.
 3. Manage approved external identities with `python scripts/set_access_exception.py EMAIL --role viewer --reason "..." --expires-at 2027-09-01T00:00:00Z`.
 4. Generate Supabase database types from the deployed schema.
 5. Connect public publication views and the real officer/event reads.
-6. Add committee review actions with auditability.
+6. Use `/admin/accounts` for society verification, role grants and roster links; reserve `grant_access.py` for bootstrap or recovery.
 7. Add private retrieval with document-level scope enforcement.
 
 ## Knowledge Operations V1
@@ -209,7 +210,7 @@ source hash, evidence, extraction metadata, and crawler data are read-only.
 Stale content is excluded from member/public queries, and publication remains
 an explicit approved/current decision.
 
-Unified search is available at `/dashboard/search` for member-visible knowledge
+Unified search is available at `/dashboard/search` for knowledge allowed by the account's verification level
 and `/admin/search` for administrators. Both call the backend's permission-
 filtered PostgreSQL retrieval RPC; the website does not query Slack or OneDrive
 APIs and never receives their credentials. See [docs/RETRIEVAL.md](docs/RETRIEVAL.md).

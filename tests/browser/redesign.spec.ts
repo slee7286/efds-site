@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 const publicRoutes = ["/", "/about", "/events", "/careers", "/research", "/competitions", "/resources", "/committee", "/partners", "/contact", "/chat", "/privacy", "/terms", "/security"];
-const workspaceRoutes = ["/dashboard", "/dashboard/tickets", "/dashboard/tickets/new", "/dashboard/search", "/dashboard/slack", "/dashboard/knowledge", "/dashboard/careers", "/dashboard/jobs", "/dashboard/events", "/dashboard/chat", "/dashboard/profile", "/admin", "/admin/search", "/admin/knowledge", "/admin/documents", "/admin/slack", "/admin/meetings", "/admin/operations", "/admin/committee", "/admin/integrations", "/admin/documents/files", "/admin/slack/channels", "/admin/meetings/all", "/admin/operations/actions", "/admin/operations/decisions", "/admin/operations/questions", "/admin/operations/timeline", "/admin/operations/new"];
+const workspaceRoutes = ["/dashboard", "/dashboard/tickets", "/dashboard/tickets/new", "/dashboard/search", "/dashboard/slack", "/dashboard/knowledge", "/dashboard/careers", "/dashboard/jobs", "/dashboard/events", "/dashboard/chat", "/dashboard/profile", "/admin", "/admin/accounts", "/admin/search", "/admin/knowledge", "/admin/documents", "/admin/slack", "/admin/meetings", "/admin/operations", "/admin/committee", "/admin/integrations", "/admin/documents/files", "/admin/slack/channels", "/admin/meetings/all", "/admin/operations/actions", "/admin/operations/decisions", "/admin/operations/questions", "/admin/operations/timeline", "/admin/operations/new"];
 
 for (const route of [...publicRoutes, "/login", "/access-denied", ...workspaceRoutes]) {
   test(`${route} renders accessibly within the viewport`, async ({ page }) => {
@@ -21,7 +21,7 @@ for (const route of [...publicRoutes, "/login", "/access-denied", ...workspaceRo
   });
 }
 
-for (const route of ["/", "/about", "/events", "/resources", "/committee", "/contact", "/chat", "/login", "/dashboard", "/dashboard/profile", "/dashboard/tickets", "/admin", "/dashboard/search", "/admin/documents"]) {
+for (const route of ["/", "/about", "/events", "/resources", "/committee", "/contact", "/chat", "/login", "/dashboard", "/dashboard/profile", "/dashboard/tickets", "/admin", "/admin/accounts", "/dashboard/search", "/admin/documents"]) {
   test(`${route} has no WCAG A/AA accessibility violations`, async ({ page }) => {
     await page.goto(route);
     const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
@@ -132,6 +132,22 @@ test("tickets preview has a useful empty state and a clearly disabled create for
   await expect(page.getByRole("button", { name: "Create ticket" })).toBeDisabled();
 });
 
+test("account review cards contain long claims without horizontal overflow", async ({ page }, info) => {
+  await page.goto("/admin/accounts");
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => {
+    const list = document.querySelector(".account-review-list");
+    if (!list) throw new Error("Account review list missing");
+    list.innerHTML = `<article class="surface account-review-card"><div class="account-review-identity"><div><span class="eyebrow">imperial account</span><h2>Alex Example</h2><p>alex.with.a.long.student.address@imperial.ac.uk</p></div><div class="account-review-badges"><span class="badge badge-neutral">member</span><span class="badge badge-neutral">pending</span></div></div><div class="account-review-detail"><div><span>Joined</span><strong>23 Sep 2026</strong></div><div><span>Membership claim</span><p>Joined an EFDS careers event and would like access to member resources once the committee confirms my society membership. Reference: AVeryLongUnbrokenMembershipIdentifierThatMustNotBreakMobileLayout.</p></div></div><form class="account-review-form"><label class="form-label">Decision<select class="select"><option>Verify EFDS membership</option></select></label><label class="form-label">Reason<textarea class="textarea" rows="2" placeholder="Which EFDS membership record did you check?"></textarea></label><div class="account-review-actions"><button class="button button-dark" type="button">Save decision</button></div></form></article>`;
+  });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: `artifacts/editorial/account-review-preview-${info.project.name}.png`, fullPage: true });
+  if (info.project.name === "mobile") {
+    await page.setViewportSize({ width: 320, height: 760 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+});
+
 test("ticket board and activity layout contain long evidence at 320px", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 760 });
   await page.goto("/dashboard/tickets");
@@ -195,7 +211,7 @@ test("reduced motion and narrow layouts remain usable", async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole("button", { name: "Open navigation", exact: true }).click();
   const menu = page.getByRole("dialog", { name: "Site navigation" });
-  await expect(menu.getByRole("link", { name: "Member access" })).toBeEnabled();
+  await expect(menu.getByRole("link", { name: "Login" })).toHaveAttribute("href", "/login");
 });
 
 

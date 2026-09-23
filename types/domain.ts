@@ -1,4 +1,5 @@
-export type AccessRole = "member" | "committee" | "admin" | "viewer";
+export type AccessRole = "viewer" | "member" | "efds_member" | "committee" | "admin";
+export type EfdsVerificationStatus = "pending" | "approved" | "declined";
 export type MemberType = "imperial" | "external" | "alumni" | "departmental_representative" | "other";
 export type AgentScope = "public" | "member" | "committee" | "admin";
 export type KnowledgeType = "requirement" | "timing_rule" | "process" | "process_step" | "resource" | "contact";
@@ -230,6 +231,9 @@ export interface AccessProfile {
   fullName: string | null;
   avatarPath: string | null;
   accessRole: AccessRole;
+  verificationStatus: EfdsVerificationStatus;
+  verificationClaim: string | null;
+  accessVersion: number;
   memberType: MemberType;
   officerId: string | null;
   active: boolean;

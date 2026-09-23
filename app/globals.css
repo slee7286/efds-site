@@ -618,3 +618,51 @@ fieldset:disabled { opacity: .7; }
 .slack-search-actions .button { min-width: 126px; }
 @media (max-width: 1150px) { .slack-search-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 600px) { .slack-search-form { grid-template-columns: 1fr; gap: 18px; } }
+
+.account-review-page { max-width: 1120px; }
+.account-review-message { margin: 18px 0; padding: 14px 18px; background: #e1eee7; color: #20563e; border-left: 3px solid #4c9772; font-size: 12px; }
+.account-review-message.form-error { background: #fff0eb; color: #783e34; border-color: #ad493a; }
+.account-review-intro { margin: 26px 0 20px; padding: 24px; display: grid; grid-template-columns: 155px minmax(0,1fr); align-items: center; gap: 26px; }
+.account-review-intro > div { display: grid; gap: 3px; border-right: 1px solid var(--line); }
+.account-review-intro strong { font-size: 40px; line-height: 1; font-weight: 500; color: var(--cobalt); }
+.account-review-intro span, .account-review-intro p { font-size: 12px; line-height: 1.6; color: var(--ink-soft); }
+.account-review-intro p { margin: 0; }
+.account-review-tabs { display: flex; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid var(--line); margin: 24px 0 18px; }
+.account-review-tabs a { padding: 11px 14px; min-height: 44px; font-size: 12px; display: inline-flex; gap: 8px; align-items: center; border-bottom: 2px solid transparent; }
+.account-review-tabs a[aria-current="page"] { color: var(--cobalt-dark); border-color: var(--cobalt); font-weight: 700; }
+.account-review-tabs a span { background: var(--blue); border-radius: 99px; padding: 2px 7px; }
+.account-review-list { display: grid; gap: 16px; }
+.account-review-card { padding: 24px; display: grid; grid-template-columns: minmax(0,1fr) minmax(260px,330px); gap: 18px 28px; min-width: 0; }
+.account-review-identity { grid-column: 1 / -1; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 16px; min-width: 0; }
+.account-review-identity > div:first-child { min-width: 0; }
+.account-review-identity h2 { font-size: 18px; line-height: 1.3; margin: 5px 0 2px; overflow-wrap: anywhere; }
+.account-review-identity p { margin: 0; color: var(--ink-soft); font-size: 12px; overflow-wrap: anywhere; }
+.account-review-badges { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 7px; }
+.account-review-detail { display: grid; align-content: start; gap: 16px; min-width: 0; }
+.account-review-detail > div > span { display: block; font-size: 10px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px; }
+.account-review-detail strong, .account-review-detail p { font-size: 12px; line-height: 1.7; margin: 0; font-weight: 500; overflow-wrap: anywhere; }
+.account-review-form { min-width: 0; border-left: 1px solid var(--line); padding-left: 26px; }
+.account-review-form .form-label { margin-bottom: 12px; }
+.account-review-form .select, .account-review-form .textarea { width: 100%; }
+.account-review-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.account-review-actions small { max-width: 170px; color: var(--ink-soft); font-size: 10px; }
+.account-review-history { padding: 24px; margin-top: 28px; }
+.account-review-history ol { list-style: none; padding: 0; margin: 14px 0 0; }
+.account-review-history li { display: grid; grid-template-columns: 170px minmax(0,1fr) auto; gap: 6px 14px; padding: 12px 0; border-top: 1px solid var(--line); font-size: 12px; }
+.account-review-history li strong { text-transform: capitalize; font-weight: 650; }
+.account-review-history li span { overflow-wrap: anywhere; }
+.account-review-history time { color: var(--ink-soft); }
+.account-review-history li p { grid-column: 2 / -1; margin: 0; color: var(--ink-soft); }
+.account-review-pagination { margin-top: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--ink-soft); }
+.account-review-pagination > div { display: flex; gap: 9px; }
+.membership-request { border-top: 1px solid var(--line); padding-top: 22px; margin-top: 20px; }
+.membership-request h3 { font-size: 17px; margin: 16px 0 8px; }
+.membership-request > p { font-size: 12px; line-height: 1.7; color: var(--ink-soft); }
+.membership-request .form-label { margin: 18px 0 13px; }
+.membership-feedback { background: #e1eee7; color: #20563e !important; padding: 10px 12px; }
+.workspace-access-note { margin-top: 23px; padding: 17px 20px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border-left: 3px solid var(--cobalt); }
+.workspace-access-note strong { font-size: 13px; }
+.workspace-access-note p { font-size: 12px; color: var(--ink-soft); margin: 5px 0 0; }
+.workspace-access-note a { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--cobalt-dark); white-space: nowrap; font-weight: 600; }
+@media (max-width: 760px) { .account-review-card { grid-template-columns: 1fr; padding: 18px; } .account-review-identity { grid-column: 1; } .account-review-form { border-left: 0; border-top: 1px solid var(--line); padding: 17px 0 0; } .account-review-intro { grid-template-columns: 1fr; gap: 15px; } .account-review-intro > div { border-right: 0; } .account-review-history li { grid-template-columns: 1fr; } .account-review-history li p { grid-column: 1; } }
+@media (max-width: 600px) { .workspace-access-note { align-items: flex-start; flex-direction: column; } }

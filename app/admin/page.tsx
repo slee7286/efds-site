@@ -11,6 +11,7 @@ export default async function AdminPage() {
     <div className="eyebrow">EFDS operations</div>
     <h1>Keep the<br />system clear.</h1>
     <p className="app-subtitle">The knowledge operations surface keeps ICU source, extraction, review and publication decisions visible in one place.</p>
+    <div className="ops-inline" style={{ margin: "20px 0 28px" }}><Link className="button button-dark" href="/admin/accounts">Review accounts <ArrowRight size={14} /></Link><Link className="button button-quiet" href="/dashboard/tickets">Open ticket board <ArrowRight size={14} /></Link></div>
     <div className="metric-grid">
       <Metric label="ICU articles" value={dashboard.articles.total} note={`${dashboard.articles.high + dashboard.articles.critical} high or critical`} />
       <Metric label="Review attention" value={dashboard.attention} note="proposed, stale or failed" />

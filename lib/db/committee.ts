@@ -25,7 +25,7 @@ export async function getCommitteeDirectory() {
     supabase.from("officers").select("id,name,role,academic_year").eq("active", true).order("name"),
     supabase.from("profiles").select("email,full_name,officer_id").eq("active", true).not("officer_id", "is", null),
     supabase.from("profiles").select("email,full_name,access_role,officer_id").eq("active", true).in("access_role", ["committee", "admin"]),
-    supabase.from("profiles").select("email,full_name").eq("active", true).eq("access_role", "member").order("created_at", { ascending: false }).limit(12),
+    supabase.from("profiles").select("email,full_name,access_role").eq("active", true).in("access_role", ["member", "efds_member"]).order("created_at", { ascending: false }).limit(12),
   ]);
   if (officersResult.error) throw officersResult.error;
   if (linkedResult.error) throw linkedResult.error;
@@ -42,6 +42,6 @@ export async function getCommitteeDirectory() {
     };
   });
   const unlinked = ((privilegedResult.data ?? []) as Row[]).filter((profile) => !profile.officer_id).map((profile) => ({ email: String(profile.email), fullName: profile.full_name ? String(profile.full_name) : null, role: String(profile.access_role) }));
-  const recentMembers = ((membersResult.data ?? []) as Row[]).map((profile) => ({ email: String(profile.email), fullName: profile.full_name ? String(profile.full_name) : null, role: "member" }));
+  const recentMembers = ((membersResult.data ?? []) as Row[]).map((profile) => ({ email: String(profile.email), fullName: profile.full_name ? String(profile.full_name) : null, role: String(profile.access_role) }));
   return { officers, unlinked, recentMembers };
 }

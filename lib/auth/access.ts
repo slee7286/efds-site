@@ -27,7 +27,7 @@ export function resolveAccess(email: string, allowedDomains: string[], exception
     return { allowed: true, accessRole: "member" as AccessRole, memberType: "imperial" as const };
   }
   if (exception && isActiveException(exception)) {
-    return { allowed: true, accessRole: exception.accessRole, memberType: "external" as const };
+    return { allowed: true, accessRole: "member" as AccessRole, memberType: "external" as const };
   }
   return { allowed: false, accessRole: null, memberType: null };
 }

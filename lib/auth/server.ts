@@ -16,8 +16,6 @@ export class AuthorizationError extends Error {
   }
 }
 
-const roleRank: Record<AccessRole, number> = { viewer: 1, member: 2, committee: 3, admin: 4 };
-
 function requiresException(user: User | null) {
   if (!user?.email) return false;
   return !isAllowedImperialEmail(user.email, config.allowedEmailDomains);
@@ -52,7 +50,7 @@ export function resolveAuthenticatedAccess(user: User, exception: AccessExceptio
     return { allowed: true, accessRole: "member" as AccessRole, memberType: "imperial" as const };
   }
   if (exception && isActiveException(exception)) {
-    return { allowed: true, accessRole: exception.accessRole, memberType: "external" as const };
+    return { allowed: true, accessRole: "member" as AccessRole, memberType: "external" as const };
   }
   return { allowed: false, accessRole: null, memberType: null };
 }
@@ -65,6 +63,9 @@ function mapProfile(data: Record<string, unknown>): AccessProfile {
     fullName: (data.full_name as string | null) ?? null,
     avatarPath: (data.avatar_path as string | null) ?? null,
     accessRole: data.access_role as AccessRole,
+    verificationStatus: data.efds_verification_status as AccessProfile["verificationStatus"],
+    verificationClaim: (data.efds_verification_claim as string | null) ?? null,
+    accessVersion: Number(data.access_version ?? 1),
     memberType: data.member_type as AccessProfile["memberType"],
     officerId: (data.officer_id as string | null) ?? null,
     active: Boolean(data.active),
@@ -77,7 +78,7 @@ async function getStoredProfile(user: User | null, client?: ServerSupabaseClient
   const supabase = client ?? await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, auth_user_id, email, full_name, avatar_path, access_role, member_type, officer_id, active, last_login_at")
+    .select("id, auth_user_id, email, full_name, avatar_path, access_role, efds_verification_status, efds_verification_claim, access_version, member_type, officer_id, active, last_login_at")
     .eq("auth_user_id", user.id)
     .maybeSingle();
   if (error || !data) return null;
@@ -116,34 +117,28 @@ export async function provisionAuthenticatedProfile(user: User | null, client?: 
   const isImperial = isAllowedImperialEmail(normalizedEmail, config.allowedEmailDomains);
 
   if (existing) {
-    const promoteRole = decision.accessRole && roleRank[decision.accessRole] > roleRank[existing.accessRole]
-      ? { access_role: decision.accessRole }
-      : {};
     const { data, error } = await supabase
       .from("profiles")
-      .update({ email: normalizedEmail, full_name: existing.fullName || fullName, member_type: isImperial ? "imperial" : existing.memberType, last_login_at: lastLoginAt, ...promoteRole })
+      .update({ email: normalizedEmail, full_name: existing.fullName || fullName, member_type: isImperial ? "imperial" : existing.memberType, last_login_at: lastLoginAt })
       .eq("auth_user_id", user.id)
-      .select("id, auth_user_id, email, full_name, avatar_path, access_role, member_type, officer_id, active, last_login_at")
+      .select("id, auth_user_id, email, full_name, avatar_path, access_role, efds_verification_status, efds_verification_claim, access_version, member_type, officer_id, active, last_login_at")
       .single();
     if (error || !data) return null;
     return mapProfile(data as Record<string, unknown>);
   }
 
-  // An exception explicitly granting admin cannot self-provision an admin
-  // profile. Bootstrap that profile through grant_access.py instead.
-  if (decision.accessRole === "admin") return null;
   const { data, error } = await supabase
     .from("profiles")
     .insert({
       auth_user_id: user.id,
       email: normalizedEmail,
       full_name: fullName,
-      access_role: decision.accessRole,
+      access_role: "member",
       member_type: isImperial ? "imperial" : decision.memberType,
       active: true,
       last_login_at: lastLoginAt,
     })
-    .select("id, auth_user_id, email, full_name, avatar_path, access_role, member_type, officer_id, active, last_login_at")
+    .select("id, auth_user_id, email, full_name, avatar_path, access_role, efds_verification_status, efds_verification_claim, access_version, member_type, officer_id, active, last_login_at")
     .single();
   if (error || !data) return null;
   return mapProfile(data as Record<string, unknown>);

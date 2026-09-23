@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, LogOut, Settings2, UserRound } from "lucide-react";
 import { ProfileAvatar } from "@/components/dashboard/profile-avatar";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
+import { roleLabel } from "@/lib/auth/roles";
 import type { AccessProfile, AccessRole } from "@/types/domain";
 
 type AccountSummary = Pick<AccessProfile, "fullName" | "email" | "avatarPath">;
@@ -51,7 +52,7 @@ export function AccountMenu({ profile, role, preview }: { profile: AccountSummar
   return <details className="account-menu" ref={details}>
     <summary className="account-trigger" aria-label={`Account menu for ${name}`}>
       <ProfileAvatar name={profile?.fullName ?? null} email={profile?.email ?? null} avatarPath={profile?.avatarPath ?? null} size={38} />
-      <span className="account-trigger-copy"><strong>{name}</strong><small>{role} account</small></span>
+      <span className="account-trigger-copy"><strong>{name}</strong><small>{roleLabel(role)} account</small></span>
       <ChevronDown size={15} aria-hidden="true" />
     </summary>
     <div className="account-popover">

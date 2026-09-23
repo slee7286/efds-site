@@ -3,20 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, BookOpen, BriefcaseBusiness, CalendarDays, CircleHelp, Gauge, LayoutDashboard, ListTodo, Menu, Search, Settings, UserRound, X } from "lucide-react";
+import { ArrowUpRight, BookOpen, BriefcaseBusiness, CalendarDays, CircleHelp, Gauge, LayoutDashboard, ListTodo, Menu, Search, Settings, UserRound, UsersRound, X } from "lucide-react";
 import { Brand } from "@/components/public/brand";
 import type { AccessRole } from "@/types/domain";
 
 const memberItems = [
   ["Dashboard", "/dashboard", LayoutDashboard], ["Search", "/dashboard/search", Search], ["Knowledge", "/dashboard/knowledge", BookOpen], ["Careers", "/dashboard/careers", BriefcaseBusiness], ["Jobs", "/dashboard/jobs", BriefcaseBusiness], ["Events", "/dashboard/events", CalendarDays], ["Ask EFDS", "/dashboard/chat", CircleHelp], ["Profile", "/dashboard/profile", UserRound],
 ] as const;
-const adminItems = [["Tickets", "/dashboard/tickets", ListTodo], ["Overview", "/admin", Gauge], ["Search", "/admin/search", Search], ["Knowledge review", "/admin/knowledge", BookOpen], ["Document archive", "/admin/documents", BookOpen], ["Slack archive", "/admin/slack", BookOpen], ["Meeting archive", "/admin/meetings", CalendarDays], ["Operational truth", "/admin/operations", CalendarDays], ["Committee", "/admin/committee", UserRound], ["Integrations", "/admin/integrations", Settings]] as const;
+const adminItems = [["Tickets", "/dashboard/tickets", ListTodo], ["Overview", "/admin", Gauge], ["Accounts", "/admin/accounts", UsersRound], ["Search", "/admin/search", Search], ["Knowledge review", "/admin/knowledge", BookOpen], ["Document archive", "/admin/documents", BookOpen], ["Slack archive", "/admin/slack", BookOpen], ["Meeting archive", "/admin/meetings", CalendarDays], ["Operational truth", "/admin/operations", CalendarDays], ["Committee", "/admin/committee", UserRound], ["Integrations", "/admin/integrations", Settings]] as const;
 const committeeItems = [["Tickets", "/dashboard/tickets", ListTodo], ["Slack archive", "/dashboard/slack", BookOpen]] as const;
 
 export function AppSidebar({ role = "member", onNavigate }: { role?: AccessRole; onNavigate?: () => void }) {
   const pathname = usePathname();
   const active = (href: string) => pathname === href || (href !== "/dashboard" && href !== "/admin" && pathname.startsWith(`${href}/`));
-  const items = memberItems.filter(([,href]) => href !== "/dashboard/knowledge" || ["member", "committee", "admin"].includes(role));
+  const items = memberItems.filter(([,href]) => href !== "/dashboard/knowledge" || ["member", "efds_member", "committee", "admin"].includes(role));
   const operationsItems = role === "admin" ? adminItems : role === "committee" ? committeeItems : [];
   return <aside className="app-sidebar" onClick={(event) => { if ((event.target as HTMLElement).closest("a")) onNavigate?.(); }}><Brand compact /><div className="sidebar-label">Your workspace</div><nav className="sidebar-nav" aria-label="Private navigation">{items.map(([label,href,Icon]) => <Link key={href} className={active(href) ? "active" : undefined} aria-current={active(href) ? "page" : undefined} href={href}><Icon size={16} />{label}</Link>)}</nav>{operationsItems.length > 0 && <><div className="sidebar-label">Society operations</div><nav className="sidebar-nav" aria-label="Society operations navigation">{operationsItems.map(([label,href,Icon]) => <Link key={href} className={active(href) ? "active" : undefined} aria-current={active(href) ? "page" : undefined} href={href}><Icon size={16} />{label}</Link>)}</nav></>}<div className="sidebar-bottom sidebar-nav"><Link href="/"><ArrowUpRight size={16} />Back to public site</Link></div></aside>;
 }
