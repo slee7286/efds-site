@@ -121,7 +121,7 @@ The website proxies the agent's SSE stream and renders validated citations. All 
 
 The board reads the latest archived Slack sync and highlights progress signals from ticket threads, reposts, check/X reactions and explicit `ACTION-###` mentions. Each ticket has a dated activity log that combines attributed Slack updates with named committee edits. Reaction dates are labelled as the date first seen by the archive because Slack does not supply the original reaction time. Suggested statuses are never applied automatically: a committee member reviews the linked Slack evidence and confirms a change. To refresh the source, run `python scripts/sync_slack.py --channel C0BQPDP5T44` in `efds-knowledge-base`; the board shows when that channel last synced.
 
-An admin-only suggestion panel asks `efds-agent` for cited ideas from meeting notes or Slack. Its output is text for human review; it never publishes a ticket automatically. Recent Outlook mailbox history is not available to this workflow until a mailbox sync and retrieval source are configured. Committee account steps are available as an editable [Markdown source](docs/COMMITTEE_ACCOUNT_SETUP.md) and a [Word guide](docs/EFDS_Committee_Account_Setup_Guide.docx).
+An admin-only suggestion panel asks `efds-agent` for one cited idea from meeting notes or Slack. An admin can edit and save that idea as a source-linked, private operational proposal. The existing audited review flow can approve it and publish it to the committee ticket board; nothing publishes automatically. Recent Outlook mailbox history is not available to this workflow until a mailbox sync and retrieval source are configured. Committee account steps are available as an editable [Markdown source](docs/COMMITTEE_ACCOUNT_SETUP.md) and a [Word guide](docs/EFDS_Committee_Account_Setup_Guide.docx).
 
 ## Supabase email and Google setup
 
@@ -130,7 +130,7 @@ An admin-only suggestion panel asks `efds-agent` for cited ideas from meeting no
 3. Enable Supabase email/password authentication and recovery email delivery; configure password policy and rate limits.
 4. Set the Supabase Auth Site URL to `https://www.imperial-efds.com`. Add `https://www.imperial-efds.com/auth/callback`, `https://www.imperial-efds.com/auth/recovery`, and localhost equivalents to the allowed redirect URLs.
 5. Apply the backend migrations with `alembic upgrade head` and provision the first admin out-of-band.
-6. For optional Google sign-in, configure the Google OAuth client in Google Cloud, register the exact Supabase callback URI shown in the Supabase Dashboard, and enable Google in Supabase Auth with the client ID and secret. Request only identity scopes; no Gmail, Drive or Calendar permissions are needed.
+6. For optional Google sign-in, follow [the project-specific setup guide](docs/GOOGLE_LOGIN_SETUP.md). The live provider was disabled when checked on 2026-09-23. Request only identity scopes; no Gmail, Drive or Calendar permissions are needed.
 7. Disable the unused Azure provider in Supabase Auth once any legacy Azure identities have a working email sign-in path. Removing the button from the website does not disable the provider at the Auth service.
 8. Test: Imperial email setup/password/link allowed; approved external account allowed; unapproved external and expired/inactive exceptions denied; Google sign-in works only after provider configuration.
 
