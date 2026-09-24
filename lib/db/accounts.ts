@@ -52,14 +52,14 @@ export async function getAccountReviewData(status: "pending" | "standard" | "all
   let query = supabase.from("profiles")
     .select("id,email,full_name,access_role,member_type,efds_verification_status,efds_verification_claim,officer_id,access_version,created_at,efds_verified_at", { count: "exact" })
     .eq("active", true).order("created_at", { ascending: false });
-  if (status === "pending") query = query.eq("efds_verification_status", "pending");
+  if (status === "pending") query = query.eq("efds_verification_status", "pending").not("efds_verification_claim", "is", null);
   if (status === "standard") query = query.eq("efds_verification_status", "declined").eq("access_role", "member");
   query = query.range((page - 1) * pageSize, page * pageSize - 1);
   const [profiles, officers, events, pending, standard] = await Promise.all([
     query,
     supabase.from("officers").select("id,name,role,academic_year").eq("active", true).order("name"),
     supabase.from("account_access_events").select("id,action,target_profile_id,actor_profile_id,occurred_at,reason").order("occurred_at", { ascending: false }).limit(20),
-    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("active", true).eq("efds_verification_status", "pending"),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("active", true).eq("efds_verification_status", "pending").not("efds_verification_claim", "is", null),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("active", true).eq("efds_verification_status", "declined").eq("access_role", "member"),
   ]);
   for (const result of [profiles, officers, events, pending, standard]) if (result.error) throw result.error;

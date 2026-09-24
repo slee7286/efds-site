@@ -9,7 +9,7 @@ const hierarchy: Record<AccessRole, number> = {
 };
 
 const roleLabels: Record<AccessRole, string> = {
-  viewer: "Viewer", member: "Member", efds_member: "EFDS member", committee: "Committee", admin: "Admin",
+  viewer: "Viewer", member: "EFDS member", efds_member: "EFDS student", committee: "Committee", admin: "Admin",
 };
 
 export function roleLabel(role: AccessRole) {

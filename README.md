@@ -74,7 +74,7 @@ The service-role key is intentionally unused by ordinary page reads. If a future
 
 ## Authentication and authorization
 
-Email and password are the primary sign-in path. The login page also supports first-time password setup, password recovery and secure email links. Verified `@ic.ac.uk` and `@imperial.ac.uk` addresses are eligible; other addresses need an active exception. Before sending setup, reset or sign-in links, the site calls `is_external_email_eligible` without disclosing whether an address is registered. First-time setup proves email ownership through Supabase Auth, then creates a basic `member` profile. An EFDS administrator reviews society membership in `/admin/accounts` before granting `efds_member`, committee or admin access. Officer identity is linked separately; see [the account setup guide](docs/COMMITTEE_ACCOUNT_SETUP.md).
+Email and password are the primary sign-in path. The login page also supports first-time password setup, password recovery and secure email links. Verified `@ic.ac.uk` and `@imperial.ac.uk` addresses are eligible; other addresses need an active exception. Before sending setup, reset or sign-in links, the site calls `is_external_email_eligible` without disclosing whether an address is registered. First-time setup proves email ownership through Supabase Auth, then creates a basic `member` profile, displayed as **EFDS member**. An EFDS administrator verifies enrolment on Imperial’s BSc Economics, Finance and Data Science in `/admin/accounts` before granting the internally named `efds_member` role, displayed as **EFDS student**. Existing approved accounts retain their access under this terminology change. Officer identity is linked separately; see [the account setup guide](docs/COMMITTEE_ACCOUNT_SETUP.md).
 
 Google OAuth is optional and appears only when the Supabase Google provider is enabled. It uses the same callback, verified-email access check and profile. The site no longer offers Microsoft login. The callback exchanges the code server-side, checks the exact Imperial domain policy or current external exception, provisions/updates the profile without downgrading an existing role, updates `last_login_at`, then redirects to `/dashboard` or `/access-denied`.
 
@@ -85,8 +85,8 @@ Identity, membership, committee position and authorization are represented as se
 ## Public, private and admin boundary
 
 - Public: published site pages, public events, published resources and `/chat` with `public` scope only.
-- Member: the default signed-in account. Events and public resources remain available; future member-only publications are excluded.
-- EFDS member: society-verified account. Approved, current publications marked `member` become readable through database RLS and the agent's member scope.
+- EFDS member (`member` internally): the default eligible signed-in account. Events and public resources remain available; student-only publications are excluded. EFDS Union society membership does not unlock those publications.
+- EFDS student (`efds_member` internally): degree enrolment verified by an EFDS admin. Approved, current publications marked `member` become readable through database RLS and the agent's legacy `member` scope.
 - Committee: officer or explicitly authorised committee access to operational views.
 - Admin: trusted operators only. Admin pages are separately wrapped and never unlocked by client state.
 
@@ -144,7 +144,7 @@ wait message rather than raw Supabase errors.
 
 ## RLS and deployment
 
-Migration `0004_auth_profiles_and_rls` established application RLS. The later membership and account-review migrations add the `efds_member` role, pending/approved/declined review state, protected role columns and the audited `review_efds_account` RPC. Basic members can read public knowledge; member-visible knowledge requires EFDS verification. A request must have an active profile and the required role; authenticated-but-unauthorised users must not receive private rows. Do not make a service-role client part of rendering.
+Migration `0004_auth_profiles_and_rls` established application RLS. The later membership and account-review migrations add the internally named `efds_member` role, pending/approved/declined review state, protected role columns and the audited `review_efds_account` RPC. EFDS member accounts can read public knowledge; student-visible knowledge requires EFDS degree verification. A request must have an active profile and the required role; authenticated-but-unauthorised users must not receive private rows. Do not make a service-role client part of rendering.
 
 For Vercel:
 

@@ -9,7 +9,9 @@ const errors = [];
 const routes = [
   ["home-desktop", 1440, 1000, "/"], ["home-mobile", 390, 844, "/"], ["home-tablet", 768, 1024, "/"],
   ["about-desktop", 1440, 1000, "/about"], ["events-desktop", 1440, 1000, "/events"],
-  ["careers-desktop", 1440, 1000, "/careers"], ["research-desktop", 1440, 1000, "/research"],
+  ["careers-desktop", 1440, 1000, "/careers"], ["careers-tablet", 768, 1024, "/careers"],
+  ["careers-mobile", 390, 844, "/careers"], ["careers-narrow", 320, 760, "/careers"],
+  ["research-desktop", 1440, 1000, "/research"],
   ["committee-desktop", 1440, 1000, "/committee"], ["resources-mobile", 390, 844, "/resources"],
   ["login-desktop", 1440, 1000, "/login"], ["login-mobile", 390, 844, "/login"],
   ["chat-desktop", 1440, 1000, "/chat"], ["dashboard-desktop", 1440, 1000, "/dashboard"],

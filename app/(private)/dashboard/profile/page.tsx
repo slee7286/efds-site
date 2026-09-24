@@ -46,28 +46,28 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       </div>
       <aside className="profile-side-column">
         <section className="surface profile-panel" aria-labelledby="membership-heading">
-          <span className="eyebrow">EFDS membership</span><h2 id="membership-heading">Your access.</h2>
+          <span className="eyebrow">Student verification</span><h2 id="membership-heading">Your access.</h2>
           <dl className="profile-membership-list">
             <div><dt>Workspace role</dt><dd>{profile ? roleLabel(profile.accessRole) : "Preview"}</dd></div>
             <div><dt>Account affiliation</dt><dd>{profile?.memberType ?? "Not connected"}</dd></div>
-            <div><dt>EFDS membership</dt><dd>{profile?.verificationStatus === "declined" ? "Standard member" : profile?.verificationStatus === "approved" ? "Verified" : profile?.verificationStatus === "pending" ? "Awaiting review" : "Not connected"}</dd></div>
+            <div><dt>EFDS student status</dt><dd>{profile?.verificationStatus === "declined" ? "Confirmed non-EFDS student" : profile?.verificationStatus === "approved" ? "Verified" : profile?.verificationStatus === "pending" ? profile.verificationClaim ? "Awaiting review" : "Not requested" : "Not connected"}</dd></div>
             {officer && <div><dt>Committee identity</dt><dd>{officer.name}<small>{officer.role} · {officer.academic_year}</small></dd></div>}
           </dl>
           {profile && (profile.accessRole === "committee" || profile.accessRole === "admin") && !officer && <p className="profile-security-note" role="status">Your committee account is active, but no officer role is linked yet. Ask an EFDS admin to connect your roster identity.</p>}
           {profile?.accessRole === "member" && <div className="membership-request">
-            <p className="profile-security-note">Basic members can explore events and public resources. Verified EFDS members gain access to member resources when they are published.</p>
-            <h3>Request EFDS membership review</h3>
-            <p>Tell the committee how you are connected to EFDS. An Imperial email alone does not confirm society membership.</p>
+            <p className="profile-security-note">Your account can explore events and public resources. Student resources are reserved for verified students on Imperial’s BSc Economics, Finance and Data Science; EFDS Union society membership alone does not qualify.</p>
+            <h3>Request EFDS student verification</h3>
+            <p>If you study the EFDS degree, tell the committee your course and cohort. An Imperial email alone does not prove degree enrolment. Do not include a student ID or documents here.</p>
             {membership === "saved" && <p role="status" className="membership-feedback">{profile.verificationStatus === "declined" ? "Your details were saved. Contact EFDS to request another review." : "Your details were saved for admin review."}</p>}
             {membership === "invalid" && <p role="alert" className="form-error">Please enter 10 to 500 characters.</p>}
             {membership === "failed" && <p role="alert" className="form-error">Your request could not be saved. Try again.</p>}
             <form action={requestMembershipReview}>
-              <label className="form-label" htmlFor="membership-claim">Your connection to EFDS
-                <textarea className="textarea" id="membership-claim" name="claim" rows={4} minLength={10} maxLength={500} required defaultValue={profile.verificationClaim ?? ""} placeholder="For example, your EFDS membership confirmation or the society activity you joined" />
+              <label className="form-label" htmlFor="membership-claim">Your degree and cohort
+                <textarea className="textarea" id="membership-claim" name="claim" rows={4} minLength={10} maxLength={500} required defaultValue={profile.verificationClaim ?? ""} placeholder="For example, BSc Economics, Finance and Data Science, 2025 entry" />
               </label>
               <MembershipSubmit updating={Boolean(profile.verificationClaim)} />
             </form>
-            {profile.verificationStatus === "declined" && <p className="profile-security-note">Your account is confirmed as a standard member. EFDS society membership has not been verified. You can update your details and contact EFDS to request another review.</p>}
+            {profile.verificationStatus === "declined" && <p className="profile-security-note">Your account is confirmed as a non-EFDS student. You can still use events and public resources. If your degree status has changed or this decision is mistaken, update your details and contact EFDS for another review.</p>}
           </div>}
           <p className="profile-security-note">Roles and committee identity are assigned by EFDS. Editing your display name or photo does not change your permissions.</p>
         </section>

@@ -13,16 +13,16 @@ const account: ReviewAccount = {
   officerId: null, version: 1, createdAt: "2026-09-24T00:00:00Z", verifiedAt: null,
 };
 
-describe("account membership decisions", () => {
-  it("labels the non-EFDS outcome as standard membership", () => {
+describe("EFDS student decisions", () => {
+  it("labels the non-EFDS outcome without rejection language", () => {
     render(<AccountReviewForm account={account} officers={[]} isSelf={false} />);
-    expect(screen.getByRole("option", { name: "Confirm standard membership" })).toBeTruthy();
+    expect(screen.getByRole("option", { name: "Confirm non-EFDS student" })).toBeTruthy();
     expect(screen.queryByText(/Decline verification/i)).toBeNull();
   });
 
-  it("keeps verification available after a standard-member decision", () => {
+  it("keeps verification available after a non-EFDS student decision", () => {
     render(<AccountReviewForm account={{ ...account, verificationStatus: "declined" }} officers={[]} isSelf={false} />);
-    expect(screen.getByRole("option", { name: "Verify EFDS membership" })).toBeTruthy();
-    expect(screen.queryByRole("option", { name: "Confirm standard membership" })).toBeNull();
+    expect(screen.getByRole("option", { name: "Verify EFDS student status" })).toBeTruthy();
+    expect(screen.queryByRole("option", { name: "Confirm non-EFDS student" })).toBeNull();
   });
 });

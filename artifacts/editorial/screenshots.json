@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-09-22T14:58:31.347Z",
+  "capturedAt": "2026-09-24T22:35:15.295Z",
   "results": [
     {
       "name": "home-desktop",
@@ -50,6 +50,30 @@
       "title": "Careers — EFDS"
     },
     {
+      "name": "careers-tablet",
+      "route": "/careers",
+      "width": 768,
+      "status": 200,
+      "overflow": false,
+      "title": "Careers — EFDS"
+    },
+    {
+      "name": "careers-mobile",
+      "route": "/careers",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "title": "Careers — EFDS"
+    },
+    {
+      "name": "careers-narrow",
+      "route": "/careers",
+      "width": 320,
+      "status": 200,
+      "overflow": false,
+      "title": "Careers — EFDS"
+    },
+    {
       "name": "research-desktop",
       "route": "/research",
       "width": 1440,
@@ -79,7 +103,7 @@
       "width": 1440,
       "status": 200,
       "overflow": false,
-      "title": "Member access — EFDS"
+      "title": "Login — EFDS"
     },
     {
       "name": "login-mobile",
@@ -87,7 +111,7 @@
       "width": 390,
       "status": 200,
       "overflow": false,
-      "title": "Member access — EFDS"
+      "title": "Login — EFDS"
     },
     {
       "name": "chat-desktop",
@@ -170,12 +194,20 @@
       "title": "EFDS — Economics, Finance & Data Science Society"
     },
     {
-      "name": "partners-desktop",
-      "route": "/partners",
+      "name": "sponsors-desktop",
+      "route": "/sponsors",
       "width": 1440,
       "status": 200,
       "overflow": false,
-      "title": "Partners — EFDS"
+      "title": "Sponsors — EFDS"
+    },
+    {
+      "name": "sponsors-mobile",
+      "route": "/sponsors",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "title": "Sponsors — EFDS"
     },
     {
       "name": "competitions-mobile",

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function CompanyGuideDetailPage({ params }: { params: Promise<{ company: string }> }) {
   const profile = await getCurrentProfile();
-  if (!profile || !hasMinimumRole(profile.accessRole, "efds_member")) return <div className="app-content career-guide"><div className="eyebrow">Career workspace / company research</div><h1>EFDS member access required.</h1><p className="app-subtitle">Ask for membership review to read the company research library.</p><Link className="button button-primary" href="/dashboard/profile">Request EFDS review <ArrowUpRight size={15} /></Link></div>;
+  if (!profile || !hasMinimumRole(profile.accessRole, "efds_member")) return <div className="app-content career-guide"><div className="eyebrow">Career workspace / company research</div><h1>EFDS student access required.</h1><p className="app-subtitle">The company research library is reserved for verified students on Imperial’s BSc Economics, Finance and Data Science. EFDS Union society membership alone does not grant access.</p><Link className="button button-primary" href="/dashboard/profile">Request student verification <ArrowUpRight size={15} /></Link></div>;
   const { company: id } = await params;
   const company = getGuideCompany(id);
   if (!company) notFound();

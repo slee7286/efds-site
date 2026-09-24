@@ -182,7 +182,7 @@ test("email access options show the selected task and expired setup returns to s
 test("signup opens a member account flow without an admin approval step", async ({ page }) => {
   await page.route("**/api/auth/external/password-email", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({ message: "If this email is eligible for EFDS access, you will receive an email with the next step." }) }));
   await page.goto("/signup");
-  await expect(page.getByRole("heading", { name: "Start as a member." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Start as an EFDS member." })).toBeVisible();
   await page.getByLabel("Email address", { exact: true }).fill("browser-test@imperial.ac.uk");
   await page.getByRole("button", { name: "Email me an account link" }).click();
   await expect(page.getByRole("status")).toContainText("you will receive an email");
@@ -225,7 +225,7 @@ test("account review cards contain long claims without horizontal overflow", asy
   await page.evaluate(() => {
     const list = document.querySelector(".account-review-list");
     if (!list) throw new Error("Account review list missing");
-    list.innerHTML = `<article class="surface account-review-card"><div class="account-review-identity"><div><span class="eyebrow">imperial account</span><h2>Alex Example</h2><p>alex.with.a.long.student.address@imperial.ac.uk</p></div><div class="account-review-badges"><span class="badge badge-neutral">member</span><span class="badge badge-neutral">pending</span></div></div><div class="account-review-detail"><div><span>Joined</span><strong>23 Sep 2026</strong></div><div><span>Membership claim</span><p>Joined an EFDS careers event and would like access to member resources once the committee confirms my society membership. Reference: AVeryLongUnbrokenMembershipIdentifierThatMustNotBreakMobileLayout.</p></div></div><form class="account-review-form"><label class="form-label">Decision<select class="select"><option>Verify EFDS membership</option></select></label><div class="account-review-actions"><button class="button button-dark" type="button">Save decision</button></div></form></article>`;
+    list.innerHTML = `<article class="surface account-review-card"><div class="account-review-identity"><div><span class="eyebrow">imperial account</span><h2>Alex Example</h2><p>alex.with.a.long.student.address@imperial.ac.uk</p></div><div class="account-review-badges"><span class="badge badge-neutral">EFDS member</span><span class="badge badge-neutral">Needs review</span></div></div><div class="account-review-detail"><div><span>Joined</span><strong>23 Sep 2026</strong></div><div><span>Student status claim</span><p>BSc Economics, Finance and Data Science, 2025 entry. Reference: AVeryLongUnbrokenMembershipIdentifierThatMustNotBreakMobileLayout.</p></div></div><form class="account-review-form"><label class="form-label">Decision<select class="select"><option>Verify EFDS student status</option></select></label><div class="account-review-actions"><button class="button button-dark" type="button">Save decision</button></div></form></article>`;
   });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: `artifacts/editorial/account-review-preview-${info.project.name}.png`, fullPage: true });
