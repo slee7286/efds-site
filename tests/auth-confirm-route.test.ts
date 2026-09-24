@@ -56,10 +56,19 @@ describe("email confirmation that requires a deliberate submission", () => {
     expect(provisionAuthenticatedProfile).not.toHaveBeenCalled();
   });
 
+  it("does not consume an email-change token during a scanner visit", async () => {
+    const { response, html } = await confirmation("email_change");
+    expect(response.status).toBe(200);
+    expect(html).toContain("Confirm this address");
+    expect(html).toContain("confirm that link too");
+    expect(verifyOtp).not.toHaveBeenCalled();
+  });
+
   it.each([
     ["email", "/dashboard", "/dashboard"],
     ["email", `${origin}/auth/recovery?flow=setup`, "/auth/set-password?flow=setup"],
     ["recovery", "/", "/auth/set-password?flow=reset"],
+    ["email_change", "/dashboard", "/dashboard"],
   ])("completes %s verification for an existing Auth account and routes to %s", async (type, next, destination) => {
     const { fields, cookie } = await confirmation(type, next);
     const response = await POST(submission(fields, cookie));
@@ -109,6 +118,26 @@ describe("email confirmation that requires a deliberate submission", () => {
   it("explains expired or consumed links without creating a profile", async () => {
     verifyOtp.mockResolvedValue({ data: { user: null, session: null }, error: { code: "otp_expired" } });
     const { fields, cookie } = await confirmation();
+    expect((await POST(submission(fields, cookie))).headers.get("location")).toBe(`${origin}/login?error=auth_link_expired`);
+    expect(provisionAuthenticatedProfile).not.toHaveBeenCalled();
+  });
+
+  it("treats the first secure email-change confirmation as pending the other address", async () => {
+    verifyOtp.mockResolvedValue({ data: { user: null, session: null }, error: null });
+    const { fields, cookie } = await confirmation("email_change");
+    const response = await POST(submission(fields, cookie));
+    expect(verifyOtp).toHaveBeenCalledWith({ token_hash: token, type: "email_change" });
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe(`${origin}/auth/email-change-pending`);
+    expect(response.cookies.get("efds-email-confirmation")?.value).toBe("");
+    expect(provisionAuthenticatedProfile).not.toHaveBeenCalled();
+    expect(evaluateUserAccess).not.toHaveBeenCalled();
+    expect(signOut).not.toHaveBeenCalled();
+  });
+
+  it("does not silently accept an empty session from other verification flows", async () => {
+    verifyOtp.mockResolvedValue({ data: { user: null, session: null }, error: null });
+    const { fields, cookie } = await confirmation("email");
     expect((await POST(submission(fields, cookie))).headers.get("location")).toBe(`${origin}/login?error=auth_link_expired`);
     expect(provisionAuthenticatedProfile).not.toHaveBeenCalled();
   });
