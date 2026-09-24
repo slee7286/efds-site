@@ -102,5 +102,5 @@ export function buildTicketGraph(tickets: GraphTicket[]): TicketGraphModel {
       if (person) edges.push({ key: `${node.key}->${key}`, kind: "assignment", from: node, to: person, ticketId: ticket.id });
     }
   }
-  return { width: 696, height, workstreams, tickets: ticketNodes, people: personNodes, edges, clusters };
+  return { width: 848, height, workstreams, tickets: ticketNodes, people: personNodes, edges, clusters };
 }

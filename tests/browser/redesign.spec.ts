@@ -276,17 +276,47 @@ test("people stay visible while the ticket graph scrolls", async ({ page }) => {
     if (!host) throw new Error("Ticket page missing");
     const fixture = document.createElement("section");
     fixture.className = "ticket-graph";
-    fixture.innerHTML = `<div class="ticket-graph-layout"><div class="ticket-graph-viewport" role="region" aria-label="Graph scroll fixture"><div class="ticket-graph-canvas" style="width:696px;height:1800px"><div class="ticket-graph-people-frame"><div class="ticket-graph-people-rail"><div class="ticket-graph-people-heading">03 / People</div><button class="graph-node graph-person" type="button"><span class="graph-node-name">Alice Lee</span></button></div></div><div class="graph-node graph-ticket" style="left:209px;top:900px">A ticket further down</div></div></div></div>`;
+    const people = Array.from({ length: 14 }, (_, index) => `<button class="graph-node graph-person" type="button"><span class="graph-node-name">${index === 0 ? "Alice Lee" : `Person ${index + 1}`}</span></button>`).join("");
+    fixture.innerHTML = `<div class="ticket-graph-layout"><div class="ticket-graph-viewport" role="region" aria-label="Graph scroll fixture"><div class="ticket-graph-canvas" style="width:848px;height:1800px"><div class="ticket-graph-people-frame"><div class="ticket-graph-people-rail"><div class="ticket-graph-people-heading">03 / People</div>${people}</div></div><div class="graph-node graph-ticket" style="left:209px;top:900px">A ticket further down</div></div></div></div>`;
     host.append(fixture);
   });
   const viewport = page.getByRole("region", { name: "Graph scroll fixture" });
   const person = viewport.getByRole("button", { name: "Alice Lee" });
+  const rail = viewport.locator(".ticket-graph-people-rail");
+  expect(await rail.evaluate((node) => node.scrollHeight <= node.clientHeight + 1)).toBe(true);
+  expect(await rail.locator(".graph-person").last().evaluate((node) => node.getBoundingClientRect().bottom <= node.parentElement!.getBoundingClientRect().bottom)).toBe(true);
+  const first = await person.boundingBox();
+  const second = await viewport.getByRole("button", { name: "Person 2" }).boundingBox();
+  expect(first && second && second.x > first.x + first.width / 2).toBe(true);
   await viewport.evaluate((node) => { node.scrollLeft = node.scrollWidth; });
   const before = await person.boundingBox();
   await viewport.evaluate((node) => { node.scrollTop = 680; });
   const after = await person.boundingBox();
   expect(before && after && Math.abs(before.y - after.y) < 3).toBe(true);
   expect(after && (await viewport.boundingBox()) && after.x < (await viewport.boundingBox())!.x + (await viewport.boundingBox())!.width).toBe(true);
+});
+
+test("wide dashboard map uses its width without a second people scrollbar", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop");
+  await page.setViewportSize({ width: 1920, height: 860 });
+  await page.goto("/dashboard");
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => {
+    const host = document.querySelector(".app-content");
+    if (!host) throw new Error("Dashboard missing");
+    const people = Array.from({ length: 14 }, (_, index) => `<button class="graph-node graph-person" type="button"><span class="graph-node-name">Person ${index + 1}</span></button>`).join("");
+    host.innerHTML = `<div class="dashboard-relationship-layout"><div class="dashboard-relationship"><section class="ticket-graph"><div class="ticket-graph-heading"><h2>Projects, tickets, people.</h2></div><div class="ticket-graph-jumps"><span>Jump to</span><button>Workstreams</button><button>Tickets</button><button>People</button></div><div class="ticket-graph-layout"><div class="ticket-graph-viewport" role="region" aria-label="Dashboard graph fixture"><div class="ticket-graph-canvas" style="width:848px;height:1600px"><div class="ticket-graph-people-frame"><div class="ticket-graph-people-rail"><div class="ticket-graph-people-heading">03 / People <span>14</span></div>${people}</div></div></div></div><aside class="ticket-graph-inspector">Follow the work.</aside></div></section></div><div class="ticket-dashboard-focus"><div class="ticket-cluster-heading"><h2>Your active tickets</h2></div></div></div>`;
+  });
+  const geometry = await page.evaluate(() => {
+    const viewport = document.querySelector(".dashboard-relationship .ticket-graph-viewport")!;
+    const canvas = document.querySelector(".dashboard-relationship .ticket-graph-canvas")!;
+    const rail = document.querySelector(".dashboard-relationship .ticket-graph-people-rail")!;
+    return { viewportWidth: viewport.getBoundingClientRect().width, canvasWidth: canvas.getBoundingClientRect().width, railFits: rail.scrollHeight <= rail.clientHeight + 1, documentFits: document.documentElement.scrollWidth <= innerWidth };
+  });
+  expect(geometry.viewportWidth - geometry.canvasWidth).toBeLessThan(30);
+  expect(geometry.viewportWidth - geometry.canvasWidth).toBeGreaterThanOrEqual(0);
+  expect(geometry.railFits).toBe(true);
+  expect(geometry.documentFits).toBe(true);
 });
 
 test("approved email flow gives confirmation and a resend cooldown", async ({ page }) => {

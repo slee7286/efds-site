@@ -17,7 +17,7 @@ export function TicketGraph({ tickets }: { tickets: GraphTicket[] }) {
   const viewport = useRef<HTMLDivElement>(null);
   const peopleRail = useRef<HTMLDivElement>(null);
   const personButtons = useRef(new Map<string, HTMLButtonElement>());
-  const [personAnchors, setPersonAnchors] = useState<Record<string, number>>({});
+  const [personAnchors, setPersonAnchors] = useState<Record<string, { x: number; y: number }>>({});
   const [expandedWorkstreams, setExpandedWorkstreams] = useState<Set<string>>(() => new Set());
   const completedByWorkstream = useMemo(() => {
     const groups = new Map<string, number>();
@@ -46,11 +46,14 @@ export function TicketGraph({ tickets }: { tickets: GraphTicket[] }) {
   const positionPeople = useCallback(() => {
     const view = viewport.current;
     if (!view) return;
-    const viewTop = view.getBoundingClientRect().top;
-    const anchors: Record<string, number> = {};
+    const viewRect = view.getBoundingClientRect();
+    const anchors: Record<string, { x: number; y: number }> = {};
     for (const [key, button] of personButtons.current) {
       const rect = button.getBoundingClientRect();
-      anchors[key] = view.scrollTop + rect.top + rect.height / 2 - viewTop;
+      anchors[key] = {
+        x: view.scrollLeft + rect.left - viewRect.left,
+        y: view.scrollTop + rect.top + rect.height / 2 - viewRect.top,
+      };
     }
     setPersonAnchors(anchors);
   }, []);
@@ -86,7 +89,7 @@ export function TicketGraph({ tickets }: { tickets: GraphTicket[] }) {
           {graph.tickets.length === 0 && <p className="ticket-graph-empty-note">All matching tickets are completed. Expand a workstream above to see them.</p>}
           {graph.clusters.map((cluster) => <div className="ticket-graph-cluster" key={cluster.key} style={{ top: cluster.top, height: cluster.height }} aria-hidden="true" />)}
           <svg className="ticket-graph-lines" width={graph.width} height={graph.height} viewBox={`0 0 ${graph.width} ${graph.height}`} aria-hidden="true" focusable="false">
-            {visibleEdges.map((edge) => <path key={edge.key} d={pathBetween(edge.from, edge.to.kind === "person" ? { ...edge.to, y: personAnchors[edge.to.key] ?? edge.to.y } : edge.to)} className={activeNode ? "graph-line graph-line-active" : "graph-line"} />)}
+            {visibleEdges.map((edge) => <path key={edge.key} d={pathBetween(edge.from, edge.to.kind === "person" ? { ...edge.to, ...personAnchors[edge.to.key] } : edge.to)} className={activeNode ? "graph-line graph-line-active" : "graph-line"} />)}
           </svg>
           {graph.workstreams.map((node) => <button key={node.key} type="button" className={`graph-node graph-workstream${related(node) ? "" : " graph-node-muted"}${selectedKey === node.key ? " graph-node-selected" : ""}`} style={{ left: node.x, top: node.y }} onClick={() => focusNode(node.key)} onMouseEnter={() => setHoverKey(node.key)} onMouseLeave={() => setHoverKey(null)} onFocus={() => setHoverKey(node.key)} onBlur={() => setHoverKey(null)} aria-pressed={selectedKey === node.key} aria-label={`Focus workstream ${node.label}, ${node.ticketIds.length} tickets`} title={node.label}><span className="graph-node-name">{node.label}</span><span className="graph-node-count">{node.ticketIds.length}</span></button>)}
           {graph.tickets.map((node) => <Link key={node.key} className={`graph-node graph-ticket graph-ticket-${node.ticket!.status}${related(node) ? "" : " graph-node-muted"}`} style={{ left: node.x, top: node.y }} href={`/dashboard/tickets/${node.ticket!.id}`} prefetch={false} onMouseEnter={() => setHoverKey(node.key)} onMouseLeave={() => setHoverKey(null)} onFocus={() => setHoverKey(node.key)} onBlur={() => setHoverKey(null)} aria-label={`Open ticket ${node.label}, ${statusLabel[node.ticket!.status]}`} title={node.label}><i className={`graph-dot graph-dot-${node.ticket!.status}`} aria-hidden="true" /><span className="graph-node-name">{node.label}</span><ArrowUpRight size={13} aria-hidden="true" /></Link>)}
