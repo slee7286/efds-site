@@ -76,11 +76,11 @@ The browser suite covers desktop (1440 px), tablet (768 px), mobile (390 px), an
 
 | View | Captures |
 | --- | --- |
-| Homepage | [Desktop](../artifacts/editorial/home-desktop.png) · [Tablet](../artifacts/editorial/home-tablet.png) · [Mobile](../artifacts/editorial/home-mobile.png) · [320 px](../artifacts/editorial/home-narrow.png) |
+| Homepage | [Desktop](../artifacts/editorial/home-desktop.png) · [Tablet](../artifacts/editorial/home-tablet.png) · [Mobile](../artifacts/editorial/home-mobile.png) · [320 px](../artifacts/editorial/home-narrow.png) · [Sponsors on desktop](../artifacts/editorial/home-sponsors-desktop.png) · [Sponsors on mobile](../artifacts/editorial/home-sponsors-mobile.png) |
 | Motion | [Animation and slider recording](../artifacts/editorial/correlation-motion.webm) · [Negative correlation](../artifacts/editorial/home-negative-correlation.png) |
 | Society | [About](../artifacts/editorial/about-desktop.png) · [Committee](../artifacts/editorial/committee-desktop.png) · [Contact](../artifacts/editorial/contact-desktop.png) |
 | Discovery | [Events](../artifacts/editorial/events-desktop.png) · [Careers](../artifacts/editorial/careers-desktop.png) · [Research](../artifacts/editorial/research-desktop.png) · [Research on mobile](../artifacts/editorial/research-mobile.png) |
-| Practical information | [Resources](../artifacts/editorial/resources-mobile.png) · [Competitions](../artifacts/editorial/competitions-mobile.png) · [Partners](../artifacts/editorial/partners-desktop.png) |
+| Practical information | [Resources](../artifacts/editorial/resources-mobile.png) · [Competitions](../artifacts/editorial/competitions-mobile.png) · [Sponsors](../artifacts/editorial/sponsors-desktop.png) · [Sponsors on mobile](../artifacts/editorial/sponsors-mobile.png) |
 | Access and chat | [Sign-in](../artifacts/editorial/login-desktop.png) · [Sign-in on mobile](../artifacts/editorial/login-mobile.png) · [Public chat](../artifacts/editorial/chat-desktop.png) |
 | Member workspace | [Desktop](../artifacts/editorial/dashboard-desktop.png) · [Mobile](../artifacts/editorial/dashboard-mobile.png) · [Search](../artifacts/editorial/search-mobile.png) |
 | Administration | [Dashboard](../artifacts/editorial/admin-desktop.png) · [Documents](../artifacts/editorial/documents-desktop.png) · [Mobile documents](../artifacts/editorial/documents-mobile.png) · [Search filters](../artifacts/editorial/search-filters-mobile.png) · [Record form](../artifacts/editorial/operations-form-mobile.png) |

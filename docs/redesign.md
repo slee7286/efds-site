@@ -27,11 +27,11 @@ npm ci
 npm run dev -- --hostname 127.0.0.1
 ```
 
-Open **http://127.0.0.1:4587**. Useful routes include `/`, `/about`, `/events`, `/careers`, `/research`, `/competitions`, `/resources`, `/committee`, `/partners`, `/contact`, `/chat`, `/login`, `/dashboard`, `/dashboard/search`, `/dashboard/chat`, `/admin`, `/admin/documents/files` and `/admin/operations/new`.
+Open **http://127.0.0.1:4587**. Useful routes include `/`, `/about`, `/events`, `/careers`, `/research`, `/competitions`, `/resources`, `/committee`, `/sponsors`, `/contact`, `/chat`, `/login`, `/dashboard`, `/dashboard/search`, `/dashboard/chat`, `/admin`, `/admin/documents/files` and `/admin/operations/new`. The former `/partners` URL redirects to `/sponsors`.
 
 The existing local development preview displays a prominent notice. Source archives and search show empty data; some existing knowledge views retain labelled sample content. No user session is created. The page-level preview helper is active only in development without Supabase configuration. Configured readers still execute their original authorization checks. Production denies unconfigured member/admin access. Saving an operational record is visibly unavailable in the local preview.
 
-With live configuration, the existing Microsoft OAuth, approved email flow, profile provisioning, permissions, Supabase readers, mutation actions and agent endpoint contracts remain in place. No SQL migration, RLS policy or service-role access was added.
+With live configuration, the approved email flow, profile provisioning, permissions, Supabase readers, mutation actions and agent endpoint contracts remain in place. No SQL migration, RLS policy or service-role access was added.
 
 ## Verification
 

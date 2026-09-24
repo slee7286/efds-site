@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-const publicRoutes = ["/", "/about", "/events", "/careers", "/research", "/competitions", "/resources", "/committee", "/partners", "/contact", "/chat", "/privacy", "/terms", "/security"];
+const publicRoutes = ["/", "/about", "/events", "/careers", "/research", "/competitions", "/resources", "/committee", "/sponsors", "/partners", "/contact", "/chat", "/privacy", "/terms", "/security"];
 const workspaceRoutes = ["/dashboard", "/dashboard/tickets", "/dashboard/tickets/new", "/dashboard/search", "/dashboard/slack", "/dashboard/knowledge", "/dashboard/careers", "/dashboard/jobs", "/dashboard/events", "/dashboard/chat", "/dashboard/profile", "/admin", "/admin/accounts", "/admin/search", "/admin/knowledge", "/admin/documents", "/admin/slack", "/admin/meetings", "/admin/operations", "/admin/committee", "/admin/integrations", "/admin/documents/files", "/admin/slack/channels", "/admin/meetings/all", "/admin/operations/actions", "/admin/operations/decisions", "/admin/operations/questions", "/admin/operations/timeline", "/admin/operations/new"];
 
 for (const route of [...publicRoutes, "/login", "/signup", "/access-denied", ...workspaceRoutes]) {
@@ -21,7 +21,7 @@ for (const route of [...publicRoutes, "/login", "/signup", "/access-denied", ...
   });
 }
 
-for (const route of ["/", "/about", "/events", "/resources", "/committee", "/contact", "/chat", "/login", "/signup", "/dashboard", "/dashboard/profile", "/dashboard/tickets", "/admin", "/admin/accounts", "/admin/integrations", "/dashboard/search", "/admin/documents"]) {
+for (const route of ["/", "/about", "/events", "/resources", "/committee", "/sponsors", "/contact", "/chat", "/login", "/signup", "/dashboard", "/dashboard/profile", "/dashboard/tickets", "/admin", "/admin/accounts", "/admin/integrations", "/dashboard/search", "/admin/documents"]) {
   test(`${route} has no WCAG A/AA accessibility violations`, async ({ page }) => {
     await page.goto(route);
     const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
@@ -55,6 +55,25 @@ test("public navigation opens, restores focus and follows a destination", async 
   await expect(page).toHaveURL(/\/careers$/);
   await expect(menu).not.toBeVisible();
   expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
+});
+
+test("sponsors are visible on the homepage and reachable from navigation", async ({ page }, info) => {
+  await page.goto("/");
+  const home = page.locator(".sponsor-home");
+  await expect(home).toContainText("Optiver");
+  await expect(home).toContainText("Cornerstone Research");
+  await expect(home).toContainText("Jane Street");
+  if (info.project.name === "desktop") {
+    await expect(page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Sponsors" })).toHaveAttribute("href", "/sponsors");
+  } else {
+    await page.getByRole("button", { name: "Open navigation" }).click();
+    await expect(page.getByRole("dialog", { name: "Site navigation" }).getByRole("link", { name: "Sponsors" })).toHaveAttribute("href", "/sponsors");
+    await page.keyboard.press("Escape");
+  }
+  await home.getByRole("link", { name: "Meet our sponsors" }).click();
+  await expect(page).toHaveURL(/\/sponsors$/);
+  await expect(page.locator(".sponsor-tier")).toHaveText(["Founding Partner", "Founding Partner", "Sponsor"]);
+  await expect(page.getByRole("link", { name: "contact us" })).toHaveAttribute("href", "mailto:siheon.lee25@imperial.ac.uk");
 });
 
 test("workspace navigation follows the selected route", async ({ page }, info) => {

@@ -18,7 +18,8 @@ const routes = [
   ["documents-desktop", 1440, 1000, "/admin/documents"], ["documents-mobile", 390, 844, "/admin/documents/files"],
   ["search-filters-mobile", 390, 844, "/admin/search?q=events&source=knowledge_process&area=events"],
   ["operations-form-mobile", 390, 844, "/admin/operations/new"],
-  ["partners-desktop", 1440, 1000, "/partners"], ["competitions-mobile", 390, 844, "/competitions"],
+  ["sponsors-desktop", 1440, 1000, "/sponsors"], ["sponsors-mobile", 390, 844, "/sponsors"],
+  ["competitions-mobile", 390, 844, "/competitions"],
   ["research-mobile", 390, 844, "/research"], ["contact-desktop", 1440, 1000, "/contact"],
   ["home-narrow", 320, 760, "/"],
 ];

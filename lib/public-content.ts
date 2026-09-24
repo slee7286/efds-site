@@ -9,10 +9,17 @@ export const society = {
 export const publicNavigation = [
   { label: "About", href: "/about" }, { label: "Events", href: "/events" },
   { label: "Careers", href: "/careers" }, { label: "Research", href: "/research" },
-  { label: "Resources", href: "/resources" },
+  { label: "Resources", href: "/resources" }, { label: "Sponsors", href: "/sponsors" },
 ];
 export const exploreNavigation = [...publicNavigation,
   { label: "Competitions", href: "/competitions" }, { label: "Committee", href: "/committee" },
-  { label: "Partners", href: "/partners" }, { label: "Contact", href: "/contact" },
+  { label: "Contact", href: "/contact" },
   { label: "Ask EFDS", href: "/chat" },
 ];
+
+// Sponsorship tiers supplied by the EFDS committee on 24 September 2026.
+export const sponsors = [
+  { name: "Optiver", tier: "Founding Partner", href: "https://www.optiver.com/" },
+  { name: "Cornerstone Research", tier: "Founding Partner", href: "https://www.cornerstone.com/" },
+  { name: "Jane Street", tier: "Sponsor", href: "https://www.janestreet.com/" },
+] as const;

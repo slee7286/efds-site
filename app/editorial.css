@@ -120,6 +120,27 @@ h1, h2, h3 { letter-spacing: -.035em; text-wrap: pretty; }
 .membership-strip a { display: flex; align-items: center; gap: 35px; padding: 15px 0; border-bottom: 1px solid var(--ink); font-size: 17px; }
 .membership-strip a:hover { color: var(--cobalt); border-color: var(--cobalt); }
 
+/* Sponsor names carry the hierarchy; the lines keep it part of the editorial system. */
+.sponsor-home { padding-block: 80px 94px; }
+.sponsor-home-layout { display: grid; grid-template-columns: minmax(0,.8fr) minmax(0,1.4fr); gap: clamp(50px,7vw,110px); align-items: start; }
+.sponsor-home-intro h2, .sponsor-page-heading h2 { font: 400 clamp(44px,4.4vw,64px)/1.03 var(--font-editorial),Georgia,serif; letter-spacing: -.03em; margin: 13px 0 21px; }
+.sponsor-home-intro p, .sponsor-page-heading p { color: var(--ink-soft); font-size: 15px; line-height: 1.75; max-width: 370px; margin: 0; }
+.sponsor-home-intro .text-link { margin-top: 22px; }
+.sponsor-page-heading { display: grid; grid-template-columns: 1fr .6fr; gap: 50px; align-items: end; padding-bottom: 48px; }
+.sponsor-page-heading h2 { margin: 0; }
+.sponsor-page-heading p { margin: 0 0 4px; }
+.sponsor-contact-link { color: var(--cobalt-dark); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+.sponsor-contact-link:hover { color: var(--cobalt); }
+.sponsor-roster { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink); }
+.sponsor-entry { display: grid; grid-template-columns: 25px minmax(0,1fr) 150px 22px; align-items: center; gap: 22px; min-height: 126px; border-bottom: 1px solid var(--line); }
+.sponsor-index, .sponsor-tier { font: 11px ui-monospace,"SFMono-Regular",Consolas,monospace; letter-spacing: .045em; }
+.sponsor-index { color: var(--ink-soft); }
+.sponsor-name { min-width: 0; font-size: clamp(29px,3vw,43px); font-weight: 400; line-height: 1.15; letter-spacing: -.05em; }
+.sponsor-tier { color: var(--cobalt-dark); text-transform: uppercase; }
+.sponsor-entry > svg { justify-self: end; }
+.sponsor-entry:hover .sponsor-name, .sponsor-entry:hover > svg { color: var(--cobalt); }
+@media (prefers-reduced-motion: no-preference) { .sponsor-entry > svg { transition: transform .2s ease; } .sponsor-entry:hover > svg { transform: translate(3px,-3px); } }
+
 /* Public pages use an editorial title and information-led compositions. */
 .chapter-head { padding: 27px 0 57px; border-bottom: 1px solid var(--line); }
 .chapter-kicker { display: flex; justify-content: space-between; gap: 25px; color: var(--ink-soft); padding-bottom: 47px; }
@@ -308,6 +329,9 @@ h1, h2, h3 { letter-spacing: -.035em; text-wrap: pretty; }
   .research-spread .correlation-study { max-width: 560px; }
   .footer-top { grid-template-columns: 1fr 1fr 1fr; }
   .footer-identity { grid-column: 1 / -1; }
+  .sponsor-home-layout, .sponsor-page-heading { grid-template-columns: 1fr; gap: 30px; }
+  .sponsor-home-intro h2 br { display: none; }
+  .sponsor-page-heading { padding-bottom: 35px; }
   .auth-aside h1 { font-size: 44px; }
 }
 @media (max-width: 600px) {
@@ -365,6 +389,13 @@ h1, h2, h3 { letter-spacing: -.035em; text-wrap: pretty; }
   .membership-strip .editorial-label { font-size: 9px; }
   .membership-strip h2 { font-size: 28px; }
   .membership-strip a { width: fit-content; font-size: 15px; margin-top: 22px; gap: 35px; }
+  .sponsor-home { padding-block: 48px 61px; }
+  .sponsor-home-intro h2, .sponsor-page-heading h2 { font-size: 47px; }
+  .sponsor-entry { grid-template-columns: 21px minmax(0,1fr) 21px; gap: 3px 13px; min-height: 0; padding: 23px 0; }
+  .sponsor-index { grid-column: 1; grid-row: 1; align-self: start; padding-top: 8px; }
+  .sponsor-name { grid-column: 2; grid-row: 1; font-size: clamp(26px,7.3vw,34px); overflow-wrap: anywhere; }
+  .sponsor-tier { grid-column: 2; grid-row: 2; }
+  .sponsor-entry > svg { grid-column: 3; grid-row: 1; align-self: start; margin-top: 6px; }
   .chapter-head { padding: 24px 0 34px; }
   .chapter-kicker { padding-bottom: 30px; }
   .chapter-kicker > span:last-child { display: none; }

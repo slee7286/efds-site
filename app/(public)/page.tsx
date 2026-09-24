@@ -3,6 +3,7 @@ import { ArrowUpRight, ArrowDown, ArrowRight } from "lucide-react";
 import { CorrelationStudy } from "@/components/public/correlation-study";
 import { CampusPhotograph } from "@/components/public/campus-photograph";
 import { JoinBanner } from "@/components/public/join-banner";
+import { SponsorRoster } from "@/components/public/sponsor-roster";
 import { society } from "@/lib/public-content";
 import { getUpcomingEvents } from "@/lib/db/public";
 
@@ -34,6 +35,12 @@ export default async function HomePage() {
     </section>
 
     <section className="notice-section"><div className="container notice-grid"><div className="notice-title"><span className="editorial-label">Society noticeboard</span><h2>What’s on?</h2></div>{nextEvent ? <div><h3>{nextEvent.title}</h3><p>{nextEvent.date} · {nextEvent.type}</p><p>{nextEvent.description}</p></div> : <div><h3>No confirmed dates yet.</h3><p>There are no confirmed events published here yet. Check the society’s Union page for current information and registration options.</p></div>}<Link className="button button-dark" href="/events">See the calendar <ArrowUpRight size={17} /></Link></div></section>
+
+    <section className="sponsor-home container" aria-labelledby="home-sponsors-heading">
+      <div className="section-rule"><span>03 / Sponsors</span><span>With EFDS</span></div>
+      <div className="sponsor-home-layout"><div className="sponsor-home-intro"><span className="editorial-label">The organisations with us</span><h2 id="home-sponsors-heading">Our<br />{" "}sponsors.</h2><p>Meet the founding partners and sponsor supporting the EFDS Society.</p><Link className="text-link" href="/sponsors">Meet our sponsors <ArrowUpRight size={16} /></Link></div><SponsorRoster /></div>
+    </section>
+
     <JoinBanner />
   </main>;
 }

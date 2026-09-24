@@ -6,7 +6,7 @@ import { society } from "@/lib/public-content";
 const groups = [
   { title: "Discover", links: [["About the society", "/about"], ["Events", "/events"], ["Our committee", "/committee"], ["Competitions", "/competitions"]] },
   { title: "Go further", links: [["Careers", "/careers"], ["Research", "/research"], ["Resources", "/resources"], ["Ask EFDS", "/chat"]] },
-  { title: "Connect", links: [["Get in touch", "/contact"], ["Work with us", "/partners"], ["Member workspace", "/login"]] },
+  { title: "Connect", links: [["Get in touch", "/contact"], ["Our sponsors", "/sponsors"], ["Member workspace", "/login"]] },
 ];
 export function SiteFooter() {
   return <footer className="public-footer"><div className="container"><div className="footer-top">

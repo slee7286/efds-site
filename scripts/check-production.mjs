@@ -7,7 +7,7 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 const results = { public: [], protected: [], api: [], assets: [] };
 try {
-  for (const route of ["/", "/about", "/events", "/careers", "/research", "/competitions", "/resources", "/committee", "/partners", "/contact", "/chat", "/login"]) {
+  for (const route of ["/", "/about", "/events", "/careers", "/research", "/competitions", "/resources", "/committee", "/sponsors", "/partners", "/contact", "/chat", "/login"]) {
     const response = await page.goto(base + route);
     assert.equal(response.status(), 200, route);
     await page.locator("h1").waitFor();
