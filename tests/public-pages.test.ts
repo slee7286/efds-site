@@ -30,13 +30,15 @@ describe("public information pages", () => {
 });
 
 describe("sponsor acknowledgements", () => {
-  it("shows the requested tiers and a direct partnership email", () => {
+  it("groups the official sponsor marks by tier and keeps a direct partnership email", () => {
     const { container } = render(React.createElement(SponsorsPage));
-    const entries = Array.from(container.querySelectorAll(".sponsor-entry"));
-    expect(entries.map((entry) => entry.textContent)).toEqual([
-      expect.stringContaining("OptiverFounding Partner"),
-      expect.stringContaining("Cornerstone ResearchFounding Partner"),
-      expect.stringContaining("Jane StreetSponsor"),
+    const groups = Array.from(container.querySelectorAll(".sponsor-group"));
+    expect(groups.map((group) => ({ tier: group.querySelector("h3")?.textContent, names: Array.from(group.querySelectorAll(".sponsor-entry-caption span")).map((name) => name.textContent) }))).toEqual([
+      { tier: "Founding Partner", names: ["Optiver", "Cornerstone Research"] },
+      { tier: "Sponsor", names: ["Jane Street"] },
+    ]);
+    expect(Array.from(container.querySelectorAll(".sponsor-logo-wrap img")).map((logo) => logo.getAttribute("src"))).toEqual([
+      "/sponsors/optiver.svg", "/sponsors/cornerstone-research.svg", "/sponsors/jane-street.svg",
     ]);
     expect(container.querySelector(".sponsor-contact-link")?.getAttribute("href")).toBe("mailto:siheon.lee25@imperial.ac.uk");
   });

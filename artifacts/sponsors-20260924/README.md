@@ -1,0 +1,1 @@
+Local browser screenshots of the homepage and Sponsors page at 1440×1000, 768×1024 and 390×844. The homepage places the sponsor roster directly after the hero. All three logos are served from the locally stored official vector assets documented in `docs/SPONSOR_LOGO_SOURCES.md`.

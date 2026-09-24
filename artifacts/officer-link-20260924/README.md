@@ -1,0 +1,1 @@
+These desktop, tablet and mobile screenshots are a local visual preview of the new admin officer-link controls. The officer names and emails are illustrative fixtures; no production account was changed. The temporary preview route was removed after capture. A rollback-only live database test separately verified the link, unlink, audit and email-outbox behavior.

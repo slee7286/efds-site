@@ -202,12 +202,18 @@
 .committee-admin-page .ticket-metrics { margin: 30px 0 38px; }
 .committee-directory .panel-heading { align-items: baseline; }
 .committee-directory .panel-heading span { color: var(--ink-soft); font-size: 12px; }
+.committee-directory-help { color: var(--ink-soft); font-size: 13px; line-height: 1.65; max-width: 760px; margin: 0 0 22px; }
+.committee-directory-help a { color: var(--cobalt-dark); text-decoration: underline; text-underline-offset: 3px; }
 .committee-directory-grid { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .committee-directory-card { display: flex; flex-direction: column; gap: 24px; justify-content: space-between; min-height: 170px; padding: 20px; }
 .committee-directory-card h3 { font-size: 20px; font-weight: 500; margin: 10px 0 3px; }
 .committee-directory-card p { color: var(--ink-soft); font-size: 12px; margin: 0; }
 .committee-directory-link { align-items: center; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px; padding-top: 13px; }
 .committee-directory-link small { color: var(--ink-soft); font-size: 11px; overflow-wrap: anywhere; }
+.officer-account-form { display: grid; gap: 8px; flex-basis: 100%; min-width: 0; margin-top: 3px; }
+.officer-account-form .form-label { font-size: 11px; margin: 0; }
+.officer-account-form .input { min-width: 0; width: 100%; min-height: 43px; }
+.officer-account-form .button { justify-self: start; min-height: 43px; }
 .committee-directory-bottom { align-items: start; display: grid; gap: 18px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 35px; }
 .committee-directory-bottom h2 { font-size: 22px; font-weight: 500; }
 .committee-directory-bottom p { color: var(--ink-soft); font-size: 12px; line-height: 1.6; }

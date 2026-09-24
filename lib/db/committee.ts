@@ -11,6 +11,8 @@ export type CommitteeIdentity = {
   name: string;
   role: string;
   academicYear: string;
+  profileId: string | null;
+  profileVersion: number | null;
   profileEmail: string | null;
   profileName: string | null;
 };
@@ -23,7 +25,7 @@ export async function getCommitteeDirectory() {
   const supabase = await createServerSupabaseClient();
   const [officersResult, linkedResult, privilegedResult, membersResult] = await Promise.all([
     supabase.from("officers").select("id,name,role,academic_year").eq("active", true).order("name"),
-    supabase.from("profiles").select("email,full_name,officer_id").eq("active", true).not("officer_id", "is", null),
+    supabase.from("profiles").select("id,email,full_name,officer_id,access_version").eq("active", true).not("officer_id", "is", null),
     supabase.from("profiles").select("email,full_name,access_role,officer_id").eq("active", true).in("access_role", ["committee", "admin"]),
     supabase.from("profiles").select("email,full_name,access_role").eq("active", true).in("access_role", ["member", "efds_member"]).order("created_at", { ascending: false }).limit(12),
   ]);
@@ -37,6 +39,8 @@ export async function getCommitteeDirectory() {
     return {
       id: String(officer.id), name: String(officer.name), role: String(officer.role),
       academicYear: String(officer.academic_year),
+      profileId: profile ? String(profile.id) : null,
+      profileVersion: profile ? Number(profile.access_version) : null,
       profileEmail: profile ? String(profile.email) : null,
       profileName: profile?.full_name ? String(profile.full_name) : null,
     };

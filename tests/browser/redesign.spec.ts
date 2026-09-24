@@ -4,7 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 const publicRoutes = ["/", "/about", "/events", "/careers", "/research", "/competitions", "/resources", "/committee", "/sponsors", "/partners", "/contact", "/chat", "/privacy", "/terms", "/security"];
 const workspaceRoutes = ["/dashboard", "/dashboard/tickets", "/dashboard/tickets/new", "/dashboard/search", "/dashboard/slack", "/dashboard/knowledge", "/dashboard/careers", "/dashboard/jobs", "/dashboard/events", "/dashboard/chat", "/dashboard/profile", "/admin", "/admin/accounts", "/admin/search", "/admin/knowledge", "/admin/documents", "/admin/slack", "/admin/meetings", "/admin/operations", "/admin/committee", "/admin/integrations", "/admin/documents/files", "/admin/slack/channels", "/admin/meetings/all", "/admin/operations/actions", "/admin/operations/decisions", "/admin/operations/questions", "/admin/operations/timeline", "/admin/operations/new"];
 
-for (const route of [...publicRoutes, "/login", "/signup", "/access-denied", ...workspaceRoutes]) {
+for (const route of [...publicRoutes, "/login", "/signup", "/auth/verify-code?flow=setup", "/access-denied", ...workspaceRoutes]) {
   test(`${route} renders accessibly within the viewport`, async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
@@ -21,7 +21,7 @@ for (const route of [...publicRoutes, "/login", "/signup", "/access-denied", ...
   });
 }
 
-for (const route of ["/", "/about", "/events", "/resources", "/committee", "/sponsors", "/contact", "/chat", "/login", "/signup", "/dashboard", "/dashboard/profile", "/dashboard/tickets", "/admin", "/admin/accounts", "/admin/integrations", "/dashboard/search", "/admin/documents"]) {
+for (const route of ["/", "/about", "/events", "/resources", "/committee", "/sponsors", "/contact", "/chat", "/login", "/signup", "/auth/verify-code?flow=setup", "/dashboard", "/dashboard/profile", "/dashboard/tickets", "/admin", "/admin/accounts", "/admin/integrations", "/dashboard/search", "/admin/documents"]) {
   test(`${route} has no WCAG A/AA accessibility violations`, async ({ page }) => {
     await page.goto(route);
     const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
@@ -60,6 +60,7 @@ test("public navigation opens, restores focus and follows a destination", async 
 test("sponsors are visible on the homepage and reachable from navigation", async ({ page }, info) => {
   await page.goto("/");
   const home = page.locator(".sponsor-home");
+  await expect(page.locator("main > section").nth(1)).toHaveClass(/sponsor-home/);
   await expect(home).toContainText("Optiver");
   await expect(home).toContainText("Cornerstone Research");
   await expect(home).toContainText("Jane Street");
@@ -72,7 +73,8 @@ test("sponsors are visible on the homepage and reachable from navigation", async
   }
   await home.getByRole("link", { name: "Meet our sponsors" }).click();
   await expect(page).toHaveURL(/\/sponsors$/);
-  await expect(page.locator(".sponsor-tier")).toHaveText(["Founding Partner", "Founding Partner", "Sponsor"]);
+  await expect(page.locator(".sponsor-group-heading")).toHaveText(["Founding Partner", "Sponsor"]);
+  await expect(page.locator(".sponsor-logo-wrap img")).toHaveCount(3);
   await expect(page.getByRole("link", { name: "contact us" })).toHaveAttribute("href", "mailto:siheon.lee25@imperial.ac.uk");
 });
 
@@ -166,6 +168,10 @@ test("email access options show the selected task and expired setup returns to s
   await page.goto("/login?error=auth_link_expired&flow=setup");
   await expect(page.getByRole("heading", { name: "Set up your password." })).toBeVisible();
   await expect(page.getByRole("status")).toContainText("expired or has already been used");
+  await page.getByRole("link", { name: "Enter the code" }).click();
+  await expect(page).toHaveURL(/\/auth\/verify-code\?flow=setup$/);
+  await expect(page.getByRole("heading", { name: "Confirm your email." })).toBeVisible();
+  await page.goto("/login?error=auth_link_expired&flow=setup");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: `artifacts/editorial/login-setup-${info.project.name}.png`, fullPage: true });
 });

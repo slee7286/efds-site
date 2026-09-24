@@ -19,7 +19,7 @@ export const exploreNavigation = [...publicNavigation,
 
 // Sponsorship tiers supplied by the EFDS committee on 24 September 2026.
 export const sponsors = [
-  { name: "Optiver", tier: "Founding Partner", href: "https://www.optiver.com/" },
-  { name: "Cornerstone Research", tier: "Founding Partner", href: "https://www.cornerstone.com/" },
-  { name: "Jane Street", tier: "Sponsor", href: "https://www.janestreet.com/" },
+  { name: "Optiver", tier: "Founding Partner", href: "https://www.optiver.com/", logo: "/sponsors/optiver.svg", logoWidth: 218, logoHeight: 48 },
+  { name: "Cornerstone Research", tier: "Founding Partner", href: "https://www.cornerstone.com/", logo: "/sponsors/cornerstone-research.svg", logoWidth: 318, logoHeight: 40 },
+  { name: "Jane Street", tier: "Sponsor", href: "https://www.janestreet.com/", logo: "/sponsors/jane-street.svg", logoWidth: 181, logoHeight: 49 },
 ] as const;
