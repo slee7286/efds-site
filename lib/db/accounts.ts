@@ -21,6 +21,27 @@ export type ReviewAccount = {
 
 export type OfficerOption = { id: string; name: string; role: string; academicYear: string };
 export type AccountAccessEvent = { id: string; action: string; targetProfileId: string; actorProfileId: string; occurredAt: string; reason: string | null };
+export type AccountNoticeHealth = {
+  pending: number;
+  sending: number;
+  accepted7d: number;
+  needsAttention: number;
+  oldestPendingAt: string | null;
+};
+
+export async function getAccountNoticeHealth(): Promise<AccountNoticeHealth | null> {
+  if (!isSupabaseConfigured) return null;
+  await requireRole("admin");
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("account_status_notice_health");
+  if (error || !Array.isArray(data) || !data[0]) return null;
+  const row = data[0];
+  return {
+    pending: Number(row.pending), sending: Number(row.sending),
+    accepted7d: Number(row.accepted_7d), needsAttention: Number(row.needs_attention),
+    oldestPendingAt: row.oldest_pending_at ? String(row.oldest_pending_at) : null,
+  };
+}
 
 export async function getAccountReviewData(status: "pending" | "all" = "pending", page = 1) {
   const empty = { accounts: [] as ReviewAccount[], officers: [] as OfficerOption[], events: [] as AccountAccessEvent[], pendingCount: 0, accountCount: 0 };

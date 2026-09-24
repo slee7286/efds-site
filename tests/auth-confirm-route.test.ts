@@ -118,7 +118,9 @@ describe("email confirmation that requires a deliberate submission", () => {
   it("explains expired or consumed links without creating a profile", async () => {
     verifyOtp.mockResolvedValue({ data: { user: null, session: null }, error: { code: "otp_expired" } });
     const { fields, cookie } = await confirmation();
-    expect((await POST(submission(fields, cookie))).headers.get("location")).toBe(`${origin}/login?error=auth_link_expired`);
+    expect((await POST(submission(fields, cookie))).headers.get("location")).toBe(`${origin}/login?error=auth_link_expired&flow=magic`);
+    const setup = await confirmation("email", `${origin}/auth/recovery?flow=setup`);
+    expect((await POST(submission(setup.fields, setup.cookie))).headers.get("location")).toBe(`${origin}/login?error=auth_link_expired&flow=setup`);
     expect(provisionAuthenticatedProfile).not.toHaveBeenCalled();
   });
 
@@ -138,7 +140,7 @@ describe("email confirmation that requires a deliberate submission", () => {
   it("does not silently accept an empty session from other verification flows", async () => {
     verifyOtp.mockResolvedValue({ data: { user: null, session: null }, error: null });
     const { fields, cookie } = await confirmation("email");
-    expect((await POST(submission(fields, cookie))).headers.get("location")).toBe(`${origin}/login?error=auth_link_expired`);
+    expect((await POST(submission(fields, cookie))).headers.get("location")).toBe(`${origin}/login?error=auth_link_expired&flow=magic`);
     expect(provisionAuthenticatedProfile).not.toHaveBeenCalled();
   });
 

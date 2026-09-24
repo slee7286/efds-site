@@ -23,8 +23,21 @@ describe("member account entry", () => {
 
   it("starts account creation with an emailed setup link", () => {
     render(<LoginForm initialAction="setup" />);
+    expect(screen.getByRole("heading", { name: "Set up your password." })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Email me an account link" })).toBeTruthy();
     expect(screen.queryByLabelText("Password")).toBeNull();
+  });
+
+  it("updates the page heading for each email option", () => {
+    render(<LoginForm />);
+    fireEvent.click(screen.getByRole("button", { name: "Forgot password?" }));
+    expect(screen.getByRole("heading", { name: "Reset your password." })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Sign in with password" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sign in by email link" }));
+    expect(screen.getByRole("heading", { name: "Sign in by email link." })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Sign in with password" }));
+    fireEvent.click(screen.getByRole("button", { name: "First time? Set up password" }));
+    expect(screen.getByRole("heading", { name: "Set up your password." })).toBeTruthy();
   });
 
   it("allows an existing short password to reach Supabase instead of rejecting it locally", async () => {

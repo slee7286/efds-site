@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { AccountReviewForm } from "@/components/admin/account-review-form";
 import { getCurrentProfile } from "@/lib/auth/server";
 import { roleLabel } from "@/lib/auth/roles";
-import { getAccountReviewData } from "@/lib/db/accounts";
+import { getAccountNoticeHealth, getAccountReviewData } from "@/lib/db/accounts";
 
 export const metadata: Metadata = { title: "Account review" };
 
@@ -20,7 +20,7 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
   const status = params.status === "all" ? "all" : "pending";
   const requestedPage = Number(params.page);
   const page = Number.isInteger(requestedPage) && requestedPage > 0 && requestedPage <= 1000 ? requestedPage : 1;
-  const [data, actor] = await Promise.all([getAccountReviewData(status, page), getCurrentProfile()]);
+  const [data, actor, noticeHealth] = await Promise.all([getAccountReviewData(status, page), getCurrentProfile(), getAccountNoticeHealth()]);
   const names = new Map(data.accounts.map((account) => [account.id, account.fullName || account.email]));
 
   return <div className="app-content account-review-page">
@@ -28,10 +28,22 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
     <h1>Know who has<br />access.</h1>
     <p className="app-subtitle">Review EFDS membership before granting resource access. Committee and admin roles are separate decisions, recorded with the reviewer and date.</p>
     {params.error && errors[params.error] && <p className="form-error account-review-message" role="alert">{errors[params.error]}</p>}
-    {params.notice === "reviewed" && <p className="account-review-message" role="status">Decision saved. The account and audit history are up to date.</p>}
+    {params.notice === "queued" && <p className="account-review-message" role="status">Decision saved. The account email is queued and normally sent within a minute.</p>}
+    {params.notice === "accepted" && <p className="account-review-message" role="status">Decision saved. An email provider accepted the account notification.</p>}
+    {params.notice === "attention" && <p className="form-error account-review-message" role="alert">Decision saved, but its email needs attention. Check notification delivery below.</p>}
+    {params.notice === "unchanged" && <p className="account-review-message" role="status">Decision saved. Account access did not change, so no new email was sent.</p>}
+    {params.notice === "unavailable" && <p className="form-error account-review-message" role="alert">Decision saved. Email status could not be confirmed; check notification delivery below.</p>}
     <section className="account-review-intro surface" aria-label="Review guidance">
       <div><strong>{data.pendingCount}</strong><span>accounts awaiting review or follow-up</span></div>
       <p>An Imperial email confirms university affiliation, not society membership. Check the claim against an independent EFDS membership or committee record before approving. New accounts retain full event access while their resource access remains limited.</p>
+    </section>
+    <section className="surface account-review-intro" aria-label="Account email delivery">
+      <div><strong>{noticeHealth ? noticeHealth.pending + noticeHealth.sending : "—"}</strong><span>account emails awaiting provider acceptance</span></div>
+      <p>{noticeHealth
+        ? <>{noticeHealth.accepted7d} accepted by an email provider in the last 7 days. {noticeHealth.needsAttention > 0
+          ? <strong role="alert">{noticeHealth.needsAttention} need investigation before another send.</strong>
+          : "No delivery attempts currently need investigation."} Provider acceptance does not confirm an inbox read.</>
+        : "Email delivery status is temporarily unavailable. Check the mail worker and database migration."}</p>
     </section>
     <nav className="account-review-tabs" aria-label="Account review filters">
       <Link href="/admin/accounts" aria-current={status === "pending" ? "page" : undefined}>Needs review <span>{data.pendingCount}</span></Link>

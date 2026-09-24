@@ -12,6 +12,28 @@ const emailSchema = z.string().trim().email().max(320);
 const passwordSchema = z.string().min(1, "Enter your password.");
 const genericEmailMessage = "If this email is eligible for EFDS access, you will receive an email with the next step.";
 const emailDeliveryNotice = "Check your inbox and junk folder. Use the newest link; delivery can take a few minutes.";
+const headings: Record<EmailAction, { eyebrow: string; title: string; description: string }> = {
+  password: {
+    eyebrow: "Welcome back",
+    title: "Sign in to EFDS.",
+    description: "Use your email and password or request a secure email link.",
+  },
+  reset: {
+    eyebrow: "Account recovery",
+    title: "Reset your password.",
+    description: "Enter your account email and we’ll send you a fresh password reset link.",
+  },
+  magic: {
+    eyebrow: "Password-free access",
+    title: "Sign in by email link.",
+    description: "Enter your account email and open the secure link we send you.",
+  },
+  setup: {
+    eyebrow: "First-time access",
+    title: "Set up your password.",
+    description: "Enter your email to receive a link for confirming your account and choosing a password.",
+  },
+};
 
 function intentForAction(action: EmailAction): EmailAuthIntent | null {
   if (action === "setup" || action === "reset") return action;
@@ -25,6 +47,8 @@ export function LoginForm({ initialMessage = "", initialAction = "password", goo
   const [message, setMessage] = useState(initialMessage);
   const [pending, setPending] = useState(false);
   const cooldown = useEmailCooldown(intentForAction(action), email);
+  const heading = headings[action];
+  const chooseAction = (next: EmailAction) => { setAction(next); setMessage(""); };
 
   async function signInWithGoogle() {
     setPending(true); setMessage("");
@@ -97,7 +121,9 @@ export function LoginForm({ initialMessage = "", initialAction = "password", goo
   const emailButtonLabel = pending ? "Sending…" : cooldown.active ? `Resend in ${cooldown.seconds}s` : action === "magic" ? "Send secure email link" : action === "setup" ? "Email me an account link" : "Send reset email";
 
   return <div>
-    <div className="eyebrow" style={{ marginBottom: 14 }}>{action === "setup" ? "Create your member account" : "Sign in with email"}</div>
+    <div className="eyebrow">{heading.eyebrow}</div>
+    <h2 aria-live="polite">{heading.title}</h2>
+    <p>{heading.description}{action === "password" && googleEnabled ? " You can also continue with Google." : ""}</p>
     {action === "password" ? <form onSubmit={signInWithPassword}>
         <label className="auth-label" htmlFor="login-email">Email address</label>
         <input className="auth-input" id="login-email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@imperial.ac.uk" />
@@ -111,8 +137,8 @@ export function LoginForm({ initialMessage = "", initialAction = "password", goo
       </form>}
     {message && <p className="auth-footnote" role="status">{message}</p>}
       <div className="ops-inline" style={{ marginTop: 12, gap: 12, flexWrap: "wrap" }}>
-        {action !== "password" && <button className="button button-quiet" type="button" onClick={() => { setAction("password"); setMessage(""); }}>Sign in with password</button>}
-        {action === "password" && <><button className="button button-quiet" type="button" onClick={() => setAction("reset")}>Forgot password?</button><button className="button button-quiet" type="button" onClick={() => setAction("magic")}>Sign in by email link</button><button className="button button-quiet" type="button" onClick={() => setAction("setup")}>First time? Set up password</button></>}
+        {action !== "password" && <button className="button button-quiet" type="button" onClick={() => chooseAction("password")}>Sign in with password</button>}
+        {action === "password" && <><button className="button button-quiet" type="button" onClick={() => chooseAction("reset")}>Forgot password?</button><button className="button button-quiet" type="button" onClick={() => chooseAction("magic")}>Sign in by email link</button><button className="button button-quiet" type="button" onClick={() => chooseAction("setup")}>First time? Set up password</button></>}
       </div>
     <div className="auth-divider">or</div>
     <button className="provider-button" type="button" disabled={pending || !googleEnabled} onClick={signInWithGoogle}><span className="google-mark" aria-hidden="true">G</span>{pending ? "Connecting…" : googleEnabled ? "Continue with Google" : "Google sign-in is being configured"}</button>

@@ -153,6 +153,23 @@ test("email sign-in is primary and unavailable Google sign-in cannot be started"
   await expect(page.getByRole("button", { name: "Google sign-in is being configured" })).toBeDisabled();
 });
 
+test("email access options show the selected task and expired setup returns to setup", async ({ page }, info) => {
+  await page.goto("/login");
+  await page.getByRole("button", { name: "Forgot password?" }).click();
+  await expect(page.getByRole("heading", { name: "Reset your password." })).toBeVisible();
+  await page.getByRole("button", { name: "Sign in with password" }).click();
+  await page.getByRole("button", { name: "Sign in by email link" }).click();
+  await expect(page.getByRole("heading", { name: "Sign in by email link." })).toBeVisible();
+  await page.getByRole("button", { name: "Sign in with password" }).click();
+  await page.getByRole("button", { name: "First time? Set up password" }).click();
+  await expect(page.getByRole("heading", { name: "Set up your password." })).toBeVisible();
+  await page.goto("/login?error=auth_link_expired&flow=setup");
+  await expect(page.getByRole("heading", { name: "Set up your password." })).toBeVisible();
+  await expect(page.getByRole("status")).toContainText("expired or has already been used");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: `artifacts/editorial/login-setup-${info.project.name}.png`, fullPage: true });
+});
+
 test("signup opens a member account flow without an admin approval step", async ({ page }) => {
   await page.route("**/api/auth/external/password-email", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({ message: "If this email is eligible for EFDS access, you will receive an email with the next step." }) }));
   await page.goto("/signup");

@@ -80,11 +80,20 @@ export async function POST(request: NextRequest) {
 
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.auth.verifyOtp({ token_hash: token, type });
-  if (error) return redirect("/login?error=auth_link_expired");
+  const retryFlow = flow === "setup" ? "setup" : flow === "reset" ? "reset" : flow === "magic_link" ? "magic" : null;
+  const retryPath = `/login?error=auth_link_expired${retryFlow ? `&flow=${retryFlow}` : ""}`;
+  if (error) {
+    // Keep the reason visible in server logs without recording the token,
+    // recipient or confirmation URL.
+    console.warn("efds_email_confirmation_rejected", {
+      flow, code: error.code ?? "unknown", status: error.status ?? null,
+    });
+    return redirect(retryPath);
+  }
   // With secure email change, the first address returns no session or user.
   // It is still confirmed; the second address completes the change.
   if (type === "email_change" && !data.session && !data.user) return redirect("/auth/email-change-pending");
-  if (!data.session || !data.user) return redirect("/login?error=auth_link_expired");
+  if (!data.session || !data.user) return redirect(retryPath);
   const profile = await provisionAuthenticatedProfile(data.user, supabase);
   const access = await evaluateUserAccess(data.user, supabase);
   if (!profile || !access.allowed) {
