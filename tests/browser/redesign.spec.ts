@@ -4,7 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 const publicRoutes = ["/", "/about", "/events", "/careers", "/research", "/competitions", "/resources", "/committee", "/partners", "/contact", "/chat", "/privacy", "/terms", "/security"];
 const workspaceRoutes = ["/dashboard", "/dashboard/tickets", "/dashboard/tickets/new", "/dashboard/search", "/dashboard/slack", "/dashboard/knowledge", "/dashboard/careers", "/dashboard/jobs", "/dashboard/events", "/dashboard/chat", "/dashboard/profile", "/admin", "/admin/accounts", "/admin/search", "/admin/knowledge", "/admin/documents", "/admin/slack", "/admin/meetings", "/admin/operations", "/admin/committee", "/admin/integrations", "/admin/documents/files", "/admin/slack/channels", "/admin/meetings/all", "/admin/operations/actions", "/admin/operations/decisions", "/admin/operations/questions", "/admin/operations/timeline", "/admin/operations/new"];
 
-for (const route of [...publicRoutes, "/login", "/access-denied", ...workspaceRoutes]) {
+for (const route of [...publicRoutes, "/login", "/signup", "/access-denied", ...workspaceRoutes]) {
   test(`${route} renders accessibly within the viewport`, async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
@@ -21,7 +21,7 @@ for (const route of [...publicRoutes, "/login", "/access-denied", ...workspaceRo
   });
 }
 
-for (const route of ["/", "/about", "/events", "/resources", "/committee", "/contact", "/chat", "/login", "/dashboard", "/dashboard/profile", "/dashboard/tickets", "/admin", "/admin/accounts", "/admin/integrations", "/dashboard/search", "/admin/documents"]) {
+for (const route of ["/", "/about", "/events", "/resources", "/committee", "/contact", "/chat", "/login", "/signup", "/dashboard", "/dashboard/profile", "/dashboard/tickets", "/admin", "/admin/accounts", "/admin/integrations", "/dashboard/search", "/admin/documents"]) {
   test(`${route} has no WCAG A/AA accessibility violations`, async ({ page }) => {
     await page.goto(route);
     const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
@@ -121,6 +121,17 @@ test("email sign-in is primary and unavailable Google sign-in cannot be started"
   await expect(page.getByLabel("Email address")).toBeVisible();
   await expect(page.getByRole("button", { name: "Continue with Microsoft" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Google sign-in is being configured" })).toBeDisabled();
+});
+
+test("signup opens a member account flow without an admin approval step", async ({ page }) => {
+  await page.route("**/api/auth/external/password-email", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({ message: "If this email is eligible for EFDS access, you will receive an email with the next step." }) }));
+  await page.goto("/signup");
+  await expect(page.getByRole("heading", { name: "Start as a member." })).toBeVisible();
+  await page.getByLabel("Email address", { exact: true }).fill("browser-test@imperial.ac.uk");
+  await page.getByRole("button", { name: "Email me an account link" }).click();
+  await expect(page.getByRole("status")).toContainText("you will receive an email");
+  await expect(page.getByRole("button", { name: /Resend in/ })).toBeDisabled();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
 test("tickets preview has a useful empty state and a clearly disabled create form", async ({ page }) => {

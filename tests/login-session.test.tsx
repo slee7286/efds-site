@@ -12,6 +12,7 @@ vi.mock("@/lib/config", () => ({ isSupabaseConfigured: true, config: { siteUrl: 
 vi.mock("@/lib/auth/provider-availability", () => ({ isGoogleSignInAvailable: async () => false }));
 
 import LoginPage from "../app/(auth)/login/page";
+import SignupPage from "../app/(auth)/signup/page";
 
 describe("login with an existing session", () => {
   beforeEach(() => {
@@ -32,5 +33,12 @@ describe("login with an existing session", () => {
     const page = await LoginPage({ searchParams: Promise.resolve({}) });
     expect(page.type).toBe("main");
     expect(auth.redirect).not.toHaveBeenCalled();
+  });
+
+  it("opens signup for a new visitor and returns an existing member to the dashboard", async () => {
+    auth.getAuthUser.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: "member-id" });
+    auth.evaluateUserAccess.mockResolvedValue({ allowed: true });
+    expect((await SignupPage()).type).toBe("main");
+    await expect(SignupPage()).rejects.toThrow("redirect:/dashboard");
   });
 });

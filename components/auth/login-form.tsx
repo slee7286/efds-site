@@ -9,17 +9,17 @@ import { type EmailAuthIntent, useEmailCooldown } from "@/lib/auth/email-cooldow
 
 type EmailAction = "password" | "magic" | "setup" | "reset";
 const emailSchema = z.string().trim().email().max(320);
-const passwordSchema = z.string().min(8, "Your password must be at least 8 characters long.");
+const passwordSchema = z.string().min(1, "Enter your password.");
 const genericEmailMessage = "If this email is eligible for EFDS access, you will receive an email with the next step.";
-const emailDeliveryNotice = "Due to Imperial's Microsoft 365 mail processing and screening, emails to Imperial addresses can take a few minutes to arrive in your inbox.";
+const emailDeliveryNotice = "Check your inbox and junk folder. Use the newest link; delivery can take a few minutes.";
 
 function intentForAction(action: EmailAction): EmailAuthIntent | null {
   if (action === "setup" || action === "reset") return action;
   return action === "magic" ? "magic_link" : null;
 }
 
-export function LoginForm({ initialMessage = "", googleEnabled = false }: { initialMessage?: string; googleEnabled?: boolean }) {
-  const [action, setAction] = useState<EmailAction>("password");
+export function LoginForm({ initialMessage = "", initialAction = "password", googleEnabled = false }: { initialMessage?: string; initialAction?: EmailAction; googleEnabled?: boolean }) {
+  const [action, setAction] = useState<EmailAction>(initialAction);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState(initialMessage);
@@ -60,7 +60,12 @@ export function LoginForm({ initialMessage = "", googleEnabled = false }: { init
     try {
       const supabase = createBrowserSupabaseClient();
       const { error } = await supabase.auth.signInWithPassword({ email: parsedEmail.data.toLowerCase(), password: parsedPassword.data });
-      if (error) throw new Error("Email or password is incorrect.");
+      if (error) {
+        if (error.code === "email_not_confirmed" || /email not confirmed/i.test(error.message)) {
+          throw new Error("Confirm your email using the newest EFDS account email, or request a new account link.");
+        }
+        throw new Error("Email or password is incorrect.");
+      }
       const result = await authorizePasswordSession();
       window.location.assign(result.redirect ?? "/dashboard");
     } catch (error) {
@@ -89,10 +94,10 @@ export function LoginForm({ initialMessage = "", googleEnabled = false }: { init
     }
   }
 
-  const emailButtonLabel = pending ? "Sending…" : cooldown.active ? `Resend in ${cooldown.seconds}s` : action === "magic" ? "Send secure email link" : action === "setup" ? "Send setup email" : "Send reset email";
+  const emailButtonLabel = pending ? "Sending…" : cooldown.active ? `Resend in ${cooldown.seconds}s` : action === "magic" ? "Send secure email link" : action === "setup" ? "Email me an account link" : "Send reset email";
 
   return <div>
-    <div className="eyebrow" style={{ marginBottom: 14 }}>Sign in with email</div>
+    <div className="eyebrow" style={{ marginBottom: 14 }}>{action === "setup" ? "Create your member account" : "Sign in with email"}</div>
     {action === "password" ? <form onSubmit={signInWithPassword}>
         <label className="auth-label" htmlFor="login-email">Email address</label>
         <input className="auth-input" id="login-email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@imperial.ac.uk" />
