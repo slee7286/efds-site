@@ -6,6 +6,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { buildTicketTimeline, type CommitteeTicketChange, type SlackTicketMessage, type SlackTicketReaction, type TicketTimeline } from "@/lib/tickets/activity";
 
 export type TicketStatus = "open" | "in_progress" | "blocked" | "completed" | "cancelled";
+export type IndividualTicketStatus = Exclude<TicketStatus, "cancelled">;
 export type TicketOfficer = { id: string; name: string; role: string };
 export type Ticket = {
   id: string;
@@ -22,6 +23,8 @@ export type Ticket = {
   ownerText: string | null;
   sourceMessageId: string | null;
   assignees: TicketOfficer[];
+  individualProgressEnabled?: boolean;
+  individualProgress?: Record<string, IndividualTicketStatus>;
 };
 
 type Row = Record<string, unknown>;
@@ -33,6 +36,9 @@ function string(value: unknown): string { return typeof value === "string" ? val
 function optional(value: unknown): string | null { return typeof value === "string" && value.length > 0 ? value : null; }
 function ticketStatus(value: unknown): TicketStatus {
   return ["open", "in_progress", "blocked", "completed", "cancelled"].includes(string(value)) ? value as TicketStatus : "open";
+}
+function individualStatus(value: unknown): IndividualTicketStatus {
+  return ["open", "in_progress", "blocked", "completed"].includes(string(value)) ? value as IndividualTicketStatus : "open";
 }
 
 async function allTicketChannelMessages(supabase: Client, channelId: string) {
@@ -125,11 +131,16 @@ export async function getTicketWorkspace() {
   }
   const tickets: Ticket[] = (ticketsResult.data ?? []).map((row: Row) => {
     const metadata = row.metadata && typeof row.metadata === "object" ? row.metadata as Row : {};
+    const progress = metadata.individual_progress && typeof metadata.individual_progress === "object" ? metadata.individual_progress as Row : {};
+    const statuses = progress.statuses && typeof progress.statuses === "object" ? progress.statuses as Row : {};
+    const assignees = assignments.get(string(row.id)) ?? [];
     return {
       id: string(row.id), title: string(row.title), description: optional(row.description), workstream: optional(row.workstream),
       priority: optional(row.priority), dueAt: optional(row.due_at), dueText: optional(row.due_text), status: ticketStatus(row.execution_status),
       reviewVersion: Number(row.review_version ?? 1), createdAt: string(row.created_at), updatedAt: string(row.updated_at),
-      ownerText: optional(row.owner_text), sourceMessageId: optional(metadata.slack_message_id), assignees: assignments.get(string(row.id)) ?? [],
+      ownerText: optional(row.owner_text), sourceMessageId: optional(metadata.slack_message_id), assignees,
+      individualProgressEnabled: progress.enabled === true && assignees.length >= 2,
+      individualProgress: Object.fromEntries(assignees.map((officer) => [officer.id, individualStatus(statuses[officer.id])])),
     };
   });
   return { tickets, officers, ...(await getTicketActivityData(supabase, tickets, officers)) };

@@ -24,17 +24,20 @@ describe("ticket relationship graph", () => {
   });
 
   it("lets committee members focus a workstream or person and open a ticket", () => {
-    render(<TicketGraph tickets={tickets} />);
+    const { container } = render(<TicketGraph tickets={tickets} />);
     const inspector = screen.getByRole("complementary", { name: "Graph selection details" });
     expect(within(inspector).getByText("3")).toBeTruthy();
+    expect(container.querySelectorAll(".ticket-graph-lines path")).toHaveLength(3); // One quiet workstream link per ticket.
 
     const events = screen.getByRole("button", { name: "Focus workstream Events, 2 tickets" });
     fireEvent.click(events);
+    expect(container.querySelectorAll(".ticket-graph-lines path")).toHaveLength(2); // No assignment tangle for a whole cluster.
     expect(events.getAttribute("aria-pressed")).toBe("true");
     expect(within(inspector).getByRole("heading", { name: "Events" })).toBeTruthy();
     expect(within(inspector).getAllByRole("link")).toHaveLength(2);
 
     fireEvent.click(screen.getByRole("button", { name: "Focus Alice Lee, 2 tickets" }));
+    expect(container.querySelectorAll(".ticket-graph-lines path")).toHaveLength(4); // Two workstream and two focused assignment links.
     expect(within(inspector).getByRole("heading", { name: "Alice Lee" })).toBeTruthy();
     expect(within(inspector).getByText("Events lead")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Open ticket Confirm speaker, Blocked" }).getAttribute("href")).toBe("/dashboard/tickets/ticket-a");

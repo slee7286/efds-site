@@ -66,6 +66,37 @@ export async function ticketAction(formData: FormData) {
   redirect(finalId ? `/dashboard/tickets/${finalId}?saved=${action.data}` : "/dashboard/tickets");
 }
 
+export async function updateIndividualTicketProgress(formData: FormData) {
+  const ticketId = z.string().uuid().safeParse(value(formData, "ticketId"));
+  const location = ticketId.success ? `/dashboard/tickets/${ticketId.data}` : "/dashboard/tickets";
+  const version = z.coerce.number().int().positive().safeParse(value(formData, "expectedVersion"));
+  const action = value(formData, "progressAction");
+  if (!ticketId.success || !version.success || !["mode", "status"].includes(action)) redirect(`${location}?progressError=invalid`);
+  if (!isSupabaseConfigured) redirect(`${location}?progressError=unavailable`);
+  await requireRole("committee");
+  const officerId = action === "status" ? z.string().uuid().safeParse(value(formData, "officerId")) : null;
+  const status = action === "status" ? statusSchema.exclude(["cancelled"]).safeParse(value(formData, "individualStatus")) : null;
+  const enabled = action === "mode" ? value(formData, "enabled") : null;
+  if (action === "status" && (!officerId?.success || !status?.success)) redirect(`${location}?progressError=invalid`);
+  if (action === "mode" && !["true", "false"].includes(enabled ?? "")) redirect(`${location}?progressError=invalid`);
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.rpc("set_committee_ticket_individual_progress", {
+    p_ticket_id: ticketId.data,
+    p_expected_version: version.data,
+    p_enabled: action === "mode" ? enabled === "true" : null,
+    p_officer_id: officerId?.success ? officerId.data : null,
+    p_status: status?.success ? status.data : null,
+  });
+  if (error) {
+    const code = error.code === "P0006" ? "conflict" : error.code === "P0001" ? "forbidden" : error.code === "P0008" ? "invalid" : "save_failed";
+    redirect(`${location}?progressError=${code}`);
+  }
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/tickets");
+  revalidatePath(location);
+  redirect(`${location}?progressSaved=${action}`);
+}
+
 export async function remindTicketAssignees(formData: FormData) {
   const ticketId = z.string().uuid().safeParse(value(formData, "ticketId"));
   const location = ticketId.success ? `/dashboard/tickets/${ticketId.data}` : "/dashboard/tickets";

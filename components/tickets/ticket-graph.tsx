@@ -7,7 +7,7 @@ import { statusLabel } from "@/components/tickets/ticket-card";
 import { buildTicketGraph, type GraphNode, type GraphTicket } from "@/lib/tickets/graph";
 
 function pathBetween(from: GraphNode, to: GraphNode) {
-  const startX = from.kind === "workstream" ? from.x + 174 : from.x + 276;
+  const startX = from.kind === "workstream" ? from.x + 159 : from.x + 256;
   const endX = to.x;
   const bend = (endX - startX) * 0.48;
   return `M ${startX} ${from.y} C ${startX + bend} ${from.y}, ${endX - bend} ${to.y}, ${endX} ${to.y}`;
@@ -24,26 +24,35 @@ export function TicketGraph({ tickets }: { tickets: GraphTicket[] }) {
   const activeTicketIds = new Set(activeNode?.ticketIds ?? []);
   const related = (node: GraphNode) => !activeNode || node.ticketIds.some((id) => activeTicketIds.has(id));
   const connectedTickets = activeNode ? graph.tickets.filter((node) => activeTicketIds.has(node.ticket!.id)) : [];
+  const visibleEdges = graph.edges.filter((edge) => {
+    if (!activeNode) return edge.kind === "workstream";
+    if (!activeTicketIds.has(edge.ticketId)) return false;
+    if (edge.kind === "workstream") return true;
+    return activeNode.kind === "ticket" ? edge.from.key === activeNode.key : activeNode.kind === "person" && edge.to.key === activeNode.key;
+  });
 
   function focusNode(key: string) {
     setSelectedKey((current) => current === key ? null : key);
     setHoverKey(null);
   }
 
+  if (!tickets.length) return <section className="ticket-graph ticket-graph-empty" aria-label="Committee relationship map"><div className="ticket-graph-heading"><div><span className="eyebrow">Committee relationship map</span><h2>No active relationships yet.</h2><p>New active tickets and their assignments will appear here.</p></div></div><Link className="text-link" href="/dashboard/tickets/new">Create a ticket <ArrowUpRight size={15} /></Link></section>;
+
   return <section className="ticket-graph" aria-labelledby="ticket-graph-heading">
     <div className="ticket-graph-heading">
-      <div><span className="eyebrow">Committee relationship map</span><h2 id="ticket-graph-heading">Projects, tickets, people.</h2><p>Click a workstream or person to trace their tickets. Click a ticket to open its details.</p></div>
+      <div><span className="eyebrow">Committee relationship map</span><h2 id="ticket-graph-heading">Projects, tickets, people.</h2><p>Choose a person to reveal assignments, or a workstream to focus its tickets. Open any ticket for details.</p></div>
       <div className="ticket-graph-key" aria-label="Ticket status key"><span><i className="graph-dot graph-dot-blocked" /> Blocked</span><span><i className="graph-dot graph-dot-in_progress" /> In progress</span><span><i className="graph-dot graph-dot-open" /> Open</span><span><i className="graph-dot graph-dot-completed" /> Completed</span><span><i className="graph-dot graph-dot-cancelled" /> Cancelled</span></div>
     </div>
-    <div className="ticket-graph-jumps" aria-label="Move through graph columns"><span>Jump to</span><button type="button" onClick={() => viewport.current?.scrollTo({ left: 0 })}>Workstreams</button><button type="button" onClick={() => viewport.current?.scrollTo({ left: 268 })}>Tickets</button><button type="button" onClick={() => viewport.current?.scrollTo({ left: graph.width })}>People</button></div>
+    <div className="ticket-graph-jumps" aria-label="Move through graph columns"><span>Jump to</span><button type="button" onClick={() => viewport.current?.scrollTo({ left: 0 })}>Workstreams</button><button type="button" onClick={() => viewport.current?.scrollTo({ left: 190 })}>Tickets</button><button type="button" onClick={() => viewport.current?.scrollTo({ left: graph.width })}>People</button></div>
     <div className="ticket-graph-layout">
       <div ref={viewport} className="ticket-graph-viewport" role="region" aria-label="Interactive ticket graph; scroll to explore" tabIndex={0}>
         <div className="ticket-graph-canvas" style={{ width: graph.width, height: graph.height }}>
           <div className="ticket-graph-axis ticket-graph-axis-workstreams">01 / Workstreams</div>
           <div className="ticket-graph-axis ticket-graph-axis-tickets">02 / Tickets</div>
           <div className="ticket-graph-axis ticket-graph-axis-people">03 / People</div>
+          {graph.clusters.map((cluster) => <div className="ticket-graph-cluster" key={cluster.key} style={{ top: cluster.top, height: cluster.height }} aria-hidden="true" />)}
           <svg className="ticket-graph-lines" width={graph.width} height={graph.height} viewBox={`0 0 ${graph.width} ${graph.height}`} aria-hidden="true" focusable="false">
-            {graph.edges.map((edge) => <path key={edge.key} d={pathBetween(edge.from, edge.to)} className={activeNode ? activeTicketIds.has(edge.ticketId) ? "graph-line graph-line-active" : "graph-line graph-line-muted" : "graph-line"} />)}
+            {visibleEdges.map((edge) => <path key={edge.key} d={pathBetween(edge.from, edge.to)} className={activeNode ? "graph-line graph-line-active" : "graph-line"} />)}
           </svg>
           {graph.workstreams.map((node) => <button key={node.key} type="button" className={`graph-node graph-workstream${related(node) ? "" : " graph-node-muted"}${selectedKey === node.key ? " graph-node-selected" : ""}`} style={{ left: node.x, top: node.y }} onClick={() => focusNode(node.key)} onMouseEnter={() => setHoverKey(node.key)} onMouseLeave={() => setHoverKey(null)} onFocus={() => setHoverKey(node.key)} onBlur={() => setHoverKey(null)} aria-pressed={selectedKey === node.key} aria-label={`Focus workstream ${node.label}, ${node.ticketIds.length} tickets`} title={node.label}><span className="graph-node-name">{node.label}</span><span className="graph-node-count">{node.ticketIds.length}</span></button>)}
           {graph.tickets.map((node) => <Link key={node.key} className={`graph-node graph-ticket graph-ticket-${node.ticket!.status}${related(node) ? "" : " graph-node-muted"}`} style={{ left: node.x, top: node.y }} href={`/dashboard/tickets/${node.ticket!.id}`} prefetch={false} onMouseEnter={() => setHoverKey(node.key)} onMouseLeave={() => setHoverKey(null)} onFocus={() => setHoverKey(node.key)} onBlur={() => setHoverKey(null)} aria-label={`Open ticket ${node.label}, ${statusLabel[node.ticket!.status]}`} title={node.label}><i className={`graph-dot graph-dot-${node.ticket!.status}`} aria-hidden="true" /><span className="graph-node-name">{node.label}</span><ArrowUpRight size={13} aria-hidden="true" /></Link>)}
@@ -55,6 +64,6 @@ export function TicketGraph({ tickets }: { tickets: GraphTicket[] }) {
         {activeNode ? <><h3>{activeNode.label}</h3><p>{activeNode.kind === "person" ? activeNode.role || "No roster assignment" : activeNode.kind === "workstream" ? "Workstream / project" : `${statusLabel[activeNode.ticket!.status]}${activeNode.ticket!.priority ? ` · ${activeNode.ticket!.priority} priority` : ""}`}</p><div className="ticket-graph-inspector-count"><strong>{connectedTickets.length}</strong><span>connected {connectedTickets.length === 1 ? "ticket" : "tickets"}</span></div><ul>{connectedTickets.map((node) => <li key={node.key}><Link href={`/dashboard/tickets/${node.ticket!.id}`}><i className={`graph-dot graph-dot-${node.ticket!.status}`} aria-hidden="true" /><span>{node.label}</span><ArrowUpRight size={13} aria-hidden="true" /></Link></li>)}</ul></> : <><h3>Follow the work.</h3><p>Select a node to see the tickets it connects to. Open a ticket to update its status, assignments or details.</p><div className="ticket-graph-inspector-count"><strong>{graph.tickets.length}</strong><span>tickets across {graph.workstreams.length} {graph.workstreams.length === 1 ? "workstream" : "workstreams"}</span></div><p className="ticket-graph-swipe">On a smaller screen, swipe the graph sideways and scroll inside it to see every node.</p></>}
       </aside>
     </div>
-    <p className="ticket-graph-note">Lines show workstream membership and roster assignments already recorded for each ticket. They do not imply task dependencies.</p>
+    <p className="ticket-graph-note">Workstream links are always visible. Select a person or ticket to reveal its recorded assignments. Lines do not imply task dependencies.</p>
   </section>;
 }

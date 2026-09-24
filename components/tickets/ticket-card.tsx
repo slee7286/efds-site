@@ -18,6 +18,7 @@ export function TicketCard({ ticket, timeline }: { ticket: Ticket; timeline?: Ti
     <span className="ticket-card-top"><span className={`ticket-status ticket-status-${ticket.status}`}>{statusLabel[ticket.status]}</span><span className="ticket-priority">{ticket.priority || "Medium"} priority</span></span>
     <strong>{ticket.title}</strong>
     {timeline?.suggestion?.inferredStatus && <span className="ticket-signal">Slack suggests {statusLabel[timeline.suggestion.inferredStatus]}. Review evidence</span>}
+    {ticket.individualProgressEnabled && <span className="ticket-person-summary">{ticket.assignees.filter((person) => ticket.individualProgress?.[person.id] === "completed").length} of {ticket.assignees.length} assignees completed</span>}
     <span className="ticket-card-bottom"><span>{ownerLabel}</span><ArrowUpRight size={16} aria-hidden="true" /></span>
     {timeline?.latestUpdate && <span className="ticket-recent">Latest Slack update: {timeline.latestUpdate.actor} · {new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "Europe/London" }).format(new Date(timeline.latestUpdate.at))}</span>}
     {ticketDueLabel(ticket) && <span className="ticket-due"><CalendarClock size={13} aria-hidden="true" /> {ticketDueLabel(ticket)}</span>}

@@ -43,8 +43,8 @@ export async function getAccountNoticeHealth(): Promise<AccountNoticeHealth | nu
   };
 }
 
-export async function getAccountReviewData(status: "pending" | "all" = "pending", page = 1) {
-  const empty = { accounts: [] as ReviewAccount[], officers: [] as OfficerOption[], events: [] as AccountAccessEvent[], pendingCount: 0, accountCount: 0 };
+export async function getAccountReviewData(status: "pending" | "standard" | "all" = "pending", page = 1) {
+  const empty = { accounts: [] as ReviewAccount[], officers: [] as OfficerOption[], events: [] as AccountAccessEvent[], pendingCount: 0, standardCount: 0, accountCount: 0 };
   if (!isSupabaseConfigured) return empty;
   await requireRole("admin");
   const supabase = await createServerSupabaseClient();
@@ -52,15 +52,17 @@ export async function getAccountReviewData(status: "pending" | "all" = "pending"
   let query = supabase.from("profiles")
     .select("id,email,full_name,access_role,member_type,efds_verification_status,efds_verification_claim,officer_id,access_version,created_at,efds_verified_at", { count: "exact" })
     .eq("active", true).order("created_at", { ascending: false });
-  if (status === "pending") query = query.in("efds_verification_status", ["pending", "declined"]);
+  if (status === "pending") query = query.eq("efds_verification_status", "pending");
+  if (status === "standard") query = query.eq("efds_verification_status", "declined").eq("access_role", "member");
   query = query.range((page - 1) * pageSize, page * pageSize - 1);
-  const [profiles, officers, events, pending] = await Promise.all([
+  const [profiles, officers, events, pending, standard] = await Promise.all([
     query,
     supabase.from("officers").select("id,name,role,academic_year").eq("active", true).order("name"),
     supabase.from("account_access_events").select("id,action,target_profile_id,actor_profile_id,occurred_at,reason").order("occurred_at", { ascending: false }).limit(20),
-    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("active", true).in("efds_verification_status", ["pending", "declined"]),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("active", true).eq("efds_verification_status", "pending"),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("active", true).eq("efds_verification_status", "declined").eq("access_role", "member"),
   ]);
-  for (const result of [profiles, officers, events, pending]) if (result.error) throw result.error;
+  for (const result of [profiles, officers, events, pending, standard]) if (result.error) throw result.error;
   return {
     accounts: (profiles.data ?? []).map((row) => ({
       id: String(row.id), email: String(row.email), fullName: row.full_name ? String(row.full_name) : null,
@@ -74,6 +76,7 @@ export async function getAccountReviewData(status: "pending" | "all" = "pending"
     officers: (officers.data ?? []).map((row) => ({ id: String(row.id), name: String(row.name), role: String(row.role), academicYear: String(row.academic_year) })),
     events: (events.data ?? []).map((row) => ({ id: String(row.id), action: String(row.action), targetProfileId: String(row.target_profile_id), actorProfileId: String(row.actor_profile_id), occurredAt: String(row.occurred_at), reason: row.reason ? String(row.reason) : null })),
     pendingCount: pending.count ?? 0,
+    standardCount: standard.count ?? 0,
     accountCount: profiles.count ?? 0,
   };
 }

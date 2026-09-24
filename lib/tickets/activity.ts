@@ -73,6 +73,12 @@ function changeAction(change: CommitteeTicketChange, officers: TicketOfficer[]):
     return names.length === ids.length ? `Set assignees to ${names.join(", ")}` : `Set ${ids.length} assignees`;
   }
   if (change.action === "committee_create") return "Created ticket";
+  if (change.action === "committee_progress_mode") return change.changes.enabled === true ? "Enabled individual progress" : "Returned to shared ticket progress";
+  if (change.action === "committee_assignee_progress") {
+    const officer = officers.find((item) => item.id === change.changes.officer_id);
+    const status = change.changes.status;
+    return `${officer?.name ?? "An assignee"}: ${typeof status === "string" && status in labels ? labels[status as TicketStatus] : "progress updated"}`;
+  }
   if (change.action === "committee_reminder") {
     const count = Number(change.changes.recipient_count);
     return Number.isInteger(count) && count > 0

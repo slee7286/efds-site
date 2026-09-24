@@ -23,7 +23,9 @@ export function AccountReviewForm({ account, officers, isSelf }: { account: Revi
     ]
     : account.verificationStatus === "approved"
       ? [{ value: "promote_committee", label: "Grant committee access" }, { value: "promote_admin", label: "Grant admin access" }]
-      : [{ value: "verify", label: "Verify EFDS membership" }, { value: "decline", label: "Decline verification" }];
+      : account.verificationStatus === "declined"
+        ? [{ value: "verify", label: "Verify EFDS membership" }]
+        : [{ value: "verify", label: "Verify EFDS membership" }, { value: "decline", label: "Confirm standard membership" }];
   const [action, setAction] = useState<Action>(available[0].value);
   const needsOfficer = action === "link_officer";
 

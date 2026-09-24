@@ -47,7 +47,7 @@ export async function reviewAccount(formData: FormData) {
   }
   revalidatePath("/admin/accounts");
   revalidatePath("/admin/committee");
-  redirect(`/admin/accounts?status=all&notice=${notice}`);
+  redirect(`/admin/accounts?status=${action === "decline" ? "standard" : "all"}&notice=${notice}`);
 }
 
 const claimSchema = z.string().trim().min(10).max(500);

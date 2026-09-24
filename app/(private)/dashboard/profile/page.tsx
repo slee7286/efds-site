@@ -50,7 +50,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           <dl className="profile-membership-list">
             <div><dt>Workspace role</dt><dd>{profile ? roleLabel(profile.accessRole) : "Preview"}</dd></div>
             <div><dt>Account affiliation</dt><dd>{profile?.memberType ?? "Not connected"}</dd></div>
-            <div><dt>EFDS membership</dt><dd>{profile?.verificationStatus ?? "Not connected"}</dd></div>
+            <div><dt>EFDS membership</dt><dd>{profile?.verificationStatus === "declined" ? "Standard member" : profile?.verificationStatus === "approved" ? "Verified" : profile?.verificationStatus === "pending" ? "Awaiting review" : "Not connected"}</dd></div>
             {officer && <div><dt>Committee identity</dt><dd>{officer.name}<small>{officer.role} · {officer.academic_year}</small></dd></div>}
           </dl>
           {profile && (profile.accessRole === "committee" || profile.accessRole === "admin") && !officer && <p className="profile-security-note" role="status">Your committee account is active, but no officer role is linked yet. Ask an EFDS admin to connect your roster identity.</p>}
@@ -58,7 +58,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             <p className="profile-security-note">Basic members can explore events and public resources. Verified EFDS members gain access to member resources when they are published.</p>
             <h3>Request EFDS membership review</h3>
             <p>Tell the committee how you are connected to EFDS. An Imperial email alone does not confirm society membership.</p>
-            {membership === "saved" && <p role="status" className="membership-feedback">Your details were saved for admin review.</p>}
+            {membership === "saved" && <p role="status" className="membership-feedback">{profile.verificationStatus === "declined" ? "Your details were saved. Contact EFDS to request another review." : "Your details were saved for admin review."}</p>}
             {membership === "invalid" && <p role="alert" className="form-error">Please enter 10 to 500 characters.</p>}
             {membership === "failed" && <p role="alert" className="form-error">Your request could not be saved. Try again.</p>}
             <form action={requestMembershipReview}>
@@ -67,7 +67,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
               </label>
               <MembershipSubmit updating={Boolean(profile.verificationClaim)} />
             </form>
-            {profile.verificationStatus === "declined" && <p className="profile-security-note">Your previous request was declined. You can update your details for another review.</p>}
+            {profile.verificationStatus === "declined" && <p className="profile-security-note">Your account is confirmed as a standard member. EFDS society membership has not been verified. You can update your details and contact EFDS to request another review.</p>}
           </div>}
           <p className="profile-security-note">Roles and committee identity are assigned by EFDS. Editing your display name or photo does not change your permissions.</p>
         </section>

@@ -71,6 +71,16 @@ describe("ticket activity", () => {
     });
   });
 
+  it("names the person and reviewer in individual progress history", () => {
+    const changes: CommitteeTicketChange[] = [{
+      id: "progress-1", ticketId: ticket.id, action: "committee_assignee_progress", actorName: "Katia",
+      changes: { officer_id: "officer-1", previous_status: "open", status: "completed" },
+      occurredAt: "2026-09-23T15:00:00Z",
+    }];
+    const result = buildTicketTimeline(ticket, [], [], users, changes, [{ id: "officer-1", name: "Alex", role: "Events" }]);
+    expect(result.activity[0]).toMatchObject({ actor: "Katia", action: "Alex: completed" });
+  });
+
   it("ignores another ticket root even if its description names this action", () => {
     const other: SlackTicketMessage = { ...root, id: "root-24", slackTs: "another", text: "ACTION-024 — Other work\nComplete ACTION-023 first", postedAt: "2026-09-23T16:00:00Z" };
     const result = buildTicketTimeline(ticket, [root, other], [], users, [], []);
