@@ -45,7 +45,7 @@ async function finishLink(client: Client, profileId: string, version: number, of
   revalidatePath("/admin/committee");
   revalidatePath("/admin/accounts");
   revalidatePath("/dashboard/profile");
-  redirect(`/admin/committee?notice=${notice}&mail=${mail}#roster`);
+  redirect(`/admin/committee?notice=${notice}&mail=${mail}&confirmation=${crypto.randomUUID()}#roster`);
 }
 
 export async function linkOfficerAccount(formData: FormData) {

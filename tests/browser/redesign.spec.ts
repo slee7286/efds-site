@@ -258,6 +258,37 @@ test("ticket board and activity layout contain long evidence at 320px", async ({
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
+test("save confirmations appear as a dismissible message", async ({ page }) => {
+  await page.goto("/admin/accounts?notice=queued&confirmation=browser-test");
+  const toast = page.locator(".action-toast");
+  await expect(toast).toContainText("Account decision saved.");
+  await toast.getByRole("button", { name: "Dismiss notification" }).click();
+  await expect(toast).toHaveCount(0);
+  await page.goto("/admin/accounts?notice=queued&confirmation=second-save");
+  await expect(toast).toContainText("Account decision saved.");
+});
+
+test("people stay visible while the ticket graph scrolls", async ({ page }) => {
+  await page.goto("/dashboard/tickets");
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => {
+    const host = document.querySelector(".ticket-page");
+    if (!host) throw new Error("Ticket page missing");
+    const fixture = document.createElement("section");
+    fixture.className = "ticket-graph";
+    fixture.innerHTML = `<div class="ticket-graph-layout"><div class="ticket-graph-viewport" role="region" aria-label="Graph scroll fixture"><div class="ticket-graph-canvas" style="width:696px;height:1800px"><div class="ticket-graph-people-frame"><div class="ticket-graph-people-rail"><div class="ticket-graph-people-heading">03 / People</div><button class="graph-node graph-person" type="button"><span class="graph-node-name">Alice Lee</span></button></div></div><div class="graph-node graph-ticket" style="left:209px;top:900px">A ticket further down</div></div></div></div>`;
+    host.append(fixture);
+  });
+  const viewport = page.getByRole("region", { name: "Graph scroll fixture" });
+  const person = viewport.getByRole("button", { name: "Alice Lee" });
+  await viewport.evaluate((node) => { node.scrollLeft = node.scrollWidth; });
+  const before = await person.boundingBox();
+  await viewport.evaluate((node) => { node.scrollTop = 680; });
+  const after = await person.boundingBox();
+  expect(before && after && Math.abs(before.y - after.y) < 3).toBe(true);
+  expect(after && (await viewport.boundingBox()) && after.x < (await viewport.boundingBox())!.x + (await viewport.boundingBox())!.width).toBe(true);
+});
+
 test("approved email flow gives confirmation and a resend cooldown", async ({ page }) => {
   await page.route("**/api/auth/external", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({ message: "If this email is eligible for EFDS access, you will receive an email with the next step." }) }));
   await page.goto("/login");

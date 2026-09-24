@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { showActionToast } from "@/components/feedback/action-toast";
 import { ProfileAvatar } from "@/components/dashboard/profile-avatar";
 import { MAX_STORED_PHOTO_BYTES, PROFILE_PHOTO_BUCKET, validateProfilePhoto } from "@/lib/auth/profile-photo";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
@@ -66,10 +67,12 @@ export function ProfileEditor({ profile }: { profile: AccessProfile | null }) {
       setSavedName(normalized);
       setNameError(false);
       setNameMessage("Your display name has been saved.");
+      showActionToast("Display name saved.");
       router.refresh();
     } catch (error) {
       setNameError(true);
       setNameMessage(error instanceof Error ? error.message : "Your name could not be saved. Please try again.");
+      showActionToast("Display name could not be saved.", true);
     } finally {
       setSavingName(false);
     }
@@ -96,6 +99,7 @@ export function ProfileEditor({ profile }: { profile: AccessProfile | null }) {
       setAvatarPath(nextPath);
       setPhotoError(false);
       setPhotoMessage("Your profile photo has been updated.");
+      showActionToast("Profile photo saved.");
       router.refresh();
       if (previousPath) {
         const { error: cleanupError } = await storage.remove([previousPath]);
@@ -104,6 +108,7 @@ export function ProfileEditor({ profile }: { profile: AccessProfile | null }) {
     } catch (error) {
       setPhotoError(true);
       setPhotoMessage(error instanceof Error ? error.message : "The photo could not be uploaded. Please try again.");
+      showActionToast("Profile photo could not be saved.", true);
     } finally {
       if (fileInput.current) fileInput.current.value = "";
       setSavingPhoto(false);
@@ -122,12 +127,14 @@ export function ProfileEditor({ profile }: { profile: AccessProfile | null }) {
       setAvatarPath(null);
       setPhotoError(false);
       setPhotoMessage("Your profile photo has been removed.");
+      showActionToast("Profile photo removed.");
       router.refresh();
       const { error: cleanupError } = await supabase.storage.from(PROFILE_PHOTO_BUCKET).remove([previousPath]);
       if (cleanupError) setPhotoMessage("Your photo is removed from your profile, but the old file could not be deleted.");
     } catch (error) {
       setPhotoError(true);
       setPhotoMessage(error instanceof Error ? error.message : "The photo could not be removed. Please try again.");
+      showActionToast("Profile photo could not be removed.", true);
     } finally {
       setSavingPhoto(false);
     }

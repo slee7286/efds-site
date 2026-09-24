@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { redirect } from "next/navigation";
 
 const rpc = vi.fn();
 
@@ -27,6 +28,7 @@ describe("transactional knowledge review action", () => {
       p_expected_version: 1,
       p_patch: {},
     }));
+    expect(redirect).toHaveBeenCalledWith(expect.stringMatching(/^\/admin\/knowledge\/review\/requirement\/11111111-1111-4111-8111-111111111111\?saved=approve&confirmation=/));
   });
 
   it("maps an edit form to interpretation fields and never sends source fields", async () => {

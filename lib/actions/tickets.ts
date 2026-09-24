@@ -63,7 +63,7 @@ export async function ticketAction(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/tickets");
   if (finalId) revalidatePath(`/dashboard/tickets/${finalId}`);
-  redirect(finalId ? `/dashboard/tickets/${finalId}?saved=${action.data}` : "/dashboard/tickets");
+  redirect(finalId ? `/dashboard/tickets/${finalId}?saved=${action.data}&confirmation=${crypto.randomUUID()}` : "/dashboard/tickets");
 }
 
 export async function updateIndividualTicketProgress(formData: FormData) {
@@ -94,7 +94,7 @@ export async function updateIndividualTicketProgress(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/tickets");
   revalidatePath(location);
-  redirect(`${location}?progressSaved=${action}`);
+  redirect(`${location}?progressSaved=${action}&confirmation=${crypto.randomUUID()}`);
 }
 
 export async function remindTicketAssignees(formData: FormData) {
@@ -117,7 +117,7 @@ export async function remindTicketAssignees(formData: FormData) {
     redirect(`${location}?reminderError=${code}`);
   }
   revalidatePath(location);
-  redirect(`${location}?reminded=${Number(data) || 0}`);
+  redirect(`${location}?reminded=${Number(data) || 0}&confirmation=${crypto.randomUUID()}`);
 }
 
 export async function committeeSuggestionAction(formData: FormData) {
@@ -154,5 +154,5 @@ export async function committeeSuggestionAction(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath(location);
   revalidatePath(`/dashboard/tickets/${returnedId}`);
-  redirect(`/dashboard/tickets/${returnedId}?saved=suggestion`);
+  redirect(`/dashboard/tickets/${returnedId}?saved=suggestion&confirmation=${crypto.randomUUID()}`);
 }

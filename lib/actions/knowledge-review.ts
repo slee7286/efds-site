@@ -147,6 +147,9 @@ async function runReviewMutation(formData: FormData, options: { redirectOnConfli
 
 export async function reviewKnowledgeAction(formData: FormData): Promise<void> {
   await runReviewMutation(formData);
+  const knowledgeType = formString(formData, "knowledgeType");
+  const recordId = formString(formData, "recordId");
+  if (knowledgeType && recordId) redirect(`/admin/knowledge/review/${knowledgeType}/${recordId}?saved=${formString(formData, "action") ?? "change"}&confirmation=${crypto.randomUUID()}`);
 }
 
 export async function bulkReviewKnowledgeAction(formData: FormData): Promise<void> {

@@ -47,7 +47,7 @@ export async function reviewAccount(formData: FormData) {
   }
   revalidatePath("/admin/accounts");
   revalidatePath("/admin/committee");
-  redirect(`/admin/accounts?status=${action === "decline" ? "standard" : "all"}&notice=${notice}`);
+  redirect(`/admin/accounts?status=${action === "decline" ? "standard" : "all"}&notice=${notice}&confirmation=${crypto.randomUUID()}`);
 }
 
 const claimSchema = z.string().trim().min(10).max(500);
@@ -64,5 +64,5 @@ export async function requestMembershipReview(formData: FormData) {
   if (error) redirect("/dashboard/profile?membership=failed");
   revalidatePath("/dashboard/profile");
   revalidatePath("/admin/accounts");
-  redirect("/dashboard/profile?membership=saved");
+  redirect(`/dashboard/profile?membership=saved&confirmation=${crypto.randomUUID()}`);
 }

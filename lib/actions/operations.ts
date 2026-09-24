@@ -56,5 +56,5 @@ export async function operationalRecordAction(formData: FormData) {
   const record = data && typeof data === "object" ? (data as Record<string, unknown>).record : null;
   const recordId = String(record && typeof record === "object" ? (record as Record<string, unknown>).id ?? parsed.recordId ?? "" : parsed.recordId ?? "");
   refresh(recordId);
-  redirect(`/admin/operations/${recordId}`);
+  redirect(`/admin/operations/${recordId}?saved=${parsed.action}&confirmation=${crypto.randomUUID()}`);
 }

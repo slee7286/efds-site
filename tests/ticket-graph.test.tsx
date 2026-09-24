@@ -44,4 +44,19 @@ describe("ticket relationship graph", () => {
     fireEvent.click(screen.getByRole("button", { name: "Clear graph selection" }));
     expect(within(inspector).getByRole("heading", { name: "Follow the work." })).toBeTruthy();
   });
+
+  it("keeps people in their own rail and hides completed tickets until their workstream expands", () => {
+    const completed: GraphTicket = { ...tickets[0], id: "ticket-d", title: "Send event recap", status: "completed" };
+    const { container, rerender } = render(<TicketGraph tickets={[...tickets, completed]} />);
+    expect(container.querySelector(".ticket-graph-people-rail")).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Open ticket Send event recap, Completed" })).toBeNull();
+    const reveal = screen.getByRole("button", { name: "Show 1 completed in Events" });
+    expect(reveal.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(reveal);
+    expect(screen.getByRole("link", { name: "Open ticket Send event recap, Completed" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Hide 1 completed in Events" }).getAttribute("aria-expanded")).toBe("true");
+    rerender(<TicketGraph tickets={[completed]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Hide 1 completed in Events" }));
+    expect(screen.getByText("All matching tickets are completed. Expand a workstream above to see them.")).toBeTruthy();
+  });
 });

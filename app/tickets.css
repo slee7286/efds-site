@@ -43,12 +43,17 @@
 .graph-dot-completed { background: #247455; }
 .graph-dot-cancelled { background: #9ba3b3; }
 .ticket-graph-layout { display: grid; grid-template-columns: minmax(0, 1fr) 245px; min-width: 0; }
-.ticket-graph-viewport { background: #f7f9fc; border-right: 1px solid var(--line); height: min(70vh, 700px); min-height: 470px; min-width: 0; overflow: auto; overscroll-behavior: contain; scrollbar-color: #a8b6d1 transparent; }
+.ticket-graph-viewport { --graph-viewport-height: min(70vh, 700px); background: #f7f9fc; border-right: 1px solid var(--line); height: var(--graph-viewport-height); min-height: 470px; min-width: 0; overflow: auto; overscroll-behavior: contain; scrollbar-color: #a8b6d1 transparent; }
 .ticket-graph-canvas { background-image: linear-gradient(to right, rgba(80,105,153,.07) 1px, transparent 1px), linear-gradient(to bottom, rgba(80,105,153,.07) 1px, transparent 1px); background-size: 28px 28px; position: relative; }
 .ticket-graph-axis { color: #66758c; font-size: 10px; font-weight: 700; letter-spacing: .1em; position: absolute; text-transform: uppercase; top: 27px; white-space: nowrap; z-index: 1; }
 .ticket-graph-axis-workstreams { left: 18px; }
 .ticket-graph-axis-tickets { left: 209px; }
-.ticket-graph-axis-people { left: 515px; }
+.ticket-graph-empty-note { color: var(--ink-soft); font-size: 13px; left: 28px; max-width: 420px; position: absolute; top: 91px; }
+.ticket-graph-completed { align-items: center; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 5px 12px; padding: 8px 18px; }
+.ticket-graph-completed > span { color: var(--ink-soft); font-size: 10px; font-weight: 650; margin-right: 4px; text-transform: uppercase; }
+.ticket-graph-completed button { background: #eef2fa; border: 1px solid #d5dff0; color: var(--cobalt-dark); cursor: pointer; font-size: 11px; min-height: 44px; padding: 8px 10px; }
+.ticket-graph-completed button:hover, .ticket-graph-completed button:focus-visible { background: #dfe8f8; }
+.ticket-graph-completed button[aria-expanded="true"] { background: #dfe8f8; border-color: #8198cb; }
 .ticket-graph-cluster { background: rgba(224, 233, 250, .44); border-bottom: 1px solid #d9e2f2; border-top: 1px solid #d9e2f2; left: 0; pointer-events: none; position: absolute; right: 0; }
 .ticket-graph-lines { inset: 0; overflow: visible; pointer-events: none; position: absolute; }
 .graph-line { fill: none; opacity: .25; stroke: #7990bd; stroke-width: 1.3; transition: opacity .2s ease, stroke .2s ease; }
@@ -69,6 +74,11 @@
 .graph-ticket-completed { border-left-color: #247455; }
 .graph-ticket-cancelled { border-left-color: #9ba3b3; }
 .graph-person { cursor: pointer; font-size: 11px; width: 164px; }
+.ticket-graph-people-frame { bottom: 0; left: 515px; position: absolute; top: 0; width: 164px; z-index: 4; }
+.ticket-graph-people-rail { background: rgba(237, 242, 251, .98); border-left: 1px solid #d5dfef; box-sizing: border-box; display: flex; flex-direction: column; gap: 7px; height: var(--graph-viewport-height); overflow-y: auto; padding: 15px 8px 12px; position: sticky; scrollbar-color: #a8b6d1 transparent; top: 0; }
+.ticket-graph-people-heading { align-items: center; color: #66758c; display: flex; flex: none; font-size: 10px; font-weight: 700; justify-content: space-between; letter-spacing: .1em; margin: 2px 0 5px; text-transform: uppercase; }
+.ticket-graph-people-heading span { background: #dfe8f8; color: #2d4b9c; min-width: 21px; padding: 3px 5px; text-align: center; }
+.ticket-graph-people-rail .graph-person { flex: none; min-height: 48px; position: relative; transform: none; width: 100%; }
 .graph-person-mark { align-items: center; background: #dfe9e6; color: #235944; display: inline-flex; flex: none; font-size: 10px; font-weight: 750; height: 28px; justify-content: center; width: 28px; }
 .graph-person .graph-node-name { flex: 1; font-weight: 650; }
 .graph-person small { color: var(--ink-soft); display: block; font-size: 9px; font-weight: 450; margin-top: 2px; }
@@ -96,6 +106,12 @@
 .ticket-cluster-heading h2 { display: -webkit-box; font-size: 24px; font-weight: 450; letter-spacing: -.035em; margin: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .ticket-cluster-heading > strong { color: var(--ink-soft); font-size: 11px; font-weight: 500; white-space: nowrap; }
 .ticket-cluster-cards { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.ticket-completed { border-top: 1px solid var(--line); }
+.ticket-completed summary { align-items: center; color: var(--ink-soft); cursor: pointer; display: flex; font-size: 12px; font-weight: 650; justify-content: space-between; list-style: none; min-height: 48px; padding: 11px 22px; }
+.ticket-completed summary::-webkit-details-marker { display: none; }
+.ticket-completed summary::after { content: "+"; font-size: 18px; font-weight: 400; margin-left: 8px; }
+.ticket-completed[open] summary::after { content: "−"; }
+.ticket-completed summary:hover, .ticket-completed summary:focus-visible { background: var(--paper); color: var(--cobalt-dark); }
 .ticket-card { color: var(--ink); display: grid; gap: 11px; grid-template-columns: minmax(0, 1fr); min-width: 0; padding: 19px 22px 20px; text-decoration: none; border-top: 1px solid var(--line); transition: background .15s ease; }
 .ticket-card > * { min-width: 0; max-width: 100%; }
 .ticket-card:first-child { border-top: 0; }
@@ -183,7 +199,7 @@
 .dashboard-relationship .ticket-graph-jumps { display: flex; }
 .ticket-graph-empty > .text-link { display: inline-flex; margin: 20px; }
 .dashboard-relationship .ticket-graph-layout { grid-template-columns: minmax(0, 1fr); }
-.dashboard-relationship .ticket-graph-viewport { border-bottom: 1px solid var(--line); border-right: 0; height: 565px; min-height: 0; }
+.dashboard-relationship .ticket-graph-viewport { --graph-viewport-height: 565px; border-bottom: 1px solid var(--line); border-right: 0; height: var(--graph-viewport-height); min-height: 0; }
 .dashboard-relationship .ticket-graph-inspector { max-height: 220px; }
 .dashboard-relationship .ticket-graph-heading { padding: 20px; }
 .dashboard-relationship .ticket-graph-heading h2 { font-size: 30px; }
@@ -249,7 +265,7 @@
 .committee-directory-bottom .queue-row small { overflow-wrap: anywhere; }
 @media (max-width: 1000px) {
   .dashboard-relationship-layout { grid-template-columns: 1fr; }
-  .dashboard-relationship .ticket-graph-viewport { height: 510px; }
+  .dashboard-relationship .ticket-graph-viewport { --graph-viewport-height: 510px; height: var(--graph-viewport-height); }
   .ticket-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ticket-metrics > div:nth-child(2) { border-right: 0; }
   .ticket-metrics > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
@@ -280,7 +296,7 @@
   .committee-directory-grid { grid-template-columns: 1fr; }
   .ticket-graph-heading { padding: 20px 17px; }
   .ticket-graph-heading h2 { font-size: 29px; }
-  .ticket-graph-viewport { height: 500px; min-height: 0; }
+  .ticket-graph-viewport { --graph-viewport-height: 500px; height: var(--graph-viewport-height); min-height: 0; }
   .ticket-graph-inspector { max-height: 270px; padding: 18px; }
   .ticket-graph-note { padding-inline: 17px; }
 }

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { redirect } from "next/navigation";
 
 const db = vi.hoisted(() => ({ rpc: vi.fn(), single: vi.fn() }));
 vi.mock("../lib/config", () => ({ isSupabaseConfigured: true }));
@@ -25,6 +26,7 @@ describe("agent ticket proposal review", () => {
     expect(db.rpc).toHaveBeenCalledWith("mutate_operational_record", expect.objectContaining({
       p_action: "create", p_patch: expect.objectContaining({ record_type: "action_item", title: "Confirm a venue", retrieval_unit_id: "11111111-1111-4111-8111-111111111111" }),
     }));
+    expect(redirect).toHaveBeenCalledWith(expect.stringMatching(/^\/admin\/operations\/22222222-2222-4222-8222-222222222222\?saved=create&confirmation=/));
   });
 
   it("blocks broad publication of an AI suggestion before invoking the mutation RPC", async () => {
