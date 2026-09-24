@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 type PasswordFormMode = "setup" | "reset" | "change";
 
 const labels: Record<PasswordFormMode, { eyebrow: string; title: string; button: string }> = {
-  setup: { eyebrow: "Approved email user", title: "Set your EFDS password.", button: "Set password" },
+  setup: { eyebrow: "Verified email account", title: "Set your EFDS password.", button: "Set password" },
   reset: { eyebrow: "Password recovery", title: "Choose a new password.", button: "Update password" },
   change: { eyebrow: "Password", title: "Change your password.", button: "Change password" },
 };
@@ -15,8 +16,9 @@ export function PasswordForm({ mode }: { mode: PasswordFormMode }) {
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState("");
+  const [feedback, setFeedback] = useState<{ message: string; kind: "error" | "success" } | null>(null);
   const [pending, setPending] = useState(false);
+  const [passwordUpdated, setPasswordUpdated] = useState(false);
   const copy = labels[mode];
 
   async function authorize() {
@@ -32,32 +34,43 @@ export function PasswordForm({ mode }: { mode: PasswordFormMode }) {
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    setMessage("");
+    setFeedback(null);
     if (password.length < 8) {
-      setMessage("Your password must be at least 8 characters long.");
+      setFeedback({ message: "Your password must be at least 8 characters long.", kind: "error" });
       return;
     }
     if (password !== confirmation) {
-      setMessage("The passwords do not match.");
+      setFeedback({ message: "The passwords do not match.", kind: "error" });
       return;
     }
 
     setPending(true);
+    let step: "access" | "password" | "workspace" = "access";
     try {
       await authorize();
+      step = "password";
       const supabase = createBrowserSupabaseClient();
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw new Error(error.message);
-      const result = await authorize();
+      setPassword("");
+      setConfirmation("");
       if (mode === "change") {
-        setPassword("");
-        setConfirmation("");
-        setMessage("Your password has been changed.");
+        setFeedback({ message: "Your password has been changed.", kind: "success" });
       } else {
+        step = "workspace";
+        const result = await authorize();
         window.location.assign(result.redirect ?? "/dashboard");
       }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "We could not update your password. Please try again.");
+      const detail = error instanceof Error ? error.message : "Please try again.";
+      if (step === "workspace") {
+        setPasswordUpdated(true);
+        setFeedback({ message: "Your password was updated, but we could not open the workspace. Sign in with your new password.", kind: "success" });
+      } else if (step === "password") {
+        setFeedback({ message: `Your password was not changed: ${detail}`, kind: "error" });
+      } else {
+        setFeedback({ message: `We could not verify your EFDS access: ${detail}`, kind: "error" });
+      }
     } finally {
       setPending(false);
     }
@@ -73,8 +86,9 @@ export function PasswordForm({ mode }: { mode: PasswordFormMode }) {
       <label className="auth-label" htmlFor={`${mode}-confirmation`}>Confirm password</label>
       <input className="auth-input" id={`${mode}-confirmation`} type={showPassword ? "text" : "password"} autoComplete="new-password" minLength={8} required value={confirmation} onChange={(event) => setConfirmation(event.target.value)} />
       <label className="auth-footnote" style={{ display: "flex", gap: 8, alignItems: "center", cursor: "pointer" }}><input type="checkbox" checked={showPassword} onChange={(event) => setShowPassword(event.target.checked)} /> Show passwords</label>
-      <button className="auth-submit" disabled={pending} type="submit">{pending ? "Updating…" : copy.button}</button>
+      <button className="auth-submit" disabled={pending || passwordUpdated} type="submit">{pending ? "Updating…" : copy.button}</button>
     </form>
-    {message && <p className="auth-footnote" role="status">{message}</p>}
+    {feedback && <p className="auth-footnote" role={feedback.kind === "error" ? "alert" : "status"}>{feedback.message}</p>}
+    {passwordUpdated && <Link href="/login">Sign in with your new password</Link>}
   </section>;
 }
