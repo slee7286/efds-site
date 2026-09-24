@@ -4,9 +4,9 @@ import { useFormStatus } from "react-dom";
 import { linkOfficerAccount, unlinkOfficerAccount } from "@/lib/actions/officers";
 import type { CommitteeIdentity } from "@/lib/db/committee";
 
-function Submit({ label, pendingLabel, quiet = false }: { label: string; pendingLabel: string; quiet?: boolean }) {
+function Submit({ label, pendingLabel, quiet = false, ariaLabel }: { label: string; pendingLabel: string; quiet?: boolean; ariaLabel?: string }) {
   const { pending } = useFormStatus();
-  return <button className={`button ${quiet ? "button-quiet" : "button-dark"}`} type="submit" disabled={pending}>{pending ? pendingLabel : label}</button>;
+  return <button className={`button ${quiet ? "button-quiet" : "button-dark"}`} type="submit" disabled={pending} aria-label={ariaLabel}>{pending ? pendingLabel : label}</button>;
 }
 
 export function OfficerAccountForm({ officer }: { officer: CommitteeIdentity }) {
@@ -16,7 +16,7 @@ export function OfficerAccountForm({ officer }: { officer: CommitteeIdentity }) 
       <input type="hidden" name="officerId" value={officer.id} />
       <input type="hidden" name="profileId" value={account.id} />
       <input type="hidden" name="version" value={account.version} />
-      <Submit label="Remove link" pendingLabel="Removing…" quiet />
+      <Submit label="Remove link" pendingLabel="Removing…" ariaLabel={`Remove link for ${account.name || account.email}`} quiet />
     </form>)}
     {officer.accounts.length < 2 && <form action={linkOfficerAccount} className="officer-account-form">
       <input type="hidden" name="officerId" value={officer.id} />

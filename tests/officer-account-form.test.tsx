@@ -23,7 +23,7 @@ describe("officer account form", () => {
   it("offers the second slot while showing an independent unlink action", () => {
     render(<OfficerAccountForm officer={officer} />);
     expect(screen.getByText("first@imperial.ac.uk")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Remove link" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Remove link for First Officer" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Link account" })).toBeTruthy();
   });
 
@@ -34,7 +34,7 @@ describe("officer account form", () => {
     }} />);
     expect(screen.getByText("first@imperial.ac.uk")).toBeTruthy();
     expect(screen.getByText("second@ic.ac.uk")).toBeTruthy();
-    expect(screen.getAllByRole("button", { name: "Remove link" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: /^Remove link for/ })).toHaveLength(2);
     expect(screen.queryByRole("button", { name: "Link account" })).toBeNull();
   });
 });
