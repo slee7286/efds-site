@@ -135,6 +135,16 @@ export async function getTicketWorkspace() {
   return { tickets, officers, ...(await getTicketActivityData(supabase, tickets, officers)) };
 }
 
+export async function getOutlookSyncStatus(): Promise<string | null> {
+  if (!isSupabaseConfigured) return null;
+  await requireRole("admin");
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.from("outlook_sync_checkpoints")
+    .select("last_successful_at").order("last_successful_at", { ascending: false }).limit(1);
+  if (error) return null;
+  return optional(data?.[0]?.last_successful_at);
+}
+
 export function ticketCounts(tickets: Ticket[]) {
   const now = Date.now();
   return {

@@ -4,7 +4,7 @@ import { TicketCard } from "@/components/tickets/ticket-card";
 import { TicketGraph } from "@/components/tickets/ticket-graph";
 import { SuggestionPanel } from "@/components/tickets/suggestion-panel";
 import { getCurrentProfile } from "@/lib/auth/server";
-import { getTicketWorkspace, ticketCounts, type Ticket } from "@/lib/db/tickets";
+import { getOutlookSyncStatus, getTicketWorkspace, ticketCounts, type Ticket } from "@/lib/db/tickets";
 
 type Params = { q?: string; status?: string; view?: string; error?: string };
 
@@ -22,6 +22,7 @@ function clusters(tickets: Ticket[], view: "workstreams" | "people") {
 export default async function TicketsPage({ searchParams }: { searchParams?: Promise<Params> }) {
   const params = await searchParams ?? {};
   const [{ tickets, officers, timelines, slackSyncedAt }, profile] = await Promise.all([getTicketWorkspace(), getCurrentProfile()]);
+  const outlookSyncedAt = profile?.accessRole === "admin" ? await getOutlookSyncStatus() : null;
   const counts = ticketCounts(tickets);
   const suggestionCount = [...timelines.values()].filter((item) => item.suggestion).length;
   const view = params.view === "people" ? "people" : params.view === "workstreams" ? "workstreams" : "graph";
@@ -48,6 +49,6 @@ export default async function TicketsPage({ searchParams }: { searchParams?: Pro
     {params.error && <p className="form-error" role="alert">{params.error === "duplicate" ? "An open ticket with this title already exists. Review the graph before creating another." : params.error === "forbidden" ? "The cited source is no longer available to committee. Generate a new suggestion." : "The ticket could not be saved. Please check the fields and try again."}</p>}
     <div className="ticket-toolbar"><nav aria-label="Ticket views"><Link aria-current={view === "graph" ? "page" : undefined} href={viewHref("graph")}><Network size={15} aria-hidden="true" /> Graph</Link><Link aria-current={view === "workstreams" ? "page" : undefined} href={viewHref("workstreams")}>By workstream</Link><Link aria-current={view === "people" ? "page" : undefined} href={viewHref("people")}>By person</Link></nav><form method="get"><input type="hidden" name="view" value={view} /><label className="sr-only" htmlFor="ticket-search">Search tickets</label><input id="ticket-search" className="input" type="search" name="q" placeholder="Search tickets or people" defaultValue={params.q ?? ""} /><label className="sr-only" htmlFor="ticket-status-filter">Ticket status</label><select id="ticket-status-filter" className="select" name="status" defaultValue={status}><option value="">All statuses</option><option value="open">Open</option><option value="in_progress">In progress</option><option value="blocked">Blocked</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select><button className="button button-quiet" type="submit"><Search size={15} /> Filter</button></form></div>
     {shown.length ? view === "graph" ? <TicketGraph tickets={shown.map(({ id, title, workstream, status, priority, ownerText, assignees }) => ({ id, title, workstream, status, priority, ownerText, assignees }))} /> : <section className="ticket-clusters" aria-label={view === "people" ? "Tickets grouped by person" : "Tickets grouped by workstream"}>{clusters(shown, view).map(([name, items]) => <section className="ticket-cluster" key={name}><div className="ticket-cluster-heading"><div><span>{view === "people" ? "Person" : "Workstream"}</span><h2>{name}</h2></div><strong>{items.length} {items.length === 1 ? "ticket" : "tickets"}</strong></div><div className="ticket-cluster-cards">{items.map((ticket) => <TicketCard ticket={ticket} timeline={timelines.get(ticket.id)} key={ticket.id} />)}</div></section>)}</section> : <div className="surface empty-state"><h2>{tickets.length ? "No tickets match those filters." : "No tickets have been added yet."}</h2><p>{tickets.length ? "Try another search or status." : "Create the first ticket to start tracking committee work."}</p><Link className="text-link" href={tickets.length ? "/dashboard/tickets" : "/dashboard/tickets/new"}>{tickets.length ? "Clear filters" : "Create a ticket"} <ArrowUpRight size={14} /></Link></div>}
-    <SuggestionPanel isAdmin={profile?.accessRole === "admin"} officers={officers} />
+    <SuggestionPanel isAdmin={profile?.accessRole === "admin"} officers={officers} outlookSyncedAt={outlookSyncedAt} />
   </div>;
 }

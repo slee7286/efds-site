@@ -72,4 +72,35 @@ describe("ticket suggestion API permission boundary", () => {
     expect(response.status).toBe(502);
     expect((await response.json()).error).toMatch(/outside committee access/);
   });
+
+  it("keeps Outlook suggestions admin-only and linked to the approved Outlook host", async () => {
+    const upstream = vi.fn(async (_url: string, options: RequestInit) => {
+      expect(JSON.parse(String(options.body))).toMatchObject({ scope: "admin", source_mode: "admin_outlook_tickets" });
+      return Response.json({ answer: "Confirm the event timing. [S1]", citations: [{
+        ...evidence, source_type: "outlook_message", review_status: "source_generated",
+        authority: "outlook_mail", metadata: { visibility: "internal" },
+        url: "https://outlook.office.com/mail/id/example",
+      }] });
+    });
+    vi.stubGlobal("fetch", upstream);
+    const response = await POST(request("outlook"));
+    expect(mocks.requireRole).toHaveBeenCalledWith("admin");
+    expect(response.status).toBe(200);
+    const result = await response.json();
+    expect(result.reviewable).toBe(true);
+    expect(result.citedSources[0].url).toBe("https://outlook.office.com/mail/id/example");
+    expect(result.citedSources[0].route).toBeNull();
+  });
+
+  it("refuses Outlook citations linked to untrusted hosts or embedded credentials", async () => {
+    for (const url of ["https://outlook.evil.example/mail/steal", "https://attacker@outlook.office.com/mail/id/example"]) {
+      vi.stubGlobal("fetch", vi.fn(async () => Response.json({
+        answer: "Confirm the event timing. [S1]", citations: [{ ...evidence,
+          source_type: "outlook_message", authority: "outlook_mail", metadata: { visibility: "internal" },
+          url,
+        }],
+      })));
+      expect((await POST(request("outlook"))).status).toBe(502);
+    }
+  });
 });

@@ -47,4 +47,12 @@ describe("ticket suggestion proposal", () => {
     expect(screen.getByRole("checkbox", { name: /Alice/ })).toBeTruthy();
     expect(screen.getByRole("link", { name: /#events/ }).getAttribute("href")).toContain("/dashboard/slack/messages/");
   });
+
+  it("offers Outlook as an admin source only after a successful sender sync", () => {
+    const { rerender } = render(<SuggestionPanel isAdmin outlookSyncedAt={null} />);
+    expect(screen.getByRole("option", { name: /Outlook mail/ })).toHaveProperty("disabled", true);
+    rerender(<SuggestionPanel isAdmin outlookSyncedAt="2026-09-23T18:00:00Z" />);
+    expect(screen.getByRole("option", { name: "Outlook mail (admin)" })).toHaveProperty("disabled", false);
+    expect(screen.getByText(/Outlook evidence last synced/)).toBeTruthy();
+  });
 });

@@ -25,7 +25,7 @@ type Result = {
   reviewable: boolean;
 };
 
-export function SuggestionPanel({ isAdmin = true, officers = [] }: { isAdmin?: boolean; officers?: { id: string; name: string; role: string }[] }) {
+export function SuggestionPanel({ isAdmin = true, officers = [], outlookSyncedAt = null }: { isAdmin?: boolean; officers?: { id: string; name: string; role: string }[]; outlookSyncedAt?: string | null }) {
   const [focus, setFocus] = useState<SuggestionFocus>(isAdmin ? "meetings" : "committee");
   const [pending, setPending] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
@@ -54,8 +54,8 @@ export function SuggestionPanel({ isAdmin = true, officers = [] }: { isAdmin?: b
 
   return <section className="ticket-suggestions" aria-labelledby="ticket-suggestions-heading">
     <div className="ticket-suggestions-intro"><div><span className="eyebrow">Committee · evidence review</span><h2 id="ticket-suggestions-heading">Find the next ticket.</h2><p>Ask the EFDS agent for a possible action. Review the cited source, edit the draft and assign people before publishing it to the committee.</p></div><Sparkles size={28} aria-hidden="true" /></div>
-    <div className="ticket-suggestions-controls"><label>Source focus<select className="select" value={focus} disabled={pending} onChange={(event) => { setFocus(event.target.value as SuggestionFocus); setResult(null); }}><option value="committee">Committee Slack</option>{isAdmin && <option value="meetings">Meeting notes (admin)</option>}{isAdmin && <option value="slack">Full Slack archive (admin)</option>}</select></label><button className="button button-dark" type="button" disabled={pending} onClick={suggest}>{pending ? "Reviewing evidence…" : "Suggest a ticket"}</button>{isAdmin && <Link className="button button-quiet" href="/admin/operations/actions?review=proposed">Review saved admin proposals <ArrowUpRight size={14} /></Link>}</div>
-    <p className="ticket-suggestions-note">Recent Outlook mail is not connected. Archived email files do not represent live mailbox history.</p>
+    <div className="ticket-suggestions-controls"><label>Source focus<select className="select" value={focus} disabled={pending} onChange={(event) => { setFocus(event.target.value as SuggestionFocus); setResult(null); }}><option value="committee">Committee Slack</option>{isAdmin && <option value="meetings">Meeting notes (admin)</option>}{isAdmin && <option value="slack">Full Slack archive (admin)</option>}{isAdmin && <option value="outlook" disabled={!outlookSyncedAt}>Outlook mail {outlookSyncedAt ? "(admin)" : "(not connected)"}</option>}</select></label><button className="button button-dark" type="button" disabled={pending} onClick={suggest}>{pending ? "Reviewing evidence…" : "Suggest a ticket"}</button>{isAdmin && <Link className="button button-quiet" href="/admin/operations/actions?review=proposed">Review saved admin proposals <ArrowUpRight size={14} /></Link>}</div>
+    <p className="ticket-suggestions-note">{outlookSyncedAt ? `Sender-limited Outlook evidence last synced ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/London" }).format(new Date(outlookSyncedAt))}.` : "Recent Outlook mail is not connected. Archived email files do not represent live mailbox history."}</p>
     {error && <p className="form-error" role="alert">{error}</p>}
     {result && <div className="ticket-suggestions-result"><p className="sr-only" role="status">{result.reviewable ? "A source-backed suggestion is ready for review." : "No source-backed suggestion is available."}</p><h3>Agent suggestion</h3><p>{result.answer}</p>{result.limitations.map((item) => <small key={item}>{item}</small>)}
       <div className="ticket-suggestions-citations"><strong>Sources returned</strong>{result.citations.length ? <ul>{result.citations.map((citation) => <li key={`${citation.id}:${citation.retrievalUnitId}`}><span>[{citation.id}]</span>{citation.route ? <Link href={citation.route}>{citation.title} <ArrowUpRight size={13} /></Link> : citation.url ? <a href={citation.url} target="_blank" rel="noopener noreferrer">{citation.title} <ArrowUpRight size={13} /></a> : citation.title}<small>{citation.sourceType}</small></li>)}</ul> : <p>No citable sources were returned.</p>}</div>
@@ -78,7 +78,7 @@ export function SuggestionPanel({ isAdmin = true, officers = [] }: { isAdmin?: b
         <label className="form-label">Primary evidence<select className="select" value={selectedUnit} onChange={(event) => setSelectedUnit(event.target.value)}>{result.citedSources.map((citation) => <option key={citation.retrievalUnitId} value={citation.retrievalUnitId}>[{citation.id}] {citation.title}</option>)}</select></label>
         <p>The proposal stays private until an admin reviews and publishes it to the committee workspace.</p>
         <SubmitButton className="button button-primary" type="submit">Save proposal for review <ArrowUpRight size={15} /></SubmitButton>
-      </form> : <p className="form-error">No cited {result.sourceFocus === "meetings" ? "meeting note" : "Slack message"} supports a reviewable draft. Check the sources before creating a ticket.</p>}
+      </form> : <p className="form-error">No cited {result.sourceFocus === "meetings" ? "meeting note" : result.sourceFocus === "outlook" ? "Outlook message" : "Slack message"} supports a reviewable draft. Check the sources before creating a ticket.</p>}
     </div>}
   </section>;
 }

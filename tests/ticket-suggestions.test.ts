@@ -24,4 +24,10 @@ describe("AI ticket proposal evidence", () => {
     const wrongRoute = { ...safe, id: "S3", route: "/admin/slack/messages/22222222-2222-4222-8222-222222222222" };
     expect(citedSuggestionSources("Confirm the venue. [S1] [S2] [S3]", "committee", [safe, unsafe, wrongRoute])).toEqual([safe]);
   });
+
+  it("accepts a cited Outlook source only within the admin Outlook mode", () => {
+    const mail = { ...source("S1", "outlook_message"), reviewStatus: "source_generated", visibility: "internal", authority: "outlook_mail", url: "https://outlook.office.com/mail/id/example" };
+    expect(citedSuggestionSources("Check the date. [S1]", "outlook", [mail])).toEqual([mail]);
+    expect(citedSuggestionSources("Check the date. [S1]", "committee", [mail])).toEqual([]);
+  });
 });
