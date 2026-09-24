@@ -13,6 +13,7 @@ describe("published company research", () => {
         expect(topics.has(finding.topic as typeof guideTopics[number][0])).toBe(true);
         expect(finding.citations.length).toBeGreaterThan(0);
         expect(finding.citations.every((citation) => citation.url.startsWith("https://") || citation.url.startsWith("http://"))).toBe(true);
+        expect(new Set(finding.citations.map((citation) => citation.url)).size).toBe(finding.citations.length);
       }
     }
   });

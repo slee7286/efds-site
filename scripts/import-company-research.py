@@ -49,12 +49,17 @@ def main() -> None:
             if finding["topic"] not in TOPICS:
                 raise ValueError(f"Unexpected topic: {finding['topic']}")
             citations = []
+            seen_urls = set()
             for citation in finding["citations"]:
                 source = sources[citation["source_id"]]
+                url = public_url(source["canonical_url"])
+                if url in seen_urls:
+                    continue
+                seen_urls.add(url)
                 citations.append({
                     "title": public_text(source["title"]),
                     "publisher": public_text(source["publisher"]),
-                    "url": public_url(source["canonical_url"]),
+                    "url": url,
                     "retrievedAt": source["retrieved_at"][:10],
                 })
             published_finding = {
