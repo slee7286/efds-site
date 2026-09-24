@@ -405,12 +405,10 @@ h1, h2, h3 { letter-spacing: -.035em; text-wrap: pretty; }
   .sponsor-home { padding-block: 48px 61px; }
   .sponsor-home-intro h2, .sponsor-page-heading h2 { font-size: 47px; }
   .sponsor-group-list { grid-template-columns: 1fr; }
-  .sponsor-entry { min-height: 123px; }
-  .sponsor-entry { grid-template-columns: 21px minmax(0,1fr) 21px; gap: 3px 13px; min-height: 0; padding: 23px 0; }
-  .sponsor-index { grid-column: 1; grid-row: 1; align-self: start; padding-top: 8px; }
-  .sponsor-name { grid-column: 2; grid-row: 1; font-size: clamp(26px,7.3vw,34px); overflow-wrap: anywhere; }
-  .sponsor-tier { grid-column: 2; grid-row: 2; }
-  .sponsor-entry > svg { grid-column: 3; grid-row: 1; align-self: start; margin-top: 6px; }
+  .sponsor-entry { min-height: 138px; padding: 18px; }
+  .sponsor-logo-wrap { justify-content: center; min-height: 72px; }
+  .sponsor-logo-wrap img { display: block; max-width: 100%; max-height: 52px; object-position: center; }
+  .sponsor-entry-caption { margin-top: 13px; }
   .chapter-head { padding: 24px 0 34px; }
   .chapter-kicker { padding-bottom: 30px; }
   .chapter-kicker > span:last-child { display: none; }

@@ -81,6 +81,38 @@ test("sponsors are visible on the homepage and reachable from navigation", async
   await expect(page.getByRole("link", { name: "contact us" })).toHaveAttribute("href", "mailto:siheon.lee25@imperial.ac.uk");
 });
 
+test("sponsor logos fit and align on narrow phones", async ({ page }, info) => {
+  test.skip(info.project.name !== "mobile");
+  for (const width of [320, 360, 384, 412, 600]) {
+    await page.setViewportSize({ width, height: 840 });
+    for (const route of ["/", "/sponsors"]) {
+      await page.goto(route);
+      const images = page.locator(".sponsor-roster img");
+      await expect(images).toHaveCount(3);
+      await images.evaluateAll(async (items) => Promise.all(items.map((item) => (item as HTMLImageElement).decode())));
+      const cards = await page.locator(".sponsor-entry").evaluateAll((entries) => entries.map((entry) => {
+        const card = entry.getBoundingClientRect();
+        const image = entry.querySelector("img")!.getBoundingClientRect();
+        const caption = entry.querySelector(".sponsor-entry-caption")!.getBoundingClientRect();
+        return {
+          leftInset: image.left - card.left,
+          rightInset: card.right - image.right,
+          imageCenter: (image.left + image.right) / 2,
+          cardCenter: (card.left + card.right) / 2,
+          logoAboveCaption: image.bottom < caption.top,
+        };
+      }));
+      for (const card of cards) {
+        expect(card.leftInset).toBeGreaterThanOrEqual(17);
+        expect(card.rightInset).toBeGreaterThanOrEqual(17);
+        expect(Math.abs(card.imageCenter - card.cardCenter)).toBeLessThan(1);
+        expect(card.logoAboveCaption).toBe(true);
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    }
+  }
+});
+
 test("workspace navigation follows the selected route", async ({ page }, info) => {
   await page.goto("/dashboard");
   if (info.project.name !== "desktop") await page.getByRole("button", { name: "Open workspace navigation", exact: true }).click();
