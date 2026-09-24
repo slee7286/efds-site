@@ -1,24 +1,39 @@
 import type { Metadata } from "next";
 import { isSupabaseConfigured } from "@/lib/config";
 import { getAuthEmailHealth } from "@/lib/db/auth-email-health";
+import { getSourceHealth, syncState, type SourceRun } from "@/lib/db/source-health";
 import { getOutlookSyncStatus } from "@/lib/db/tickets";
 
 export const metadata: Metadata = { title: "Integration health" };
 export const dynamic = "force-dynamic";
 
 function date(value: string | null) {
-  return value
+  return value && Number.isFinite(Date.parse(value))
     ? new Intl.DateTimeFormat("en-GB", {
       dateStyle: "medium", timeStyle: "short", timeZone: "Europe/London",
     }).format(new Date(value))
     : "No event recorded";
 }
 
+function runDescription(run: SourceRun | null) {
+  return run ? `${(run.status ?? "Unknown status").replaceAll("_", " ")} · ${date(run.finishedAt ?? run.startedAt)}` : "No import recorded";
+}
+
+const stateLabels = { fresh: "Fresh", overdue: "Refresh overdue", failed: "Check sync", refreshing: "Refreshing" } as const;
+
+function SourceRow({ title, description, badge, attention = false, fresh = false }: { title: string; description: string; badge: string; attention?: boolean; fresh?: boolean }) {
+  return <div className="queue-row"><div><h3>{title}</h3><p>{description}</p></div><span className={`badge ${attention ? "badge-coral" : fresh ? "badge-mint" : "badge-neutral"}`}>{badge}</span></div>;
+}
+
 export default async function AdminIntegrationsPage() {
-  const [email, outlookLastSync] = await Promise.all([getAuthEmailHealth(), getOutlookSyncStatus()]);
+  const [email, outlookLastSync, sources] = await Promise.all([getAuthEmailHealth(), getOutlookSyncStatus(), getSourceHealth()]);
   const attention = email.failed24h > 0 || email.quotaSignals24h > 0 || email.bounced7d > 0;
   const noRecentEmail = email.accepted24h === 0 && email.delivered7d === 0;
   const emailStatus = attention ? "Check delivery" : email.awaitingEvent7d > 0 ? "Delivery unverified" : noRecentEmail ? "No recent email" : "No recorded failures";
+  const sourceUnavailable = !isSupabaseConfigured || sources.unavailable;
+  const slackState = sourceUnavailable || !sources.enabledSlackChannels ? null : syncState(sources.oldestSlackSyncAt, sources.slackRun);
+  const meetingState = sourceUnavailable || !sources.meetingsRun ? null : syncState(sources.meetingsRun.finishedAt, sources.meetingsRun);
+  const icuState = sourceUnavailable || !sources.icuRun ? null : syncState(sources.icuRun.finishedAt, sources.icuRun, undefined, 24 * 30);
   return <div className="app-content">
     <div className="eyebrow">Admin · integrations</div>
     <h1>See what is<br />actually working.</h1>
@@ -41,9 +56,10 @@ export default async function AdminIntegrationsPage() {
       {!isSupabaseConfigured && <p className="muted" style={{ marginTop: 18 }}>Preview values are empty; connected metrics require a configured Supabase project.</p>}
     </section>
     <section className="surface info-card" style={{ marginTop: 20 }} aria-labelledby="source-status-heading"><h2 id="source-status-heading">Other sources</h2>
-      <div className="queue-row"><div><h3>Slack and linked meeting notes</h3><p>The scheduled archive refresh runs from the knowledge-base repository. Check its GitHub Actions run for the latest result.</p></div><span className="badge badge-neutral">Scheduled</span></div>
-      <div className="queue-row"><div><h3>ICU Union information</h3><p>Public source material is ingested into the knowledge base and reviewed before EFDS publication.</p></div><span className="badge badge-neutral">Review required</span></div>
-      <div className="queue-row"><div><h3>Outlook</h3><p>{outlookLastSync ? `Last successful sender-limited sync: ${date(outlookLastSync)}. This does not confirm that mailbox access is still active.` : "No successful sender-limited sync is visible to this session."}</p></div><span className="badge badge-neutral">{outlookLastSync ? "Previously synced" : "Sync unverified"}</span></div>
+      <SourceRow title="Slack archive" description={sourceUnavailable ? "Connected sync records are unavailable in this session." : sources.enabledSlackChannels ? `${sources.enabledSlackChannels} enabled channels. Oldest channel checkpoint: ${date(sources.oldestSlackSyncAt)}. Latest import: ${runDescription(sources.slackRun)}.` : "No enabled channels are visible. Check the archive settings and access."} badge={sourceUnavailable ? "Status unavailable" : slackState ? stateLabels[slackState] : "No channels"} attention={slackState === "failed" || slackState === "overdue"} fresh={slackState === "fresh"} />
+      <SourceRow title="Linked Google Docs meetings" description={sourceUnavailable ? "Connected sync records are unavailable in this session." : `Latest import: ${runDescription(sources.meetingsRun)}. Meeting notes are collected from links in the enabled Slack meetings channel.`} badge={sourceUnavailable ? "Status unavailable" : meetingState ? stateLabels[meetingState] : "No import"} attention={meetingState === "failed" || meetingState === "overdue"} fresh={meetingState === "fresh"} />
+      <SourceRow title="ICU Union information" description={sourceUnavailable ? "Connected sync records are unavailable in this session." : `Latest public-source import: ${runDescription(sources.icuRun)}.${sources.icuRun?.limited ? " Limited import; missing pages were not reconciled." : ""} Material still needs EFDS review before publication.`} badge={sourceUnavailable ? "Status unavailable" : icuState === "failed" ? "Check sync" : icuState === "overdue" ? "Review freshness" : sources.icuRun?.limited ? "Partial import" : icuState === "fresh" ? "Recently imported" : "No import"} attention={icuState === "failed"} fresh={icuState === "fresh" && !sources.icuRun?.limited} />
+      <SourceRow title="Outlook" description={outlookLastSync ? `Last successful sender-limited sync: ${date(outlookLastSync)}. This does not confirm that mailbox access is still active.` : "No successful sender-limited sync is visible to this session."} badge={outlookLastSync ? "Previously synced" : "Sync unverified"} />
     </section>
   </div>;
 }
