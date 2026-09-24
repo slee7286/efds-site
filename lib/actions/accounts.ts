@@ -29,7 +29,7 @@ export async function reviewAccount(formData: FormData) {
   });
   if (error) {
     if (error.code === "40001" || error.message.includes("profile changed")) redirect("/admin/accounts?error=stale");
-    if (error.message.includes("officer already linked")) redirect("/admin/accounts?error=officer_taken");
+    if (error.message.includes("officer account limit reached") || error.message.includes("officer already linked")) redirect("/admin/accounts?error=officer_full");
     redirect("/admin/accounts?error=review_failed");
   }
   const savedVersion = Number(Array.isArray(decision) ? decision[0]?.access_version : undefined);

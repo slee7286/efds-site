@@ -210,6 +210,11 @@
 .committee-directory-card p { color: var(--ink-soft); font-size: 12px; margin: 0; }
 .committee-directory-link { align-items: center; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px; padding-top: 13px; }
 .committee-directory-link small { color: var(--ink-soft); font-size: 11px; overflow-wrap: anywhere; }
+.officer-account-list { display: grid; flex-basis: 100%; gap: 10px; min-width: 0; }
+.officer-account-entry { align-items: center; border: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; min-width: 0; padding: 10px; }
+.officer-account-entry > div { display: grid; gap: 3px; min-width: 0; }
+.officer-account-entry strong { font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.officer-account-entry .button { min-height: 40px; }
 .officer-account-form { display: grid; gap: 8px; flex-basis: 100%; min-width: 0; margin-top: 3px; }
 .officer-account-form .form-label { font-size: 11px; margin: 0; }
 .officer-account-form .input { min-width: 0; width: 100%; min-height: 43px; }

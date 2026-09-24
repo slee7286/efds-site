@@ -11,10 +11,7 @@ export type CommitteeIdentity = {
   name: string;
   role: string;
   academicYear: string;
-  profileId: string | null;
-  profileVersion: number | null;
-  profileEmail: string | null;
-  profileName: string | null;
+  accounts: { id: string; version: number; email: string; name: string | null }[];
 };
 
 export type UnlinkedProfile = { email: string; fullName: string | null; role: string };
@@ -33,16 +30,21 @@ export async function getCommitteeDirectory() {
   if (linkedResult.error) throw linkedResult.error;
   if (privilegedResult.error) throw privilegedResult.error;
   if (membersResult.error) throw membersResult.error;
-  const byOfficer = new Map(((linkedResult.data ?? []) as Row[]).map((profile) => [String(profile.officer_id), profile]));
+  const byOfficer = new Map<string, CommitteeIdentity["accounts"]>();
+  for (const profile of (linkedResult.data ?? []) as Row[]) {
+    const officerId = String(profile.officer_id);
+    const accounts = byOfficer.get(officerId) ?? [];
+    accounts.push({
+      id: String(profile.id), version: Number(profile.access_version),
+      email: String(profile.email), name: profile.full_name ? String(profile.full_name) : null,
+    });
+    byOfficer.set(officerId, accounts);
+  }
   const officers = ((officersResult.data ?? []) as Row[]).map((officer) => {
-    const profile = byOfficer.get(String(officer.id));
     return {
       id: String(officer.id), name: String(officer.name), role: String(officer.role),
       academicYear: String(officer.academic_year),
-      profileId: profile ? String(profile.id) : null,
-      profileVersion: profile ? Number(profile.access_version) : null,
-      profileEmail: profile ? String(profile.email) : null,
-      profileName: profile?.full_name ? String(profile.full_name) : null,
+      accounts: (byOfficer.get(String(officer.id)) ?? []).sort((a, b) => a.email.localeCompare(b.email)),
     };
   });
   const unlinked = ((privilegedResult.data ?? []) as Row[]).filter((profile) => !profile.officer_id).map((profile) => ({ email: String(profile.email), fullName: profile.full_name ? String(profile.full_name) : null, role: String(profile.access_role) }));

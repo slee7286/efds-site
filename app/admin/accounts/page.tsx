@@ -11,7 +11,7 @@ const errors: Record<string, string> = {
   invalid_request: "The review details were invalid. Refresh and try again.",
   officer_required: "Choose an officer roster entry.",
   stale: "This account changed since you opened it. Review the latest details and try again.",
-  officer_taken: "This officer identity is linked to another active account.",
+  officer_full: "This officer role already has two active accounts. Remove a link before adding another.",
   review_failed: "The review could not be saved. Check the account and try again.",
 };
 

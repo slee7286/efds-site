@@ -59,6 +59,12 @@ describe("officer account links", () => {
     expect(revalidatePath).toHaveBeenCalledWith("/admin/committee");
   });
 
+  it("shows the two-account limit when the database rejects another link", async () => {
+    query.maybeSingle.mockResolvedValue({ data: { id: profileId, access_role: "committee", access_version: 4, officer_id: null }, error: null });
+    rpc.mockResolvedValue({ data: null, error: { message: "officer account limit reached", code: "P0001" } });
+    await expect(linkOfficerAccount(linkForm("officer@example.com"))).rejects.toThrow("error=officer_full");
+  });
+
   it("refuses to unlink a different or stale officer assignment", async () => {
     query.maybeSingle.mockResolvedValue({ data: { officer_id: null, access_version: 4 }, error: null });
     await expect(unlinkOfficerAccount(unlinkForm())).rejects.toThrow("error=stale");

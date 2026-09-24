@@ -7,7 +7,7 @@ const errors: Record<string, string> = {
   account_missing: "No active EFDS account uses that email. Ask the officer to finish account setup first.",
   committee_required: "That account needs committee or admin access before it can be linked to an officer role.",
   account_linked: "That account is already linked to another officer role. Remove its current link first.",
-  officer_taken: "This officer role is already linked to another active account. Refresh the roster before trying again.",
+  officer_full: "This officer role already has two active accounts. Remove a link before adding another.",
   stale: "This account changed since you opened the roster. Refresh and try again.",
   save_failed: "The account link could not be saved. Refresh and try again.",
 };
@@ -15,7 +15,8 @@ const errors: Record<string, string> = {
 export default async function AdminCommitteePage({ searchParams }: { searchParams: Promise<{ error?: string; notice?: string; mail?: string }> }) {
   const params = await searchParams;
   const { officers, unlinked, recentMembers } = await getCommitteeDirectory();
-  const linked = officers.filter((officer) => officer.profileEmail).length;
+  const linked = officers.reduce((total, officer) => total + officer.accounts.length, 0);
+  const emptyRoles = officers.filter((officer) => officer.accounts.length === 0).length;
   const notice = params.notice === "linked" ? "Account linked to its officer role."
     : params.notice === "unlinked" ? "Account link removed."
     : params.notice === "already_linked" ? "That account is already linked to this officer role."
@@ -29,25 +30,24 @@ export default async function AdminCommitteePage({ searchParams }: { searchParam
   return <div className="app-content committee-admin-page">
     <div className="eyebrow">Admin · committee identity</div>
     <h1>People behind<br />the work.</h1>
-    <p className="app-subtitle">Connect each committee account to its officer roster entry so assigned tickets and role details appear in the right workspace. Access and roster identity remain separate decisions.</p>
+    <p className="app-subtitle">Connect up to two committee accounts to each officer roster entry so assigned tickets and role details appear in the right workspaces. Access and roster identity remain separate decisions.</p>
     <Link className="button button-dark" href="/admin/accounts?status=all">Review accounts and assign access</Link>
     {params.error && errors[params.error] && <p className="form-error" role="alert">{errors[params.error]}</p>}
     {notice && <p className={params.mail === "attention" ? "form-error" : "form-success"} role="status">{notice} {mail}</p>}
     <section className="ticket-metrics" aria-label="Committee account status">
       <div><span>Active officers</span><strong>{officers.length}</strong><small>Roster entries</small></div>
       <div><span>Linked accounts</span><strong>{linked}</strong><small>Ready for assigned tickets</small></div>
-      <div><span>Awaiting a link</span><strong>{officers.length - linked}</strong><small>Officer entries without an account</small></div>
+      <div><span>Awaiting a link</span><strong>{emptyRoles}</strong><small>Officer entries without an account</small></div>
       <div><span>Access without a role</span><strong>{unlinked.length}</strong><small>Committee/admin accounts</small></div>
     </section>
     <section className="committee-directory" id="roster" aria-label="Active officer roster">
       <div className="panel-heading"><h2>Officer roster and account links</h2><span>{officers.length} active</span></div>
-      <p className="committee-directory-help">Enter an existing committee or admin account email under the matching officer. Suggestions show accounts that do not yet have a roster link. For a new member, verify and promote the account in <Link href="/admin/accounts?status=all">Account review</Link> first.</p>
+      <p className="committee-directory-help">Each officer role can have up to two committee or admin accounts. Enter an existing account email under the matching officer. Suggestions show accounts that do not yet have a roster link. For a new member, verify and promote the account in <Link href="/admin/accounts?status=all">Account review</Link> first.</p>
       <datalist id="eligible-officer-accounts">{unlinked.map((profile) => <option key={profile.email} value={profile.email}>{profile.fullName || profile.role}</option>)}</datalist>
       {officers.length ? <div className="committee-directory-grid">{officers.map((officer) => <article className="surface committee-directory-card" key={officer.id}>
         <div><span className="eyebrow">{officer.academicYear}</span><h3>{officer.name}</h3><p>{officer.role}</p></div>
         <div className="committee-directory-link">
-          <span className={`badge ${officer.profileEmail ? "badge-mint" : "badge-neutral"}`}>{officer.profileEmail ? "Linked" : "No account linked"}</span>
-          {officer.profileEmail && <small>{officer.profileEmail}</small>}
+          <span className={`badge ${officer.accounts.length ? "badge-mint" : "badge-neutral"}`}>{officer.accounts.length} of 2 accounts linked</span>
           <OfficerAccountForm officer={officer} />
         </div>
       </article>)}</div> : <div className="surface empty-state"><h2>No active officer entries.</h2><p>The knowledge-base roster has no active officers in this workspace.</p></div>}

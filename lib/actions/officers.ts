@@ -24,7 +24,7 @@ async function finishLink(client: Client, profileId: string, version: number, of
   });
   if (error) {
     if (error.code === "40001" || error.message.includes("profile changed")) redirect("/admin/committee?error=stale");
-    if (error.message.includes("officer already linked")) redirect("/admin/committee?error=officer_taken");
+    if (error.message.includes("officer account limit reached") || error.message.includes("officer already linked")) redirect("/admin/committee?error=officer_full");
     if (error.message.includes("committee role required")) redirect("/admin/committee?error=committee_required");
     redirect("/admin/committee?error=save_failed");
   }
