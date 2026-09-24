@@ -86,6 +86,17 @@ test("workspace navigation follows the selected route", async ({ page }, info) =
   await expect(page.getByRole("note")).toContainText("Local design preview");
 });
 
+test("admin navigation starts with one Society Operations overview", async ({ page }, info) => {
+  await page.goto("/admin/accounts");
+  if (info.project.name !== "desktop") await page.getByRole("button", { name: "Open workspace navigation", exact: true }).click();
+  const sidebar = info.project.name === "desktop" ? page.locator(".app-frame > .app-sidebar") : page.getByRole("dialog", { name: "Workspace navigation" }).locator(".app-sidebar");
+  await expect(sidebar.locator(".sidebar-label")).toHaveText(["Society operations", "Your workspace"]);
+  const operations = sidebar.getByRole("navigation", { name: "Society operations navigation" });
+  await expect(operations.getByRole("link").first()).toHaveText("Overview");
+  await expect(operations.getByRole("link", { name: "Overview" })).toHaveAttribute("href", "/dashboard");
+  await expect(sidebar.getByRole("navigation", { name: "Private navigation" }).getByRole("link", { name: "Dashboard" })).toHaveCount(0);
+});
+
 test("account menu opens the profile and security settings", async ({ page }) => {
   await page.goto("/dashboard");
   await page.locator(".account-trigger").click();
@@ -188,7 +199,7 @@ test("account review cards contain long claims without horizontal overflow", asy
   await page.evaluate(() => {
     const list = document.querySelector(".account-review-list");
     if (!list) throw new Error("Account review list missing");
-    list.innerHTML = `<article class="surface account-review-card"><div class="account-review-identity"><div><span class="eyebrow">imperial account</span><h2>Alex Example</h2><p>alex.with.a.long.student.address@imperial.ac.uk</p></div><div class="account-review-badges"><span class="badge badge-neutral">member</span><span class="badge badge-neutral">pending</span></div></div><div class="account-review-detail"><div><span>Joined</span><strong>23 Sep 2026</strong></div><div><span>Membership claim</span><p>Joined an EFDS careers event and would like access to member resources once the committee confirms my society membership. Reference: AVeryLongUnbrokenMembershipIdentifierThatMustNotBreakMobileLayout.</p></div></div><form class="account-review-form"><label class="form-label">Decision<select class="select"><option>Verify EFDS membership</option></select></label><label class="form-label">Reason<textarea class="textarea" rows="2" placeholder="Which EFDS membership record did you check?"></textarea></label><div class="account-review-actions"><button class="button button-dark" type="button">Save decision</button></div></form></article>`;
+    list.innerHTML = `<article class="surface account-review-card"><div class="account-review-identity"><div><span class="eyebrow">imperial account</span><h2>Alex Example</h2><p>alex.with.a.long.student.address@imperial.ac.uk</p></div><div class="account-review-badges"><span class="badge badge-neutral">member</span><span class="badge badge-neutral">pending</span></div></div><div class="account-review-detail"><div><span>Joined</span><strong>23 Sep 2026</strong></div><div><span>Membership claim</span><p>Joined an EFDS careers event and would like access to member resources once the committee confirms my society membership. Reference: AVeryLongUnbrokenMembershipIdentifierThatMustNotBreakMobileLayout.</p></div></div><form class="account-review-form"><label class="form-label">Decision<select class="select"><option>Verify EFDS membership</option></select></label><div class="account-review-actions"><button class="button button-dark" type="button">Save decision</button></div></form></article>`;
   });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: `artifacts/editorial/account-review-preview-${info.project.name}.png`, fullPage: true });

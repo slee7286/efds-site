@@ -16,12 +16,12 @@ Use your own account. Everyone starts as a **member**, with full event access an
 
 ## For EFDS account administrators
 
-Use the [Accounts review panel](https://www.imperial-efds.com/admin/accounts) after the person signs in once. Check the current society or committee record through a trusted source. A name, student email or self-description alone is not sufficient evidence. The panel records the acting admin, decision, reason and date. It prevents direct role changes, stale edits and two active accounts linking to the same officer entry.
+Use the [Accounts review panel](https://www.imperial-efds.com/admin/accounts) after the person signs in once. Check the current society or committee record through a trusted source. A name, student email or self-description alone is not sufficient evidence. The panel records the acting admin, decision and date. It prevents direct role changes, stale edits and two active accounts linking to the same officer entry.
 
-1. **Verify EFDS membership.** In **Needs review**, open the person's exact account. Compare their claim with an independent EFDS record. Select **Verify EFDS membership** and record the source checked in **Reason**. If the claim cannot be confirmed, select **Decline verification**, explain why and ask the person for corrected details. A declined account remains visible for follow-up.
-2. **Grant committee access.** After verification, switch to **All active accounts**, find that account, select **Grant committee access**, state the reason and save. Verification and promotion are deliberately separate decisions.
+1. **Verify EFDS membership.** In **Needs review**, open the person's exact account. Compare their claim with an independent EFDS record. Select **Verify EFDS membership** and save. If the claim cannot be confirmed, select **Decline verification** and ask the person for corrected details. A declined account remains visible for follow-up.
+2. **Grant committee access.** After verification, switch to **All active accounts**, find that account, select **Grant committee access** and save. Verification and promotion are deliberately separate decisions.
 3. **Link the correct officer entry.** On the same account, select **Link committee identity** and choose the active officer roster entry with the correct full name, title and academic year. Check [Admin → Committee](https://www.imperial-efds.com/admin/committee) if a roster entry is missing or already linked. The database refuses a duplicate active link.
-4. **Check the outcome.** Ask the member to refresh their profile and ticket dashboard. Use the account panel's recent access decisions to confirm what changed and when. Admin promotion also requires a reason and cannot be applied to an unverified account. An admin cannot change their own role or remove the last active admin.
+4. **Check the outcome.** Ask the member to refresh their profile and ticket dashboard. Use the account panel's recent access decisions to confirm what changed and when. Admin promotion cannot be applied to an unverified account. An admin cannot change their own role or remove the last active admin.
 
 The old `grant_access.py` database command remains a bootstrap or recovery tool for an authorised operator; routine account reviews now belong in the audited dashboard. Do not put database credentials in a command, shared document or chat.
 

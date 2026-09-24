@@ -9,7 +9,6 @@ export const metadata: Metadata = { title: "Account review" };
 
 const errors: Record<string, string> = {
   invalid_request: "The review details were invalid. Refresh and try again.",
-  reason_required: "Add a reason for this decision.",
   officer_required: "Choose an officer roster entry.",
   stale: "This account changed since you opened it. Review the latest details and try again.",
   officer_taken: "This officer identity is linked to another active account.",

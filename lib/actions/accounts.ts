@@ -10,24 +10,22 @@ const reviewSchema = z.object({
   profileId: z.uuid(),
   version: z.coerce.number().int().positive(),
   action: z.enum(["verify", "decline", "promote_committee", "promote_admin", "demote_member", "link_officer"]),
-  reason: z.string().trim().max(500).optional(),
-  officerId: z.union([z.uuid(), z.literal("")]).optional(),
+  officerId: z.uuid().optional(),
 });
 
 export async function reviewAccount(formData: FormData) {
   await requireRole("admin");
   const parsed = reviewSchema.safeParse({
     profileId: formData.get("profileId"), version: formData.get("version"),
-    action: formData.get("action"), reason: formData.get("reason"), officerId: formData.get("officerId"),
+    action: formData.get("action"), officerId: formData.get("officerId") || undefined,
   });
   if (!parsed.success) redirect("/admin/accounts?error=invalid_request");
-  const { profileId, version, action, reason, officerId } = parsed.data;
-  if (action !== "link_officer" && !reason) redirect("/admin/accounts?error=reason_required");
+  const { profileId, version, action, officerId } = parsed.data;
   if (action === "link_officer" && !officerId) redirect("/admin/accounts?error=officer_required");
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.rpc("review_efds_account", {
     p_target_profile_id: profileId, p_expected_version: version, p_action: action,
-    p_reason: reason || null, p_officer_id: officerId || null,
+    p_reason: null, p_officer_id: officerId || null,
   });
   if (error) {
     if (error.code === "40001" || error.message.includes("profile changed")) redirect("/admin/accounts?error=stale");

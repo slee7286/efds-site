@@ -166,6 +166,10 @@
 .ticket-activity .ticket-activity-sync { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 15px; }
 .ticket-dashboard-focus { background: var(--white); border: 1px solid var(--line); margin-top: 30px; max-width: 920px; }
 .ticket-dashboard-focus .ticket-cluster-heading a { align-items: center; color: var(--cobalt); display: inline-flex; font-size: 12px; gap: 6px; }
+.society-admin-overview { border-top: 1px solid var(--line); margin-top: 40px; padding-top: 14px; }
+.society-admin-overview > .ticket-cluster-heading { padding-inline: 0; }
+.society-admin-overview .ticket-cluster-heading a { align-items: center; color: var(--cobalt-dark); display: inline-flex; font-size: 12px; gap: 6px; }
+.society-admin-overview .metric-grid { margin: 20px 0 24px; }
 .ticket-suggestions { background: var(--paper-deep); border: 1px solid var(--line); margin-top: 38px; padding: 25px; }
 .ticket-suggestions-intro { align-items: start; display: flex; gap: 25px; justify-content: space-between; }
 .ticket-suggestions-intro > svg { color: var(--cobalt); flex: none; }

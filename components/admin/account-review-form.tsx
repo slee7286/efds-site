@@ -25,7 +25,6 @@ export function AccountReviewForm({ account, officers, isSelf }: { account: Revi
       ? [{ value: "promote_committee", label: "Grant committee access" }, { value: "promote_admin", label: "Grant admin access" }]
       : [{ value: "verify", label: "Verify EFDS membership" }, { value: "decline", label: "Decline verification" }];
   const [action, setAction] = useState<Action>(available[0].value);
-  const needsReason = action !== "link_officer";
   const needsOfficer = action === "link_officer";
 
   return <form action={reviewAccount} className="account-review-form">
@@ -41,9 +40,6 @@ export function AccountReviewForm({ account, officers, isSelf }: { account: Revi
         <option value="" disabled>Choose an officer</option>
         {officers.map((officer) => <option key={officer.id} value={officer.id}>{officer.name} · {officer.role} ({officer.academicYear})</option>)}
       </select>
-    </label>}
-    {needsReason && <label className="form-label">Reason
-      <textarea className="textarea" name="reason" rows={2} maxLength={500} required placeholder={action === "verify" ? "Which EFDS membership record did you check?" : action === "decline" ? "State what was checked and why verification was declined" : "Explain this access change"} />
     </label>}
     <div className="account-review-actions"><SubmitReview />{isSelf && <small>Your own role cannot be changed here.</small>}</div>
   </form>;
