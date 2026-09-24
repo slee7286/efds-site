@@ -24,6 +24,9 @@ for (const route of [...publicRoutes, "/login", "/signup", "/auth/verify-code?fl
 for (const route of ["/", "/about", "/events", "/resources", "/committee", "/sponsors", "/contact", "/chat", "/login", "/signup", "/auth/verify-code?flow=setup", "/dashboard", "/dashboard/profile", "/dashboard/tickets", "/admin", "/admin/accounts", "/admin/integrations", "/dashboard/search", "/admin/documents"]) {
   test(`${route} has no WCAG A/AA accessibility violations`, async ({ page }) => {
     await page.goto(route);
+    // The local preview has member access, so /admin redirects to /dashboard.
+    // Let that navigation finish before axe evaluates the final document.
+    if (route === "/admin") await expect(page).toHaveURL(/\/dashboard$/);
     const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
     expect(result.violations.map(v => ({ id: v.id, description: v.description, nodes: v.nodes.map(n => n.target) }))).toEqual([]);
   });
