@@ -60,6 +60,17 @@ describe("ticket activity", () => {
     expect(result.activity[0]).toMatchObject({ actor: "Katia", action: "Set status to completed" });
   });
 
+  it("records who requested a reminder and how many linked accounts were queued", () => {
+    const changes: CommitteeTicketChange[] = [{
+      id: "reminder-1", ticketId: ticket.id, action: "committee_reminder",
+      actorName: "Katia", changes: { recipient_count: 2 }, occurredAt: "2026-09-23T14:00:00Z",
+    }];
+    const result = buildTicketTimeline(ticket, [], [], users, changes, []);
+    expect(result.activity[0]).toMatchObject({
+      actor: "Katia", action: "Requested reminder emails for 2 accounts",
+    });
+  });
+
   it("ignores another ticket root even if its description names this action", () => {
     const other: SlackTicketMessage = { ...root, id: "root-24", slackTs: "another", text: "ACTION-024 — Other work\nComplete ACTION-023 first", postedAt: "2026-09-23T16:00:00Z" };
     const result = buildTicketTimeline(ticket, [root, other], [], users, [], []);

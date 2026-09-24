@@ -66,6 +66,29 @@ export async function ticketAction(formData: FormData) {
   redirect(finalId ? `/dashboard/tickets/${finalId}?saved=${action.data}` : "/dashboard/tickets");
 }
 
+export async function remindTicketAssignees(formData: FormData) {
+  const ticketId = z.string().uuid().safeParse(value(formData, "ticketId"));
+  const location = ticketId.success ? `/dashboard/tickets/${ticketId.data}` : "/dashboard/tickets";
+  const version = z.coerce.number().int().positive().safeParse(value(formData, "expectedVersion"));
+  if (!ticketId.success || !version.success) redirect(`${location}?reminderError=invalid`);
+  if (!isSupabaseConfigured) redirect(`${location}?reminderError=unavailable`);
+  await requireRole("committee");
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("request_ticket_reminder", {
+    p_ticket_id: ticketId.data,
+    p_expected_version: version.data,
+  });
+  if (error) {
+    const code = error.code === "P0006" ? "conflict"
+      : error.code === "P0007" ? "recent"
+      : error.code === "P0008" ? "no_recipients"
+      : error.code === "P0001" ? "forbidden" : "send_failed";
+    redirect(`${location}?reminderError=${code}`);
+  }
+  revalidatePath(location);
+  redirect(`${location}?reminded=${Number(data) || 0}`);
+}
+
 export async function committeeSuggestionAction(formData: FormData) {
   const location = "/dashboard/tickets";
   if (!isSupabaseConfigured) redirect(`${location}?error=unavailable`);

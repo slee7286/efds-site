@@ -73,6 +73,12 @@ function changeAction(change: CommitteeTicketChange, officers: TicketOfficer[]):
     return names.length === ids.length ? `Set assignees to ${names.join(", ")}` : `Set ${ids.length} assignees`;
   }
   if (change.action === "committee_create") return "Created ticket";
+  if (change.action === "committee_reminder") {
+    const count = Number(change.changes.recipient_count);
+    return Number.isInteger(count) && count > 0
+      ? `Requested reminder emails for ${count} ${count === 1 ? "account" : "accounts"}`
+      : "Requested ticket reminders";
+  }
   return "Saved ticket details";
 }
 
