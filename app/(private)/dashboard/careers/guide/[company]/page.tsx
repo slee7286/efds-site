@@ -16,7 +16,7 @@ export default async function CompanyGuideDetailPage({ params }: { params: Promi
   return <div className="app-content career-guide career-guide-detail">
     <Link className="career-guide-back" href="/dashboard/careers/guide"><ArrowLeft size={15} /> All company research</Link>
     <div className="eyebrow">Reviewed company brief · {company.reviewedAt}</div><h1>{company.name}</h1><p className="app-subtitle">{company.findings.length} sourced findings across the business, its work and the recruiting evidence.</p>
-    <div className="career-guide-note"><strong>Read with the right scope</strong><p>Each finding has its own source and scope. A group-level statement may not describe a particular office or role. Openings and deadlines may have changed since this 24 September 2026 snapshot; check the employer’s current careers site.</p></div>
+    <div className="career-guide-note"><strong>Read with the right scope</strong><p>Each finding has its own source and scope. A group-level statement may not describe a particular office or role. Openings and deadlines may have changed since this 25 September 2026 snapshot; check the employer’s current careers site.</p></div>
     <nav className="career-guide-toc" aria-label="Company brief sections">{guideTopics.filter(([topic]) => company.findings.some((finding) => finding.topic === topic)).map(([topic, label]) => <a key={topic} href={`#${topic}`}>{label}</a>)}</nav>
     {guideTopics.map(([topic, label]) => {
       const findings = company.findings.filter((finding) => finding.topic === topic);

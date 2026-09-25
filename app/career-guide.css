@@ -18,8 +18,8 @@
 .career-guide-row { align-items: start; border-top: 1px solid var(--line); display: grid; gap: 22px; grid-template-columns: 30px minmax(0, 1fr) 92px 20px; min-height: 116px; padding: 25px 5px; }
 .career-guide-row:hover, .career-guide-row:focus-visible { background: #eef1f8; }
 .career-guide-row-number { color: var(--cobalt); font-size: 11px; font-weight: 700; padding-top: 7px; }
-.career-guide-row h2 { font-family: var(--font-editorial), Georgia, serif; font-size: clamp(23px, 2.3vw, 32px); font-weight: 400; margin: 0 0 8px; }
-.career-guide-row p { color: var(--ink-soft); font-size: 13px; line-height: 1.6; margin: 0; max-width: 770px; }
+.career-guide-row h2 { -webkit-box-orient: vertical; -webkit-line-clamp: 2; display: -webkit-box; font-family: var(--font-editorial), Georgia, serif; font-size: clamp(23px, 2.3vw, 32px); font-weight: 400; margin: 0 0 8px; overflow: hidden; overflow-wrap: anywhere; }
+.career-guide-row p { -webkit-box-orient: vertical; -webkit-line-clamp: 3; color: var(--ink-soft); display: -webkit-box; font-size: 13px; line-height: 1.6; margin: 0; max-width: 770px; overflow: hidden; }
 .career-guide-row-count { color: var(--ink-soft); font-size: 11px; padding-top: 8px; text-align: right; }
 .career-guide-row > svg { color: var(--cobalt); margin-top: 4px; }
 .career-guide-no-results { border-top: 1px solid var(--line); padding: 35px 5px; }

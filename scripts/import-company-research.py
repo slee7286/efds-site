@@ -17,12 +17,36 @@ OUTPUT = SITE / "data" / "company-research.json"
 TOPICS = {"business", "teams", "differentiators", "work", "direction", "risks", "recruiting"}
 PRIVATE_PATTERN = re.compile(r"(?:siheon|lee25@|@(?:ic|imperial)\.ac\.uk)", re.I)
 PERSONAL_TRACKING_PATTERN = re.compile(r"\btrackr\b", re.I)
+# The published artefact must not carry reviewer metadata, model-usage records,
+# applicant context, personal addresses, or personal job-tracker references.
+PUBLISH_FORBIDDEN = re.compile(
+    r"siheon|lee25@|@(?:ic|imperial)\.ac\.uk|\"reviewer\"|review_note|model_usage|applicant_context|\btrackr\b",
+    re.I,
+)
 
 
 def public_text(value: str) -> str:
     if PRIVATE_PATTERN.search(value):
         raise ValueError("Personal or university email data found in publication input")
     return value.strip()
+
+
+def public_name(value: str) -> str:
+    """Return an entity string safe to publish as a display name.
+
+    Entity strings record identity scope and frequently name the personal job
+    tracker as the source of the role under review. That context is dropped
+    clause by clause rather than dropping the company, because the identity
+    caveat itself is worth publishing.
+    """
+    text = public_text(value)
+    kept = [part.strip() for part in text.split(";") if part.strip()]
+    kept = [part for part in kept if not PERSONAL_TRACKING_PATTERN.search(part)]
+    if not kept:
+        sentences = [part.strip() for part in re.split(r"(?<=\.)\s+", text) if part.strip()]
+        kept = [part for part in sentences if not PERSONAL_TRACKING_PATTERN.search(part)]
+    name = "; ".join(kept) if kept else text
+    return re.sub(r"\s*;\s*$", "", name).strip()
 
 
 def public_url(value: str) -> str:
@@ -34,6 +58,7 @@ def public_url(value: str) -> str:
 
 def main() -> None:
     companies = []
+    reviewed_dates = []
     for path in sorted((RESEARCH / "briefs").glob("*.json")):
         brief = json.loads(path.read_text())
         if brief.get("review_status") != "reviewed":
@@ -73,9 +98,10 @@ def main() -> None:
             if PERSONAL_TRACKING_PATTERN.search(json.dumps(published_finding)):
                 continue
             findings.append(published_finding)
+        reviewed_dates.append(brief["reviewed_at"][:10])
         companies.append({
             "id": brief["company_id"],
-            "name": public_text(brief["entity"]),
+            "name": public_name(brief["entity"]),
             "reviewedAt": brief["reviewed_at"][:10],
             "findings": findings,
             "roles": [{"title": public_text(role["title"]), "office": public_text(role.get("office") or "Office not specified"), "findingIds": role["finding_ids"]} for role in brief.get("role_briefs", []) if not PERSONAL_TRACKING_PATTERN.search(role["title"])],
@@ -84,7 +110,14 @@ def main() -> None:
         })
     companies.sort(key=lambda company: company["name"].lower())
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(json.dumps({"asOf": "2026-09-24", "companies": companies}, ensure_ascii=False, separators=(",", ":")) + "\n")
+    payload = {"asOf": max(reviewed_dates) if reviewed_dates else "", "companies": companies}
+    rendered = json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n"
+    # Fail loudly rather than publishing personal context by accident. This is
+    # the same gate career-guide.test.ts asserts against.
+    leaked = sorted(set(match.group(0).lower() for match in PUBLISH_FORBIDDEN.finditer(rendered)))
+    if leaked:
+        raise ValueError(f"Publication contains forbidden context: {leaked}")
+    OUTPUT.write_text(rendered)
     print(f"Published {len(companies)} reviewed companies and {sum(len(item['findings']) for item in companies)} findings to {OUTPUT}")
 
 
