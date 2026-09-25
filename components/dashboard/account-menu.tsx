@@ -42,6 +42,11 @@ export function AccountMenu({ profile, role, preview }: { profile: AccountSummar
     try {
       const { error: signOutError } = await createBrowserSupabaseClient().auth.signOut({ scope: "local" });
       if (signOutError) throw signOutError;
+      // Purge the client Router Cache before leaving. Without this, the authenticated
+      // pages this session already visited stay cached in the browser, so the workspace
+      // can still be opened after signing out: the navigation is served from cache and
+      // no request reaches the server to deny it.
+      router.refresh();
       router.replace("/");
     } catch {
       setError("Sign out failed. Please try again.");
