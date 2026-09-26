@@ -4,6 +4,7 @@ import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import CareersPage from "@/app/(public)/careers/page";
 import { dailyCareerExample, rotatingCareerExamples } from "@/lib/careers/daily-examples";
+import { companyGuide } from "@/lib/careers/company-guide";
 
 describe("daily career examples", () => {
   it("stays the same through one London day and changes at local midnight", () => {
@@ -44,12 +45,22 @@ describe("public careers examples", () => {
       .map((anchor) => anchor.getAttribute("href"))
       .filter((href) => href?.startsWith("http"));
     expect(outbound).toEqual([]);
-    // Every field links into the EFDS careers guide instead, including the two
-    // fields that carry no example firms.
-    expect(rows.map((row) => row.querySelector(".career-row-examples-guide")?.getAttribute("href")))
-      .toEqual(Array.from({ length: rows.length }, () => "/dashboard/careers/guide"));
-    expect(container.textContent).toContain("not available to non-EFDS students");
-    expect(container.textContent).toContain("EFDS Union society membership");
+    // Each displayed firm has its own public reviewed brief; fields without
+    // examples lead to the public index, never to the gated dashboard.
+    for (const row of rows) {
+      const links = Array.from(row.querySelectorAll<HTMLAnchorElement>(".career-row-examples a"));
+      const hasExamples = !!row.querySelector(".career-row-examples > span");
+      if (!hasExamples) expect(links.map((link) => link.getAttribute("href"))).toEqual(["/careers/guide"]);
+      else {
+        expect(links.length).toBeGreaterThan(0);
+        for (const link of links) {
+          expect(link.getAttribute("href")).toMatch(/^\/careers\/guide\/[a-z0-9-]+$/);
+          const id = link.getAttribute("href")?.slice("/careers/guide/".length);
+          expect(companyGuide.companies.some((company) => company.id === id)).toBe(true);
+        }
+      }
+    }
+    expect(container.textContent).not.toContain("The guide itself is reserved for verified EFDS students");
   });
 
   it("demos the shape of a guide brief without publishing member research", () => {

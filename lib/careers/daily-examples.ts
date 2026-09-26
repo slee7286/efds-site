@@ -1,26 +1,26 @@
-export type CareerExample = { name: string; url: string };
+export type CareerExample = { name: string; guideId: string };
 
 const finance: CareerExample[] = [
-  { name: "Goldman Sachs", url: "https://www.goldmansachs.com/careers/our-firm/investment-banking" },
-  { name: "JPMorganChase", url: "https://www.jpmorganchase.com/careers/explore-opportunities" },
-  { name: "BlackRock", url: "https://careers.blackrock.com/" },
-  { name: "Morgan Stanley", url: "https://www.morganstanley.com/people" },
+  { name: "Goldman Sachs", guideId: "goldman-sachs-c27b1107" },
+  { name: "Barclays", guideId: "barclays-8dd79439" },
+  { name: "BlackRock", guideId: "blackrock-86a62f4a" },
+  { name: "Morgan Stanley", guideId: "morgan-stanley-1a00a520" },
 ];
 
 const consulting: CareerExample[] = [
-  { name: "Boston Consulting Group", url: "https://careers.bcg.com/global/en" },
-  { name: "McKinsey & Company", url: "https://www.mckinsey.com/careers/home" },
-  { name: "EY Consulting", url: "https://www.ey.com/en_uk/careers/students" },
-  { name: "Deloitte", url: "https://www.deloitte.com/uk/en/careers.html" },
+  { name: "Boston Consulting Group", guideId: "bcg-b4037147" },
+  { name: "Bain & Company", guideId: "bain-company-9fdef41c" },
+  { name: "Oliver Wyman", guideId: "oliver-wyman-6ff419e9" },
+  { name: "FTI Consulting", guideId: "fti-consulting-bcfba263" },
 ];
 
 export const fixedCareerExamples: Record<"quantitativeResearch" | "economicsPolicy", CareerExample[]> = {
   quantitativeResearch: [
-    { name: "Optiver", url: "https://www.optiver.com/join-us/jobs/quantitative-research-and-machine-learning/" },
-    { name: "Jane Street", url: "https://www.janestreet.com/quantitative-research/" },
+    { name: "Optiver", guideId: "optiver-3507fe20" },
+    { name: "Jane Street", guideId: "jane-street-79bab30d" },
   ],
   economicsPolicy: [
-    { name: "Cornerstone Research", url: "https://www.cornerstone.com/about/about-us/" },
+    { name: "Cornerstone Research", guideId: "cornerstone-research-cd3ff5bd" },
   ],
 };
 

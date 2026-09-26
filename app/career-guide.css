@@ -1,4 +1,6 @@
 .career-guide { max-width: 1200px; width: 100%; }
+.public-career-guide { padding-block: 45px 90px; }
+.public-career-guide > .career-guide { margin-inline: auto; }
 .career-guide h1 { font-size: clamp(48px, 6vw, 78px); line-height: .95; margin: 18px 0 22px; overflow-wrap: anywhere; }
 .career-guide h1 em { font-family: var(--font-editorial), Georgia, serif; font-weight: 400; }
 .career-guide .app-subtitle { max-width: 690px; }
