@@ -18,17 +18,7 @@ export function TicketGraph({ tickets }: { tickets: GraphTicket[] }) {
   const peopleRail = useRef<HTMLDivElement>(null);
   const personButtons = useRef(new Map<string, HTMLButtonElement>());
   const [personAnchors, setPersonAnchors] = useState<Record<string, { x: number; y: number }>>({});
-  const [expandedWorkstreams, setExpandedWorkstreams] = useState<Set<string>>(() => new Set());
-  const completedByWorkstream = useMemo(() => {
-    const groups = new Map<string, number>();
-    for (const ticket of tickets) if (ticket.status === "completed") {
-      const name = ticket.workstream?.trim() || "Unsorted";
-      groups.set(name, (groups.get(name) ?? 0) + 1);
-    }
-    return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
-  }, [tickets]);
-  const visibleTickets = useMemo(() => tickets.filter((ticket) => ticket.status !== "completed" || expandedWorkstreams.has(ticket.workstream?.trim() || "Unsorted")), [tickets, expandedWorkstreams]);
-  const graph = useMemo(() => buildTicketGraph(visibleTickets), [visibleTickets]);
+  const graph = useMemo(() => buildTicketGraph(tickets), [tickets]);
   const nodes = useMemo(() => [...graph.workstreams, ...graph.tickets, ...graph.people], [graph]);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [hoverKey, setHoverKey] = useState<string | null>(null);
@@ -72,21 +62,19 @@ export function TicketGraph({ tickets }: { tickets: GraphTicket[] }) {
     setHoverKey(null);
   }
 
-  if (!tickets.length) return <section className="ticket-graph ticket-graph-empty" aria-label="Committee relationship map"><div className="ticket-graph-heading"><div><span className="eyebrow">Committee relationship map</span><h2>No active relationships yet.</h2><p>New active tickets and their assignments will appear here.</p></div></div><Link className="text-link" href="/dashboard/tickets/new">Create a ticket <ArrowUpRight size={15} /></Link></section>;
+  if (!graph.tickets.length) return <section className="ticket-graph ticket-graph-empty" aria-label="Committee relationship map"><div className="ticket-graph-heading"><div><span className="eyebrow">Committee relationship map</span><h2>No active relationships yet.</h2><p>New active tickets and their assignments will appear here.</p></div></div><Link className="text-link" href="/dashboard/tickets/new">Create a ticket <ArrowUpRight size={15} /></Link></section>;
 
   return <section className="ticket-graph" aria-labelledby="ticket-graph-heading">
     <div className="ticket-graph-heading">
       <div><span className="eyebrow">Committee relationship map</span><h2 id="ticket-graph-heading">Projects, tickets, people.</h2><p>Choose a person to reveal assignments, or a workstream to focus its tickets. Open any ticket for details.</p></div>
-      <div className="ticket-graph-key" aria-label="Ticket status key"><span><i className="graph-dot graph-dot-blocked" /> Blocked</span><span><i className="graph-dot graph-dot-in_progress" /> In progress</span><span><i className="graph-dot graph-dot-open" /> Open</span><span><i className="graph-dot graph-dot-completed" /> Completed</span><span><i className="graph-dot graph-dot-cancelled" /> Cancelled</span></div>
+      <div className="ticket-graph-key" aria-label="Ticket status key"><span><i className="graph-dot graph-dot-blocked" /> Blocked</span><span><i className="graph-dot graph-dot-in_progress" /> In progress</span><span><i className="graph-dot graph-dot-open" /> Open</span></div>
     </div>
-    {completedByWorkstream.length > 0 && <div className="ticket-graph-completed" aria-label="Completed tickets by workstream"><span>Completed by workstream</span>{completedByWorkstream.map(([name, count]) => <button key={name} type="button" aria-expanded={expandedWorkstreams.has(name)} onClick={() => { setSelectedKey(null); setHoverKey(null); setExpandedWorkstreams((current) => { const next = new Set(current); if (next.has(name)) next.delete(name); else next.add(name); return next; }); }}>{expandedWorkstreams.has(name) ? "Hide" : "Show"} {count} completed in {name}</button>)}</div>}
     <div className="ticket-graph-jumps" aria-label="Move through graph columns"><span>Jump to</span><button type="button" onClick={() => viewport.current?.scrollTo({ left: 0 })}>Workstreams</button><button type="button" onClick={() => viewport.current?.scrollTo({ left: 190 })}>Tickets</button><button type="button" onClick={() => viewport.current?.scrollTo({ left: graph.width })}>People</button></div>
     <div className="ticket-graph-layout">
       <div ref={viewport} className="ticket-graph-viewport" role="region" aria-label="Interactive ticket graph; scroll to explore" tabIndex={0} onScroll={positionPeople}>
         <div className="ticket-graph-canvas" style={{ width: graph.width, height: graph.height }}>
           <div className="ticket-graph-axis ticket-graph-axis-workstreams">01 / Workstreams</div>
           <div className="ticket-graph-axis ticket-graph-axis-tickets">02 / Tickets</div>
-          {graph.tickets.length === 0 && <p className="ticket-graph-empty-note">All matching tickets are completed. Expand a workstream above to see them.</p>}
           {graph.clusters.map((cluster) => <div className="ticket-graph-cluster" key={cluster.key} style={{ top: cluster.top, height: cluster.height }} aria-hidden="true" />)}
           <svg className="ticket-graph-lines" width={graph.width} height={graph.height} viewBox={`0 0 ${graph.width} ${graph.height}`} aria-hidden="true" focusable="false">
             {visibleEdges.map((edge) => <path key={edge.key} d={pathBetween(edge.from, edge.to.kind === "person" ? { ...edge.to, ...personAnchors[edge.to.key] } : edge.to)} className={activeNode ? "graph-line graph-line-active" : "graph-line"} />)}

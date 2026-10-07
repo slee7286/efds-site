@@ -13,6 +13,19 @@ const tickets: GraphTicket[] = [
 ];
 
 describe("ticket relationship graph", () => {
+  it("never includes completed or cancelled work in the graph or its people and workstreams", () => {
+    const completed: GraphTicket = { ...tickets[0], id: "ticket-d", title: "Finished Events", status: "completed", workstream: "Done", assignees: [{ id: "done", name: "Former owner", role: "Events" }] };
+    const cancelled: GraphTicket = { ...tickets[0], id: "ticket-e", title: "Cancelled Events", status: "cancelled", workstream: "Archived", assignees: [{ id: "cancelled", name: "Past owner", role: "Events" }] };
+    const model = buildTicketGraph([...tickets, completed, cancelled]);
+    expect(model.tickets.map((node) => node.label)).toEqual(expect.not.arrayContaining(["Finished Events", "Cancelled Events"]));
+    expect(model.workstreams.map((node) => node.label)).toEqual(expect.not.arrayContaining(["Done", "Archived"]));
+    expect(model.people.map((node) => node.label)).toEqual(expect.not.arrayContaining(["Former owner", "Past owner"]));
+    const { container } = render(<TicketGraph tickets={[...tickets, completed, cancelled]} />);
+    expect(screen.queryByRole("link", { name: /Finished Events|Cancelled Events/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Show.*completed/ })).toBeNull();
+    expect(container.querySelectorAll(".graph-ticket")).toHaveLength(3);
+  });
+
   it("builds only recorded workstream and assignment links, including unassigned work", () => {
     const graph = buildTicketGraph(tickets);
     expect(graph.workstreams.map((node) => node.label)).toEqual(["Events", "Finance"]);
@@ -45,18 +58,15 @@ describe("ticket relationship graph", () => {
     expect(within(inspector).getByRole("heading", { name: "Follow the work." })).toBeTruthy();
   });
 
-  it("keeps people in their own rail and hides completed tickets until their workstream expands", () => {
+  it("keeps people in their own rail and shows an empty graph when only closed tickets remain", () => {
     const completed: GraphTicket = { ...tickets[0], id: "ticket-d", title: "Send event recap", status: "completed" };
-    const { container, rerender } = render(<TicketGraph tickets={[...tickets, completed]} />);
+    const cancelled: GraphTicket = { ...tickets[1], id: "ticket-e", title: "Cancel event", status: "cancelled" };
+    const { container, rerender } = render(<TicketGraph tickets={[...tickets, completed, cancelled]} />);
     expect(container.querySelector(".ticket-graph-people-rail")).toBeTruthy();
     expect(screen.queryByRole("link", { name: "Open ticket Send event recap, Completed" })).toBeNull();
-    const reveal = screen.getByRole("button", { name: "Show 1 completed in Events" });
-    expect(reveal.getAttribute("aria-expanded")).toBe("false");
-    fireEvent.click(reveal);
-    expect(screen.getByRole("link", { name: "Open ticket Send event recap, Completed" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Hide 1 completed in Events" }).getAttribute("aria-expanded")).toBe("true");
-    rerender(<TicketGraph tickets={[completed]} />);
-    fireEvent.click(screen.getByRole("button", { name: "Hide 1 completed in Events" }));
-    expect(screen.getByText("All matching tickets are completed. Expand a workstream above to see them.")).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Open ticket Cancel event, Cancelled" })).toBeNull();
+    rerender(<TicketGraph tickets={[completed, cancelled]} />);
+    expect(screen.getByRole("heading", { name: "No active relationships yet." })).toBeTruthy();
+    expect(screen.queryByRole("region", { name: /Interactive ticket graph/ })).toBeNull();
   });
 });

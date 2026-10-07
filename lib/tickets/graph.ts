@@ -39,6 +39,7 @@ const groupGap = 48;
 export function buildTicketGraph(tickets: GraphTicket[]): TicketGraphModel {
   const groups = new Map<string, GraphTicket[]>();
   for (const ticket of tickets) {
+    if (ticket.status === "completed" || ticket.status === "cancelled") continue;
     const workstream = ticket.workstream?.trim() || "Unsorted";
     groups.set(workstream, [...(groups.get(workstream) ?? []), ticket]);
   }
