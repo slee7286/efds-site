@@ -127,9 +127,11 @@ export async function provisionAuthenticatedProfile(user: User | null, client?: 
     return mapProfile(data as Record<string, unknown>);
   }
 
-  const { data, error } = await supabase
+  // A database trigger or another callback may provision after our first read.
+  // Ignore a duplicate identity rather than replacing its stored role or status.
+  const { error } = await supabase
     .from("profiles")
-    .insert({
+    .upsert({
       auth_user_id: user.id,
       email: normalizedEmail,
       full_name: fullName,
@@ -137,11 +139,9 @@ export async function provisionAuthenticatedProfile(user: User | null, client?: 
       member_type: isImperial ? "imperial" : decision.memberType,
       active: true,
       last_login_at: lastLoginAt,
-    })
-    .select("id, auth_user_id, email, full_name, avatar_path, access_role, efds_verification_status, efds_verification_claim, access_version, member_type, officer_id, active, last_login_at")
-    .single();
-  if (error || !data) return null;
-  return mapProfile(data as Record<string, unknown>);
+    }, { onConflict: "auth_user_id", ignoreDuplicates: true });
+  if (error) return null;
+  return getApplicationProfile(user, supabase);
 }
 
 // Kept as a compatibility name for callers from the initial V1 callback.

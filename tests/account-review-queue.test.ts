@@ -25,6 +25,13 @@ import { getAccountReviewData } from "@/lib/db/accounts";
 describe("account review queues", () => {
   beforeEach(() => { logs.length = 0; vi.clearAllMocks(); });
 
+  it("defaults to all active profiles without requiring a student claim", async () => {
+    await getAccountReviewData();
+    expect(requireRole).toHaveBeenCalledWith("admin");
+    const profiles = logs.find((log) => log.table === "profiles")!;
+    expect(profiles.filters).toEqual([["active", true]]);
+  });
+
   it("shows only requested student reviews, not every new EFDS member", async () => {
     await getAccountReviewData("pending");
     expect(requireRole).toHaveBeenCalledWith("admin");

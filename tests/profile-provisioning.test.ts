@@ -17,13 +17,60 @@ const memberRow = {
   officer_id: null, active: true, last_login_at: null,
 };
 
+function provisioningClient(concurrentRow?: typeof memberRow) {
+  let stored: typeof memberRow | null = null;
+  let reads = 0;
+  const maybeSingle = vi.fn(async () => {
+    const data = stored;
+    // Simulate a trigger/another callback committing after the initial lookup.
+    if (reads++ === 0 && concurrentRow) stored = { ...concurrentRow };
+    return { data, error: null };
+  });
+  const insert = vi.fn((values: Partial<typeof memberRow>) => {
+    const error = stored ? { code: "23505", message: "duplicate auth_user_id" } : null;
+    if (!stored) stored = { ...memberRow, ...values };
+    return { select: () => ({ single: async () => ({ data: error ? null : stored, error }) }) };
+  });
+  const upsert = vi.fn(async (values: Partial<typeof memberRow>, options: { onConflict?: string; ignoreDuplicates?: boolean }) => {
+    if (!stored || !options.ignoreDuplicates) stored = { ...memberRow, ...stored, ...values };
+    return { data: null, error: null };
+  });
+  return {
+    client: { from: () => ({ select: () => ({ eq: () => ({ maybeSingle }) }), insert, upsert }) },
+    insert, upsert, maybeSingle, stored: () => stored,
+  };
+}
+
 describe("profile provisioning boundary", () => {
-  it("creates a basic member even for a verified Imperial email", async () => {
-    const insert = vi.fn().mockReturnValue({ select: () => ({ single: async () => ({ data: memberRow, error: null }) }) });
-    const client = { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }), insert }) };
+  it("creates a basic member on first signup through a conflict-safe write and re-reads the stored profile", async () => {
+    const { client, upsert, maybeSingle } = provisioningClient();
     const profile = await provisionAuthenticatedProfile(user as never, client as never);
-    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ access_role: "member", member_type: "imperial" }));
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ auth_user_id: user.id, access_role: "member", member_type: "imperial" }),
+      { onConflict: "auth_user_id", ignoreDuplicates: true },
+    );
+    expect(maybeSingle).toHaveBeenCalledTimes(2);
     expect(profile?.verificationStatus).toBe("pending");
+    expect(profile?.accessRole).toBe("member");
+  });
+
+  it.each(["admin", "committee"])("returns a concurrently provisioned %s profile without overwriting its role", async (role) => {
+    const privileged = { ...memberRow, access_role: role, efds_verification_status: "approved", access_version: 4 };
+    const { client, stored, insert } = provisioningClient(privileged);
+    const profile = await provisionAuthenticatedProfile(user as never, client as never);
+    expect(profile?.accessRole).toBe(role);
+    expect(profile?.verificationStatus).toBe("approved");
+    expect(profile?.accessVersion).toBe(4);
+    expect(stored()).toEqual(privileged);
+    expect(insert).not.toHaveBeenCalled();
+  });
+
+  it("does not reactivate or return a concurrently provisioned inactive account", async () => {
+    const inactive = { ...memberRow, active: false, access_role: "admin" };
+    const { client, stored, upsert } = provisioningClient(inactive);
+    expect(await provisionAuthenticatedProfile(user as never, client as never)).toBeNull();
+    expect(upsert).toHaveBeenCalledWith(expect.anything(), { onConflict: "auth_user_id", ignoreDuplicates: true });
+    expect(stored()).toEqual(inactive);
   });
 
   it("never promotes an existing external account from an access exception during sign-in", async () => {

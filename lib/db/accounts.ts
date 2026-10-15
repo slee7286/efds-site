@@ -19,6 +19,32 @@ export type ReviewAccount = {
   verifiedAt: string | null;
 };
 
+export type UnprovisionedAccountReason = "email_unconfirmed" | "email_not_eligible" | "profile_conflict" | "profile_missing" | "account_disabled";
+export type UnprovisionedAccount = {
+  authUserId: string;
+  email: string;
+  fullName: string | null;
+  createdAt: string;
+  emailConfirmedAt: string | null;
+  reason: UnprovisionedAccountReason;
+};
+
+export async function getUnprovisionedAccounts(): Promise<UnprovisionedAccount[]> {
+  if (!isSupabaseConfigured) return [];
+  await requireRole("admin");
+  const supabase = await createServerSupabaseClient();
+  // The admin-only RPC returns at most 1,000 Auth registrations, never profile IDs.
+  const { data, error } = await supabase.rpc("admin_unprovisioned_accounts");
+  if (error) throw new Error(`Could not load registrations without profiles: ${error.message}`, { cause: error });
+  return (data ?? []).map((row: Record<string, unknown>) => ({
+    authUserId: String(row.auth_user_id), email: String(row.email),
+    fullName: row.full_name == null ? null : String(row.full_name),
+    createdAt: String(row.created_at),
+    emailConfirmedAt: row.email_confirmed_at == null ? null : String(row.email_confirmed_at),
+    reason: row.reason as UnprovisionedAccountReason,
+  }));
+}
+
 export type OfficerOption = { id: string; name: string; role: string; academicYear: string };
 export type AccountAccessEvent = { id: string; action: string; targetProfileId: string; actorProfileId: string; occurredAt: string; reason: string | null };
 export type AccountNoticeHealth = {
@@ -43,7 +69,7 @@ export async function getAccountNoticeHealth(): Promise<AccountNoticeHealth | nu
   };
 }
 
-export async function getAccountReviewData(status: "pending" | "standard" | "all" = "pending", page = 1) {
+export async function getAccountReviewData(status: "pending" | "standard" | "all" = "all", page = 1) {
   const empty = { accounts: [] as ReviewAccount[], officers: [] as OfficerOption[], events: [] as AccountAccessEvent[], pendingCount: 0, standardCount: 0, accountCount: 0 };
   if (!isSupabaseConfigured) return empty;
   await requireRole("admin");

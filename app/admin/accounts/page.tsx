@@ -1,9 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { AccountReviewForm } from "@/components/admin/account-review-form";
+import { UnprovisionedAccounts } from "@/components/admin/unprovisioned-accounts";
 import { getCurrentProfile } from "@/lib/auth/server";
 import { roleLabel } from "@/lib/auth/roles";
-import { getAccountNoticeHealth, getAccountReviewData } from "@/lib/db/accounts";
+import { getAccountNoticeHealth, getAccountReviewData, getUnprovisionedAccounts } from "@/lib/db/accounts";
 
 export const metadata: Metadata = { title: "Account review" };
 
@@ -17,10 +18,10 @@ const errors: Record<string, string> = {
 
 export default async function AdminAccountsPage({ searchParams }: { searchParams: Promise<{ status?: string; page?: string; error?: string; notice?: string }> }) {
   const params = await searchParams;
-  const status = params.status === "all" ? "all" : params.status === "standard" ? "standard" : "pending";
+  const status = params.status === "pending" ? "pending" : params.status === "standard" ? "standard" : "all";
   const requestedPage = Number(params.page);
   const page = Number.isInteger(requestedPage) && requestedPage > 0 && requestedPage <= 1000 ? requestedPage : 1;
-  const [data, actor, noticeHealth] = await Promise.all([getAccountReviewData(status, page), getCurrentProfile(), getAccountNoticeHealth()]);
+  const [data, actor, noticeHealth, registrations] = await Promise.all([getAccountReviewData(status, page), getCurrentProfile(), getAccountNoticeHealth(), getUnprovisionedAccounts()]);
   const names = new Map(data.accounts.map((account) => [account.id, account.fullName || account.email]));
 
   return <div className="app-content account-review-page">
@@ -46,7 +47,7 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
         : "Email delivery status is temporarily unavailable. Check the mail worker and database migration."}</p>
     </section>
     <nav className="account-review-tabs" aria-label="Account review filters">
-      <Link href="/admin/accounts" aria-current={status === "pending" ? "page" : undefined}>Needs review <span>{data.pendingCount}</span></Link>
+      <Link href="/admin/accounts?status=pending" aria-current={status === "pending" ? "page" : undefined}>Needs review <span>{data.pendingCount}</span></Link>
       <Link href="/admin/accounts?status=standard" aria-current={status === "standard" ? "page" : undefined}>Non-EFDS students <span>{data.standardCount}</span></Link>
       <Link href="/admin/accounts?status=all" aria-current={status === "all" ? "page" : undefined}>All active accounts</Link>
       <Link href="/admin/committee">Officer roster ↗</Link>
@@ -57,9 +58,10 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
         <div className="account-review-detail"><div><span>Joined</span><strong>{new Date(account.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" })}</strong></div><div><span>Student status claim</span><p>{account.claim || "No claim submitted yet. Check an independent EFDS degree record before approval."}</p></div></div>
         <AccountReviewForm account={account} officers={data.officers} isSelf={account.id === actor?.id} />
       </article>)}
-      {!data.accounts.length && <div className="surface empty-state"><h2>{status === "pending" ? "No accounts need review." : status === "standard" ? "No non-EFDS student decisions yet." : "No active accounts found."}</h2><p>{status === "pending" ? "Student verification requests appear here after an EFDS member submits degree details. New accounts are already active and remain visible under All active accounts." : status === "standard" ? "Accounts confirmed as non-EFDS students will appear here and can be verified later if their status changes." : "Accounts appear after people complete sign-in."}</p></div>}
+      {!data.accounts.length && <div className="surface empty-state"><h2>{status === "pending" ? "No accounts need review." : status === "standard" ? "No non-EFDS student decisions yet." : "No active accounts found."}</h2><p>{status === "pending" ? "Student verification requests appear here after an EFDS member submits degree details. New accounts are already active and remain visible under All active accounts." : status === "standard" ? "Accounts confirmed as non-EFDS students will appear here and can be verified later if their status changes." : "Accounts appear once email ownership is confirmed and an application profile is provisioned."}</p></div>}
     </section>
     {data.accountCount > 25 && <nav className="account-review-pagination" aria-label="Account pages"><span>Page {page} of {Math.ceil(data.accountCount / 25)}</span><div>{page > 1 && <Link className="button button-quiet" href={`/admin/accounts?status=${status}&page=${page - 1}`}>Previous</Link>}{page * 25 < data.accountCount && <Link className="button button-quiet" href={`/admin/accounts?status=${status}&page=${page + 1}`}>Next</Link>}</div></nav>}
+    <UnprovisionedAccounts accounts={registrations} />
     <section className="surface account-review-history" aria-labelledby="account-review-history-heading"><div className="panel-heading"><h2 id="account-review-history-heading">Recent access decisions</h2><span>Latest 20</span></div>{data.events.length ? <ol>{data.events.map((event) => <li key={event.id}><strong>{event.action === "decline" ? "Confirmed non-EFDS student" : event.action === "verify" ? "Verified EFDS student" : event.action.replaceAll("_", " ")}</strong><span>{names.get(event.targetProfileId) ?? "Account"} · by {names.get(event.actorProfileId) ?? "EFDS admin"}</span><time dateTime={event.occurredAt}>{new Date(event.occurredAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/London" })}</time>{event.reason && <p>{event.reason}</p>}</li>)}</ol> : <p className="muted">No access decisions have been recorded through this review panel yet.</p>}</section>
   </div>;
 }

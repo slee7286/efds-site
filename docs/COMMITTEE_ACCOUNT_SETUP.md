@@ -16,12 +16,26 @@ Use your own account. Eligible new accounts start as **EFDS members**, with full
 
 ## For EFDS account administrators
 
-Use the [Accounts review panel](https://www.imperial-efds.com/admin/accounts) after the person requests EFDS student verification. Check an independent degree or cohort record through a trusted source. A name, Imperial email, society membership or self-description alone is not sufficient evidence. The panel records the acting admin, decision and date. It prevents direct role changes, stale edits and more than two active accounts linking to the same officer entry.
+Use the [Accounts review panel](https://www.imperial-efds.com/admin/accounts), which opens on **All active accounts** by default. This includes EFDS members who have not submitted a student-verification claim. **Needs review** is the explicit [`?status=pending`](https://www.imperial-efds.com/admin/accounts?status=pending) filter and shows only submitted student-verification requests; it is not a directory of every registration. **Non-EFDS students** keeps its separate decision filter. Active accounts remain paginated.
 
-1. **Verify EFDS student status.** In **Needs review**, open the person's exact account. Compare their claim with an independent degree record. Select **Verify EFDS student status** and save. If the person is not an EFDS student, select **Confirm non-EFDS student**. The account keeps EFDS member event and public access, moves to **Non-EFDS students**, and can still be promoted later if their enrolment changes or the decision was mistaken.
+Check an independent degree or cohort record through a trusted source. A name, Imperial email, society membership or self-description alone is not sufficient evidence. Members without a submitted claim can also be reviewed from **All active accounts** when independent evidence establishes their EFDS degree enrolment; do not infer enrolment from a missing claim. The panel records the acting admin, decision and date. It prevents direct role changes, stale edits and more than two active accounts linking to the same officer entry.
+
+1. **Verify EFDS student status.** Open the person's exact account in **Needs review** for a submitted claim, or **All active accounts** if they have not submitted one. Compare any claim with an independent degree record and establish enrolment from that record before approval. Select **Verify EFDS student status** and save. If the person is not an EFDS student, select **Confirm non-EFDS student**. The account keeps EFDS member event and public access, moves to **Non-EFDS students**, and can still be promoted later if their enrolment changes or the decision was mistaken.
 2. **Grant committee access.** After verification, switch to **All active accounts**, find that account, select **Grant committee access** and save. Verification and promotion are deliberately separate decisions.
 3. **Link the correct officer entry.** Open [Admin → Committee](https://www.imperial-efds.com/admin/committee). On the matching officer card, enter the member's exact account email and select **Link account**. Each officer role accepts up to two accounts; each account can link to only one role. The account must already have committee or admin access. To correct a mistaken link, select **Remove link** beside that account before assigning another.
 4. **Check the outcome.** Ask the member to refresh their profile and ticket dashboard. Use the account panel's recent access decisions to confirm what changed and when, and check its account-email delivery status. Linking or removing a roster identity queues an email to the affected account. Admin promotion cannot be applied to an unverified account. An admin cannot change their own role or remove the last active admin.
+
+### Registrations without profiles
+
+The always-visible **Registrations without profiles** section is separate from the active-account directory, its filters and pagination. It shows up to 1,000 Auth registrations that have no application profile, with their registration time, email-confirmation status and reason. These registrations have no profile ID and no verification, promotion or officer-link controls.
+
+- **Account disabled:** ask an authorised operator to review the Auth restriction. Do not bypass it by creating a profile or granting roles.
+- **Email confirmation pending:** the person must request a new sign-in or signup email themselves, open the newest email and complete confirmation. Administrators must not force-confirm the email or promote the registration to bypass ownership checks.
+- **Email not eligible:** check the exact address and, where appropriate, the approved external-access process with an authorised operator. Registration alone does not establish eligibility.
+- **Profile conflict:** ask an authorised operator to investigate the conflicting identity. Do not create a second account or work around it by changing roles.
+- **Profile missing:** email ownership is confirmed, but the application profile is absent. Ask an authorised operator to investigate profile provisioning before reviewing access.
+
+Eligible confirmed registrations are provisioned by the database; callback provisioning is an idempotent fallback that must preserve stored roles and inactive accounts. Email confirmation is not EFDS degree verification or committee approval. If this section cannot load, investigate the reported RPC or database migration error rather than treating it as an empty queue.
 
 The old `grant_access.py` database command remains a bootstrap or recovery tool for an authorised operator; routine account reviews now belong in the audited dashboard. Do not put database credentials in a command, shared document or chat.
 
