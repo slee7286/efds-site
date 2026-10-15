@@ -2,6 +2,16 @@ import { describe, expect, it } from "vitest";
 import { companyGuide, getGuideCompany, guideTopics } from "@/lib/careers/company-guide";
 
 describe("published company research", () => {
+  it("uses familiar firm names while retaining the precise research entity", () => {
+    expect(getGuideCompany("brevan-howard-6f761511")).toMatchObject({
+      name: "Brevan Howard",
+      entityName: "Brevan Howard employer platform; BHIM Ltd is a distinct UK-regulated entity",
+    });
+    expect(getGuideCompany("j-p-morgan-b035f422")?.name).toBe("J.P. Morgan");
+    expect(getGuideCompany("bain-company-9fdef41c")?.name).toBe("Bain & Company");
+    expect(getGuideCompany("citadel-e5deb41a")?.name).toBe("Citadel");
+    expect(getGuideCompany("citadel-securities-2188e3dc")?.name).toBe("Citadel Securities");
+  });
   it("includes every reviewed public brief with topic coverage and source links", () => {
     expect(companyGuide.companies).toHaveLength(192);
     expect(companyGuide.companies.reduce((sum, company) => sum + company.findings.length, 0)).toBe(2453);

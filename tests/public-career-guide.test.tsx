@@ -21,13 +21,15 @@ describe("public company guide", () => {
     expect(html).not.toContain("Accuracy"); // reviewed but not featured
   });
 
-  it("renders each featured brief with its source links to anonymous visitors", async () => {
+  it("renders each featured brief with optional source references to anonymous visitors", async () => {
     for (const example of examples) {
       const page = await PublicBriefPage({ params: Promise.resolve({ company: example.guideId }) });
       const html = renderToStaticMarkup(page);
       expect(html).toContain(example.name.replaceAll("&", "&amp;"));
       expect(html).toContain("Scope:");
-      expect(html).toContain("career-guide-citations");
+      expect(html).toContain("career-guide-source-mark");
+      expect(html).toContain("Show sources");
+      expect(html).not.toContain('type="checkbox" checked');
       expect(html).not.toContain("Request student verification");
     }
   });

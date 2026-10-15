@@ -1,20 +1,64 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { type CompanyGuide, guideTopics } from "@/lib/careers/company-guide";
 
+type Finding = CompanyGuide["findings"][number];
+
+// Keep full statements and their provenance intact, but avoid both individual
+// cards and a single unbroken wall of text for a heavily researched topic.
+function paragraphs(findings: Finding[]) {
+  const result: Finding[][] = [];
+  let length = 0;
+  for (const finding of findings) {
+    if (!result.length || result[result.length - 1].length >= 3 || length + finding.statement.length > 1050) {
+      result.push([]);
+      length = 0;
+    }
+    result[result.length - 1].push(finding);
+    length += finding.statement.length;
+  }
+  return result;
+}
+
 export function CompanyBrief({ company, backHref }: { company: CompanyGuide; backHref: string }) {
+  const topics = guideTopics.filter(([topic]) => company.findings.some((finding) => finding.topic === topic));
+  const sources = new Map<string, Finding["citations"][number]>();
+  for (const [topic] of topics) {
+    for (const finding of company.findings.filter((item) => item.topic === topic)) {
+      for (const citation of finding.citations) if (!sources.has(citation.url)) sources.set(citation.url, citation);
+    }
+  }
+  const sourceNumbers = new Map([...sources.keys()].map((url, index) => [url, index + 1]));
+  const bodyId = `${company.id}-findings`;
+  const sourceId = `${company.id}-sources`;
+  const findingId = (id: string) => `${company.id}-${id}`;
+
   return <div className="career-guide career-guide-detail">
     <Link className="career-guide-back" href={backHref}><ArrowLeft size={15} /> All company research</Link>
-    <div className="eyebrow">Reviewed company brief · {company.reviewedAt}</div><h1>{company.name}</h1><p className="app-subtitle">{company.findings.length} sourced findings across the business, its work and the recruiting evidence.</p>
-    <div className="career-guide-note"><strong>Read with the right scope</strong><p>Each finding has its own source and scope. A group-level statement may not describe a particular office or role. Openings and deadlines may have changed since this {company.reviewedAt} snapshot; check the employer’s current careers site.</p></div>
-    <nav className="career-guide-toc" aria-label="Company brief sections">{guideTopics.filter(([topic]) => company.findings.some((finding) => finding.topic === topic)).map(([topic, label]) => <a key={topic} href={`#${topic}`}>{label}</a>)}</nav>
-    {guideTopics.map(([topic, label]) => {
-      const findings = company.findings.filter((finding) => finding.topic === topic);
-      if (!findings.length) return null;
-      return <section className="career-guide-topic" id={topic} key={topic}><div className="career-guide-topic-heading"><span>{String(guideTopics.findIndex(([item]) => item === topic) + 1).padStart(2, "0")}</span><h2>{label}</h2><small>{findings.length} {findings.length === 1 ? "finding" : "findings"}</small></div><div className="career-guide-findings">{findings.map((finding) => <article className="career-guide-finding" key={finding.id}><p>{finding.statement}</p><div className="career-guide-scope">Scope: {finding.scope}{finding.eventDate ? ` · Event date: ${finding.eventDate}` : ""}</div><div className="career-guide-citations">{finding.citations.map((citation, index) => <a key={`${finding.id}-${index}`} href={citation.url} target="_blank" rel="noopener noreferrer">{citation.publisher}: {citation.title} <ArrowUpRight size={12} aria-hidden="true" /><span className="sr-only"> (opens in new tab)</span></a>)}</div></article>)}</div></section>;
-    })}
-    {!!company.roles.length && <section className="career-guide-extra"><h2>Role briefs in the research</h2><p>These refer to the source snapshot and do not establish that an application is still open.</p><ul>{company.roles.map((role, index) => <li key={`${role.title}-${index}`}><strong>{role.title}</strong><span>{role.office}</span></li>)}</ul></section>}
-    {!!company.gaps.length && <section className="career-guide-extra"><h2>Evidence gaps</h2><ul>{company.gaps.map((gap, index) => <li key={index}><strong>{gap.topic}</strong><span>{gap.description}</span></li>)}</ul></section>}
-    {!!company.openQuestions.length && <section className="career-guide-extra"><h2>Questions to verify</h2><ul>{company.openQuestions.map((question, index) => <li key={index}>{question}</li>)}</ul></section>}
+    <div className="eyebrow">Reviewed company brief · {company.reviewedAt}</div>
+    <div className="career-guide-brief-header">
+      <div><h1>{company.name}</h1><p className="career-guide-brief-meta">{company.findings.length} findings · {topics.length} topics · {sources.size} sources</p></div>
+      <label className="career-guide-source-toggle"><input className="career-guide-source-switch" type="checkbox" aria-controls={`${bodyId} ${sourceId}`} /> <span>Show sources</span></label>
+    </div>
+    <p className="career-guide-snapshot">Reviewed snapshot, not a live vacancy board. Group, legal-entity and role scopes differ; check current openings with the employer.</p>
+    <nav className="career-guide-toc" aria-label="Company brief sections">{topics.map(([topic, label]) => <a key={topic} href={`#${topic}`}>{label}</a>)}</nav>
+    <div className="career-guide-topic-grid" id={bodyId}>
+      {topics.map(([topic, label]) => {
+        const findings = company.findings.filter((finding) => finding.topic === topic);
+        return <section className="career-guide-topic" id={topic} key={topic} aria-labelledby={`${company.id}-${topic}-heading`}>
+          <div className="career-guide-topic-heading"><span>{String(guideTopics.findIndex(([item]) => item === topic) + 1).padStart(2, "0")}</span><h2 id={`${company.id}-${topic}-heading`}>{label}</h2></div>
+          {paragraphs(findings).map((group) => <p className="career-guide-paragraph" key={group[0].id}>{group.map((finding, index) => <span id={findingId(finding.id)} data-finding-id={finding.id} key={finding.id}>{index > 0 && " "}{finding.statement}<sup className="career-guide-source-mark">{finding.citations.map((citation) => <a key={citation.url} href={citation.url} target="_blank" rel="noopener noreferrer" title={`${citation.publisher}: ${citation.title}`} aria-label={`Source ${sourceNumbers.get(citation.url)}: ${citation.publisher}: ${citation.title} (opens in new tab)`}>[{sourceNumbers.get(citation.url)}]</a>)}</sup></span>)}</p>)}
+        </section>;
+      })}
+    </div>
+    {!!company.roles.length && <section className="career-guide-extra career-guide-roles"><h2>Role briefs</h2><p>Source-snapshot roles; inclusion does not mean applications are still open.</p><ul>{company.roles.map((role, index) => <li key={`${role.title}-${index}`}><strong>{role.title}</strong><span>{role.office}</span></li>)}</ul></section>}
+    <div className="career-guide-research-notes">
+      <details className="career-guide-extra career-guide-context"><summary>Scope and research context</summary><p>{company.entityName}</p><ol>{topics.flatMap(([topic, label]) => company.findings.filter((finding) => finding.topic === topic).map((finding, index) => <li key={finding.id}><a href={`#${findingId(finding.id)}`}>{label} {index + 1}</a><span>Scope: {finding.scope}{finding.eventDate ? ` · Event date: ${finding.eventDate}` : ""}</span></li>))}</ol></details>
+      {!!company.gaps.length && <details className="career-guide-extra"><summary>Evidence gaps <span>{company.gaps.length}</span></summary><ul>{company.gaps.map((gap, index) => <li key={index}><strong>{gap.topic}</strong><span>{gap.description}</span></li>)}</ul></details>}
+      {!!company.openQuestions.length && <details className="career-guide-extra"><summary>Questions to verify <span>{company.openQuestions.length}</span></summary><ul>{company.openQuestions.map((question, index) => <li key={index}>{question}</li>)}</ul></details>}
+    </div>
+    <section className="career-guide-extra career-guide-source-list" id={sourceId} aria-label="Sources">
+      <h2>Sources</h2><ol>{[...sources.values()].map((source) => <li key={source.url}><sup><a href={source.url} target="_blank" rel="noopener noreferrer" aria-label={`Source ${sourceNumbers.get(source.url)}: ${source.publisher}: ${source.title} (opens in new tab)`}>[{sourceNumbers.get(source.url)}]</a></sup><div><strong>{source.publisher}</strong><span>{source.title}</span><small>Retrieved {source.retrievedAt}</small></div></li>)}</ol>
+    </section>
   </div>;
 }
